@@ -1,152 +1,278 @@
 <!DOCTYPE html>
-<html lang="si">
-<head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>දත්ත ඇතුළත් කිරීම | Unit — FieldWork OS</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link rel="stylesheet" href="styles.css">
+<html lang="si"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Unit - Data Entry | FieldWork OS v12 FINAL • DD Kandy</title><script src="https://cdn.tailwindcss.com"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><link rel="stylesheet" href="styles.css">
+<style>
+.modal-back{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:100;display:none;align-items:flex-end;justify-content:center;padding:12px}
+.modal-back.show{display:flex}
+.modal-card{background:#fff;border-radius:22px 22px 16px 16px;width:100%;max-width:460px;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(80px);background:#0f172a;color:#fff;padding:12px 18px;border-radius:999px;font-size:13px;font-weight:600;z-index:120;transition:.25s;max-width:92vw;text-align:center}
+.toast.show{transform:translateX(-50%) translateY(0)} .toast.ok{background:#059669}.toast.err{background:#dc2626}
+@media(min-width:640px){.modal-back{align-items:center}.modal-card{border-radius:20px}}
+</style>
 </head>
-<body class="bg-[#f8fafc] min-h-screen">
-<div class="max-w-[980px] mx-auto p-4 md:p-6">
-  <div class="flex justify-between items-center mb-6">
-    <div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-indigo-600 grid place-items-center text-white font-bold">ආ</div><div><div class="font-bold">ක්ෂේත්‍ර ඒකකය</div><div class="text-xs text-slate-500">Mobile / Tab / Desktop / Android / iOS</div></div></div>
-    <button onclick="logout()" class="btn btn-ghost">Logout</button>
-  </div>
 
-  <div class="grid md:grid-cols-[1.1fr_.9fr] gap-6">
-    <div class="card animate-in">
-      <div class="flex justify-between"><h2 class="font-bold text-[20px]">ප්‍රතිලාභී තොරතුරු ඇතුළත් කිරීම</h2><span class="badge badge-blue">Auto Save Draft</span></div>
-      <p class="text-xs text-slate-500 mt-1">අඩිම මට්ටමේ ඒකක හට දත්ත ඇතුළත් කිරීම • View own • Download</p>
+<div id="modalBack" class="modal-back" onclick="if(event.target===this) closeModal(false)"><div class="modal-card"><div id="modalIcon" class="text-3xl">ℹ️</div><h3 id="modalTitle" class="font-bold text-[18px] mt-2"></h3><p id="modalMsg" class="text-sm text-slate-500 mt-1"></p><div id="modalInputWrap" class="hidden mt-3"><input id="modalInput"></div><div class="flex gap-2 mt-5"><button onclick="closeModal(false)" class="btn btn-ghost flex-1">Cancel</button><button onclick="closeModal(true)" class="btn btn-primary flex-1">OK</button></div></div></div><div id="toast" class="toast"></div>
+<body class="bg-[#f8fafc] min-h-screen"><div class="max-w-[1080px] mx-auto p-4 md:p-6">
+<div class="flex justify-between items-center mb-4"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-indigo-600 grid place-items-center text-white font-bold">A</div><div><div class="font-bold">ක්ෂේත්‍ර ඒකකය - Data Entry <span class="text-[10px] px-2 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold whitespace-nowrap">v12 FINAL • DD Kandy</span></div><div class="text-xs text-slate-500">Login 1 වරක් - සියල්ල Auto Fill</div></div></div><div class="flex gap-2"><button onclick="setLang('si')" class="btn btn-ghost px-2 text-xs">සිංහල</button><button onclick="setLang('ta')" class="btn btn-ghost px-2 text-xs">தமிழ்</button><button onclick="logout()" class="btn btn-ghost">Logout</button></div></div>
 
-      <div id="ok" class="hidden mt-4 rounded-xl bg-green-50 border border-green-200 p-3 text-sm text-green-700">✔ දත්ත සාර්ථකව සුරකින ලදී! Data saved</div>
+<div class="rounded-2xl bg-[#0f172a] text-white p-5"><div class="text-[11px] text-slate-400">LOCKED - Login එකෙන් Auto Set - වෙනස් කළ නොහැක - Response එකේ Auto Save වේ</div><div class="grid md:grid-cols-4 gap-4 mt-3">
+<div class="rounded-xl bg-white/10 p-3"><div class="text-[11px] text-slate-400">Upa Karyalaya / උප කාර්යාලය</div><div class="font-bold text-sm mt-1" id="lockSub">-</div></div>
+<div class="rounded-xl bg-white/10 p-3"><div class="text-[11px] text-slate-400">Upa Privu (45)</div><div class="font-bold text-sm mt-1" id="lockDiv">-</div></div>
+<div class="rounded-xl bg-white/10 p-3"><div class="text-[11px] text-slate-400">Karyalaya (Office)</div><div class="font-bold text-sm mt-1" id="lockOffice">-</div></div>
+<div class="rounded-xl bg-white/10 p-3"><div class="text-[11px] text-slate-400">Officer</div><div class="font-bold text-sm mt-1" id="lockUser">-</div></div>
+</div></div>
 
-      <form id="entryForm" class="mt-5 space-y-4">
-        <div class="grid grid-cols-2 gap-3">
-          <div><label class="text-xs font-semibold">වර්ෂය / කාලය</label><select id="period"><option>2026-H1</option><option>2026-H2</option></select></div>
-          <div><label class="text-xs font-semibold">උප අංශය (Division)</label><select id="division"><option>උප අංශය 01 - උතුර</option><option>උප අංශය 02 - දකුණ</option><option>උප අංශය 03 - නැගෙනහිර</option><option>උප අංශය 04 - බටහිර</option></select></div>
-        </div>
-        <div><label class="text-xs font-semibold">ව්‍යාපෘතිය (Project) *</label><select id="project" onchange="loadSub()" required><option value="">-- තෝරන්න --</option><option>PSDG ව්‍යාපෘතිය</option><option>CBG ව්‍යාපෘතිය</option><option>නකල්ස් ව්‍යාපෘතිය</option></select></div>
-        <div id="subWrap" class="hidden"><label class="text-xs font-semibold">වැඩසටහන (Sub-Program)</label><select id="subProgram" onchange="loadItem()"></select></div>
-        <div id="itemWrap" class="hidden"><label class="text-xs font-semibold">භාණ්ඩය / Item</label><select id="item"></select></div>
-
-        <div class="border-t pt-4 mt-2">
-          <h3 class="font-bold text-sm">ප්‍රතිලාභියාගේ විස්තර</h3>
-          <div class="grid gap-3 mt-3">
-            <div><label class="text-xs font-semibold">නම (Name) *</label><input id="bName" placeholder="සම්පූර්ණ නම" required></div>
-            <div class="grid grid-cols-2 gap-3"><div><label class="text-xs font-semibold">දුරකථන</label><input id="bPhone" placeholder="07XXXXXXXX"></div><div><label class="text-xs font-semibold">NIC</label><input id="bNic" placeholder="1990XXXXXXXX"></div></div>
-            <div class="grid grid-cols-2 gap-3"><div><label class="text-xs font-semibold">ඒකකය</label><select id="bUnit"><option>kg</option><option>පැකට්</option><option>අංක</option><option>ලීටර්</option></select></div><div><label class="text-xs font-semibold">ප්‍රමාණය *</label><input id="bQty" type="number" required></div></div>
-            <div><label class="text-xs font-semibold">ලිපිනය / Notes</label><textarea id="bNote" rows="2" placeholder="අමතර තොරතුරු..."></textarea></div>
-          </div>
-        </div>
-
-        <!-- Dynamic questions -->
-        <div id="dynQuestions" class="space-y-3 border-t pt-4"></div>
-
-        <button class="btn btn-primary w-full py-3.5">📤 දත්ත යොමු කරන්න / Submit</button>
-        <div class="text-[11px] text-slate-400 text-center">මෙම උපාංගයේ ක්‍රියා කරයි: Mobile • Desktop • Tab • Android • iOS • Windows • PWA</div>
-      </form>
-    </div>
-
-    <div class="space-y-4">
-      <div class="card">
-        <div class="flex justify-between items-center"><h3 class="font-bold">මා විසින් යවන ලද දත්ත</h3><button onclick="downloadMy()" class="btn btn-success text-xs px-3 py-1.5">⬇ CSV</button></div>
-        <p class="text-xs text-slate-500 mt-1">තනියම ප්‍රකාශිත දත්ත බැලීම සහ Download</p>
-        <div class="table-wrap mt-4"><table><thead><tr><th>කාලය</th><th>විස්තර</th><th>ක්‍රියා</th></tr></thead><tbody id="myTbody"></tbody></table></div>
-      </div>
-      <div class="rounded-2xl bg-indigo-600 text-white p-5"><div class="font-bold">උපදෙස්</div><div class="text-sm opacity-90 mt-2 leading-relaxed">• දත්ත ඇතුළත් කිරීමෙන් පසු Edit කළ නොහැක — Admin අමතන්න<br>• CSV බාගත කර Excel හි විවෘත කළ හැක<br>• Offline draft localStorage හි සුරකී</div></div>
-    </div>
-  </div>
+<div class="grid md:grid-cols-2 gap-4 mt-5">
+<button onclick="showSection('form')" id="btnForm" class="text-left rounded-2xl border-2 border-indigo-600 bg-indigo-600 text-white p-5"><div class="font-bold text-lg">📝 1. Data Entry - දත්ත ඇතුළත් කරන්න</div><div class="text-sm opacity-90 mt-1">Extension / Development - Admin Published ඒවා පමණයි</div></button>
+<button onclick="showSection('mydata')" id="btnMy" class="text-left rounded-2xl border p-5 bg-white"><div class="font-bold text-lg">📊 2. My Data - මගේ දත්ත</div><div class="text-sm text-slate-500 mt-1">බලන්න / Edit / Filter / Download</div></button>
 </div>
 
+<div id="panel-form" class="card mt-5">
+<h2 class="font-bold text-[20px]">Data Entry - පියවරෙන් පියවර තෝරන්න</h2>
+<div class="mt-4 space-y-4">
+<div><label class="text-xs font-semibold">1. Extension / Development තෝරන්න *</label><div class="grid grid-cols-2 gap-3 mt-1"><button type="button" onclick="uSelectMain('extension')" id="uExt" class="py-3 rounded-xl font-semibold bg-indigo-600 text-white">🌾 Extension</button><button type="button" onclick="uSelectMain('development')" id="uDev" class="py-3 rounded-xl font-semibold bg-slate-100">🏗️ Development</button></div></div>
+<div id="uL1Wrap"><label class="text-xs font-semibold" id="uL1Label">2. Season / Year තෝරන්න *</label><select id="uL1" onchange="uPickL1()"></select><div class="text-[11px] text-slate-400 mt-1">Admin Publish කළ ඒවා පමණයි පෙන්වන්නේ. උදා: Extension - 2026/27 Maha පමණයි, Development - 2026 පමණයි.</div></div>
+<div id="uL2Wrap"><label class="text-xs font-semibold" id="uL2Label">3. Cultivation / Program තෝරන්න *</label><select id="uL2" onchange="uPickL2()"></select></div>
+<div id="uL3Wrap" class="hidden"><label class="text-xs font-semibold">4. Sub Program තෝරන්න * (Development පමණි)</label><select id="uL3" onchange="uPickL3()"></select><div class="text-[11px] text-slate-400 mt-1">මුලින්ම Sub Program එක තෝරන්න - ඊට පස්සේ Item / Farmer විස්තර එනවා.</div></div>
+<div id="uSubWrap" class="hidden"><label class="text-xs font-semibold">4. உப பிரிவு / Sub-section தேர்வு செய்யுங்கள் * (Extension)</label><select id="uSub" onchange="uPickSub()"></select><div class="text-[11px] text-slate-400 mt-1">Cultivation-இன் பின் உப பிரிவு வரும். இல்லை என்றால் “— இல்லை —” தேர்வு செய்யுங்கள்.</div></div>
+<div id="uItemWrap" class="hidden"><label class="text-xs font-semibold">5. Item / Items Name — ஒன்று அல்லது பல தேர்வு செய்யலாம் * (Development)</label><div id="uItemList" class="mt-2 space-y-1"></div><div class="text-[11px] text-slate-400 mt-1">Item இல்லை என்றால் “Item இல்லை” தேர்வு செய்யுங்கள்.</div></div>
+</div>
+<div id="uFormWrap" class="mt-5"></div><div id="uEmpty" class="hidden rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm">මේ කොටසට Form / Questions නැහැ. Admin ගෙන් අහන්න.</div>
+</div>
+
+<div id="panel-mydata" class="card mt-5 hidden">
+<div class="flex flex-wrap justify-between gap-2"><h2 class="font-bold text-[20px]">My Data - මම Update කළ දත්ත</h2><button onclick="downloadMyCSV()" class="btn btn-success text-xs px-3 py-1.5">CSV Download</button></div>
+<div class="grid md:grid-cols-3 gap-3 mt-4"><select id="myFilterMain" onchange="renderMy()"><option value="">All - Extension + Development</option><option value="extension">Extension</option><option value="development">Development</option></select><select id="myFilterL1" onchange="renderMy()"><option value="">All Season / Year</option></select><input id="mySearch" placeholder="Search - Farmer / Item / Division..." oninput="renderMy()"></div>
+<div class="table-wrap mt-4"><table><thead><tr><th>Path</th><th>Answers</th><th>Date</th><th>Action</th></tr></thead><tbody id="myTbody"></tbody></table></div>
+<div id="myEditBox" class="hidden mt-4 border rounded-xl p-4"><h4 class="font-bold">Edit - සංස්කරණය</h4><div id="myEditFields" class="mt-3 space-y-3"></div><div class="flex gap-2 mt-3"><button onclick="saveMyEdit()" class="btn btn-primary px-4">Save Edit</button><button onclick="closeMyEdit()" class="btn btn-ghost px-4">Cancel</button></div></div>
+</div>
+
+<div class="rounded-2xl bg-indigo-600 text-white p-5 mt-5"><div class="font-bold">උපදෙස්</div><div class="text-sm opacity-90 mt-2">- Submit කළ පසු අලුත් Form එකක් පුරවන්න <b>Clear / අලුත් Form</b> Button එක ඔබන්න<br>- Development: Project → Item → Farmer Name / Address / Telephone / ID / Quantity / Unit / 50% / Price - පිළිවෙලට පුරවන්න<br>- එකම Privu එකේ කාර්යාල 2 ක් තිබේ නම්, එකින් එක Login වී වෙන වෙනම Submit කරන්න</div></div>
+</div>
 <script>
+
+var __mRes=null;
+function showToast(m,ok){var t=document.getElementById('toast');t.textContent=m;t.className='toast show '+(ok===false?'err':ok===true?'ok':'');setTimeout(function(){t.className='toast';},2600);}
+function openModal(o){return new Promise(function(res){__mRes=res;document.getElementById('modalIcon').textContent=o.icon||'ℹ️';document.getElementById('modalTitle').textContent=o.title||'';document.getElementById('modalMsg').textContent=o.msg||'';document.getElementById('modalInputWrap').classList.toggle('hidden',!o.input);if(o.input){document.getElementById('modalInput').value=o.value||'';}document.getElementById('modalBack').classList.add('show');});}
+function closeModal(ok){document.getElementById('modalBack').classList.remove('show');if(__mRes){var r=__mRes;__mRes=null;r({ok:ok,value:document.getElementById('modalInput').value});}}
+function profConfirm(m,t){return openModal({title:t||'நிச்சயமா?',msg:m,icon:'⚠️',okText:'OK'}).then(function(r){return r.ok;});}
+
+// Login Guard (URL Hash Handoff உடன் - Admin Guard போல)
+(function(){ try{ var h=(location.hash||''); if(h.indexOf('#fw=')===0){ try{ var decoded=decodeURIComponent(escape(atob(h.slice(4)))); var hj=JSON.parse(decoded); if(hj&&hj.user&&hj.role){ localStorage.setItem('fw_session',decoded); localStorage.setItem('role',hj.role); localStorage.setItem('user',hj.user); } }catch(e2){} try{ history.replaceState(null,'',location.pathname); }catch(e3){} } }catch(e){} var s=localStorage.getItem('fw_session');var r=localStorage.getItem('role');var u=localStorage.getItem('user');if(!s||!r||!u){ setTimeout(function(){ window.location.href='index.html'; }, 1500); return;}try{var j=JSON.parse(s);if(j.exp&&Date.now()>j.exp){window.location.href='index.html';}}catch(e){}})();
 const SUPABASE_URL='https://ecpoyxjuednjixmaajux.supabase.co';
 const SUPABASE_KEY='sb_publishable_kbTMWrgN1_lRxClNYU-PQg_Qc9jpmSe';
-const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-let myEntries=JSON.parse(localStorage.getItem('myEntries')||'[]');
-const projectMap={
-  'PSDG ව්‍යාපෘතිය': ["1.1.1.1. බිත්තර වී නිෂ්පාදනය","1.1.6.1 එළවළු බීජ නිෂ්පාදනයට සහාය වීම","1.1.8.1 ගොවීන් සඳහා වැසි ආවරණ ඉදි කිරීම"],
-  'CBG ව්‍යාපෘතිය': ["CBG - Community Base","CBG - Training"],
-  'නකල්ස් ව්‍යාපෘතිය': ["Knuckles - Conservation","Knuckles - Livelihood"]
-};
-const itemMap={
-  "1.1.1.1. බිත්තර වී නිෂ්පාදනය": ["බිත්තර වී සැපයීම (50%)","ඇසුරුම් බෑග් (නොමිලේ)","පොහොර සහාය"],
-};
+const sb = (typeof supabase!=='undefined') ? supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
-function loadSub(){
-  const p=document.getElementById('project').value;
-  const wrap=document.getElementById('subWrap'), sel=document.getElementById('subProgram');
-  if(!p){wrap.classList.add('hidden');return;}
-  sel.innerHTML='<option value="">-- වැඩසටහනක් තෝරන්න --</option>'+ (projectMap[p]||[]).map(s=>`<option>${s}</option>`).join('');
-  wrap.classList.remove('hidden'); document.getElementById('itemWrap').classList.add('hidden');
-  renderDynQuestions();
+// SECURE: localStorage role-ஐ நம்பாதே — Supabase JWT + profiles-இல் உள்ள உண்மையான role-ஐ சரி பார்.
+// localStorage-இல் role=main_admin என்று Type செய்து Hack செய்வது இதனால் முடியாது.
+(async function verifySupabaseSession(){
+  try{
+    if(!sb) return;
+    var sess = await sb.auth.getSession();
+    if(!sess || !sess.data || !sess.data.session){ window.location.href='index.html'; return; }
+    var uid = sess.data.session.user.id;
+    var prof = await sb.from('profiles').select('role,status').eq('id', uid).single();
+    if(!prof || !prof.data || prof.data.status!=='active'){ await sb.auth.signOut(); window.location.href='index.html'; return; }
+    var realRole = prof.data.role;
+    
+    // localStorage-ஐ உண்மையான role-ஆல் Overwrite செய் — பழைய Hacked Value நிற்காது
+    try{ localStorage.setItem('role', realRole); }catch(e){}
+  }catch(e){ /* Network தடங்கல் என்றால் localStorage Guard மட்டும் வேலை செய்யும் */ }
+})();
+const H_KEY='fw7_hier'; const N_KEY='fw7_nodes'; const Q_KEY='fw7_qs'; const U_KEY='fw7_users'; const R_KEY='fw7_resp';
+function defHier(){ return [{"id":"sub1","name":"ADA Kundasale","divisions":[{"name":"Dambagahapitiya","offices":["Dambagahapitiya - Pradhana Karyalaya"]},{"name":"Kalunthenna","offices":["Kalunthenna - Pradhana Karyalaya"]},{"name":"Nugethenna","offices":["Nugethenna - Pradhana Karyalaya"]},{"name":"Morayaya","offices":["Morayaya - Pradhana Karyalaya"]},{"name":"Ulpathagama","offices":["Ulpathagama - Pradhana Karyalaya"]},{"name":"Namadagala","offices":["Namadagala - Pradhana Karyalaya"]},{"name":"Theldeniya","offices":["Theldeniya - Pradhana Karyalaya"]},{"name":"Udispaththuwa","offices":["Udispaththuwa - Pradhana Karyalaya"]},{"name":"Wendaruwa","offices":["Wendaruwa - Pradhana Karyalaya"]},{"name":"Digana","offices":["Digana - Pradhana Karyalaya"]},{"name":"Gunnepana","offices":["Gunnepana - Pradhana Karyalaya"]},{"name":"Manikhinna","offices":["Manikhinna - Pradhana Karyalaya"]},{"name":"Wavinna","offices":["Wavinna - Pradhana Karyalaya"]},{"name":"Medamahanuwara","offices":["Medamahanuwara - Pradhana Karyalaya"]}]},{"id":"sub2","name":"ADA Kandy","divisions":[{"name":"Waththegama","offices":["Waththegama - Pradhana Karyalaya"]},{"name":"Huluganga","offices":["Huluganga - Pradhana Karyalaya"]},{"name":"Bowala","offices":["Bowala - Pradhana Karyalaya"]},{"name":"Ketawalaleula","offices":["Ketawalaleula - Pradhana Karyalaya"]},{"name":"Galaha","offices":["Galaha - Pradhana Karyalaya"]},{"name":"Marassana","offices":["Marassana - Pradhana Karyalaya"]},{"name":"Thalathuoya","offices":["Thalathuoya - Pradhana Karyalaya"]}]},{"id":"sub3","name":"ADA Udunuwara / Yatinuwara","divisions":[{"name":"Edaduwawe","offices":["Edaduwawe - Pradhana Karyalaya"]},{"name":"Giragama","offices":["Giragama - Pradhana Karyalaya"]},{"name":"Manikdiwella","offices":["Manikdiwella - Pradhana Karyalaya"]},{"name":"Alapalawala","offices":["Alapalawala - Pradhana Karyalaya"]},{"name":"Ambanwala","offices":["Ambanwala - Pradhana Karyalaya"]},{"name":"Imbuldeniya","offices":["Imbuldeniya - Pradhana Karyalaya"]},{"name":"Pethiyagoda","offices":["Pethiyagoda - Pradhana Karyalaya"]},{"name":"Thalawathura","offices":["Thalawathura - Pradhana Karyalaya"]},{"name":"Medapitiya","offices":["Medapitiya - Pradhana Karyalaya"]},{"name":"Mulgama","offices":["Mulgama - Pradhana Karyalaya"]},{"name":"Delpitiya","offices":["Delpitiya - Pradhana Karyalaya"]},{"name":"Gampola","offices":["Gampola - Pradhana Karyalaya"]},{"name":"Kuruduwaththa","offices":["Kuruduwaththa - Pradhana Karyalaya"]},{"name":"Rambukpitiya","offices":["Rambukpitiya - Pradhana Karyalaya"]}]},{"id":"sub4","name":"ADA Harispattuwa","divisions":[{"name":"Aludeniya","offices":["Aludeniya - Pradhana Karyalaya"]},{"name":"Galagedara","offices":["Galagedara - Pradhana Karyalaya"]},{"name":"Welivita","offices":["Welivita - Pradhana Karyalaya"]},{"name":"Ankumbura","offices":["Ankumbura - Pradhana Karyalaya"]},{"name":"Batugoda","offices":["Batugoda - Pradhana Karyalaya"]},{"name":"Wawala","offices":["Wawala - Pradhana Karyalaya"]},{"name":"Alawathugoda","offices":["Alawathugoda - Pradhana Karyalaya"]},{"name":"Medawala","offices":["Medawala - Pradhana Karyalaya"]},{"name":"Yatiwawala","offices":["Yatiwawala - Pradhana Karyalaya"]},{"name":"Hatharaliyadda","offices":["Hatharaliyadda - Pradhana Karyalaya"]}]}]; }
+function loadHier(){ try{ var s=localStorage.getItem(H_KEY); if(s){ var a=JSON.parse(s); if(a.length) return a; } }catch(e){} return defHier(); }
+function saveHier(h){ localStorage.setItem(H_KEY, JSON.stringify(h)); }
+function getOffices(div){ var h=loadHier(); for(var i=0;i<h.length;i++) for(var j=0;j<h[i].divisions.length;j++) if(h[i].divisions[j].name===div) return h[i].divisions[j].offices; return []; }
+function loadLocal(k, defFn){ try{ var s=localStorage.getItem(k); if(s){ var a=JSON.parse(s); if(Array.isArray(a)) return a; } }catch(e){} return defFn(); }
+function saveLocal(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
+function defNodes(){
+  return [
+    {id:'n_ext_2627', main_type:'extension', level:1, parent_id:null, title:'2026/27 Maha', subtitle:'Maha Season', is_published:true, sort_order:1},
+    {id:'n_ext_27y', main_type:'extension', level:1, parent_id:null, title:'2027 Yala', subtitle:'Yala Season', is_published:false, sort_order:2},
+    {id:'n_ext_2728', main_type:'extension', level:1, parent_id:null, title:'2027/28 Maha', subtitle:'Maha Season', is_published:false, sort_order:3},
+    {id:'n_paddy', main_type:'extension', level:2, parent_id:'n_ext_2627', title:'Paddy Cultivation', subtitle:'වී වගාව / நெல்', is_published:true, sort_order:1},
+    {id:'n_veg', main_type:'extension', level:2, parent_id:'n_ext_2627', title:'Vegetable Cultivation', subtitle:'එළවළු වගාව', is_published:true, sort_order:2},
+    {id:'n_ofc', main_type:'extension', level:2, parent_id:'n_ext_2627', title:'OFC Cultivation', subtitle:'වෙනත් බෝග', is_published:true, sort_order:3},
+    {id:'n_dev26', main_type:'development', level:1, parent_id:null, title:'2026', subtitle:'Year 2026', is_published:true, sort_order:1},
+    {id:'n_dev27', main_type:'development', level:1, parent_id:null, title:'2027', subtitle:'Year 2027', is_published:false, sort_order:2},
+    {id:'n_dev28', main_type:'development', level:1, parent_id:null, title:'2028', subtitle:'Year 2028', is_published:false, sort_order:3},
+    {id:'n_psdg', main_type:'development', level:2, parent_id:'n_dev26', title:'PSDG', subtitle:'PSDG Program', is_published:true, sort_order:1},
+    {id:'n_knuck', main_type:'development', level:2, parent_id:'n_dev26', title:'KNUCKLES', subtitle:'Knuckles', is_published:true, sort_order:2},
+    {id:'n_cbg', main_type:'development', level:2, parent_id:'n_dev26', title:'CBG', subtitle:'CBG', is_published:true, sort_order:3},
+    {id:'n_fao', main_type:'development', level:2, parent_id:'n_dev26', title:'FAO', subtitle:'FAO', is_published:true, sort_order:4},
+    {id:'n_psdg_p1', main_type:'development', level:3, parent_id:'n_psdg', title:'Seed Distribution Project', subtitle:'බීජ බෙදාදීම', is_published:true, sort_order:1},
+    {id:'n_psdg_p2', main_type:'development', level:3, parent_id:'n_psdg', title:'Fertilizer Project', subtitle:'පොහොර', is_published:true, sort_order:2},
+    {id:'n_cbg_p1', main_type:'development', level:3, parent_id:'n_cbg', title:'Tool Distribution', subtitle:'උපකරණ', is_published:true, sort_order:1}
+  ];
 }
-function loadItem(){
-  const sub=document.getElementById('subProgram').value;
-  const wrap=document.getElementById('itemWrap'), sel=document.getElementById('item');
-  const items=itemMap[sub];
-  if(!items){wrap.classList.add('hidden');return;}
-  sel.innerHTML='<option value="">-- භාණ්ඩයක් තෝරන්න --</option>'+ items.map(i=>`<option>${i}</option>`).join('');
-  wrap.classList.remove('hidden');
+function defQs(){
+  return [
+    {id:'q1', node_id:'n_paddy', question_text:'වගා කළ වී ප්‍රමාණය (Acres) / Cultivated Extent', question_type:'number', options:[], is_required:true, order_index:1},
+    {id:'q2', node_id:'n_paddy', question_text:'වී ප්‍රභේදය / Variety', question_type:'dropdown', options:['BG 352','BG 360','AT 362','Other'], is_required:true, order_index:2},
+    {id:'q3', node_id:'n_paddy', question_text:'ගොවීන් සංඛ්‍යාව / No. of Farmers', question_type:'number', options:[], is_required:true, order_index:3},
+    {id:'q4', node_id:'n_paddy', question_text:'සටහන් / Remarks', question_type:'paragraph', options:[], is_required:false, order_index:4},
+    {id:'q5', node_id:'n_veg', question_text:'Vegetable Type / එළවළු වර්ගය', question_type:'multiple_choice', options:['Beans','Cabbage','Tomato','Other'], is_required:true, order_index:1},
+    {id:'q6', node_id:'n_veg', question_text:'Extent (Acres)', question_type:'number', options:[], is_required:true, order_index:2},
+    {id:'q7', node_id:'n_ofc', question_text:'OFC Crop / බෝගය', question_type:'dropdown', options:['Maize','Green Gram','Cowpea','Other'], is_required:true, order_index:1},
+    {id:'q8', node_id:'n_ofc', question_text:'Extent (Acres)', question_type:'number', options:[], is_required:true, order_index:2},
+    // Development default fields - Farmer + Item
+    {id:'qd1', node_id:'n_psdg_p1', question_text:'ගොවි මහතාගේ නම / Farmer Name', question_type:'short_text', options:[], is_required:true, order_index:1},
+    {id:'qd2', node_id:'n_psdg_p1', question_text:'Address / ලිපිනය', question_type:'paragraph', options:[], is_required:true, order_index:2},
+    {id:'qd3', node_id:'n_psdg_p1', question_text:'Telephone Number / දුරකථන', question_type:'short_text', options:[], is_required:true, order_index:3},
+    {id:'qd4', node_id:'n_psdg_p1', question_text:'ID Number / හැඳුනුම්පත් අංකය', question_type:'short_text', options:[], is_required:true, order_index:4},
+    {id:'qd5', node_id:'n_psdg_p1', question_text:'ලබා දුන් භාණ්ඩය / Item Given', question_type:'dropdown', options:['Seeds','Fertilizer','Tools','Other'], is_required:true, order_index:5},
+    {id:'qd6', node_id:'n_psdg_p1', question_text:'Quantity / ප්‍රමාණය', question_type:'number', options:[], is_required:true, order_index:6},
+    {id:'qd7', node_id:'n_psdg_p1', question_text:'Unit / ඒකකය', question_type:'dropdown', options:['kg','Litre','Nos','Packet','Bag'], is_required:true, order_index:7},
+    {id:'qd8', node_id:'n_psdg_p1', question_text:'Subsidy - 50% or 25% or Free', question_type:'dropdown', options:['50%','25%','Free','Full Price'], is_required:true, order_index:8},
+    {id:'qd9', node_id:'n_psdg_p1', question_text:'Price (Rs.) / මිල', question_type:'number', options:[], is_required:true, order_index:9},
+    {id:'qd10', node_id:'n_psdg_p2', question_text:'ගොවි මහතාගේ නම / Farmer Name', question_type:'short_text', options:[], is_required:true, order_index:1},
+    {id:'qd11', node_id:'n_psdg_p2', question_text:'Item Given', question_type:'dropdown', options:['Urea','TSP','MOP','Other'], is_required:true, order_index:2},
+    {id:'qd12', node_id:'n_psdg_p2', question_text:'Quantity', question_type:'number', options:[], is_required:true, order_index:3},
+    {id:'qd13', node_id:'n_psdg_p2', question_text:'Unit', question_type:'dropdown', options:['kg','Bag'], is_required:true, order_index:4},
+    {id:'qd14', node_id:'n_psdg_p2', question_text:'Subsidy', question_type:'dropdown', options:['50%','25%','Free'], is_required:true, order_index:5},
+    {id:'qd15', node_id:'n_psdg_p2', question_text:'Price (Rs.)', question_type:'number', options:[], is_required:true, order_index:6}
+  ];
 }
+function defUsers(){ return [];}
 
-let liveQuestions=[];
-function renderDynQuestions(){
-  const box=document.getElementById('dynQuestions');
-  if(!liveQuestions.length){box.innerHTML='';return;}
-  box.innerHTML='<h4 class="font-bold text-sm">ප්‍රශ්නාවලිය (Admin විසින් නිර්මාණය කරන ලද)</h4>'+liveQuestions.map(q=>`
-    <div><label class="text-xs font-semibold">${q.question_text} ${q.required?'*':''}</label>
-    ${q.field_type==='select'?`<select data-qid="${q.id}"><option value="">-- තෝරන්න --</option>${(q.options||'').split(',').map(o=>`<option>${o.trim()}</option>`).join('')}</select>`:
-      q.field_type==='number'?`<input type="number" data-qid="${q.id}" ${q.required?'required':''}>`:
-      `<input type="text" data-qid="${q.id}" ${q.required?'required':''}>`}
-    </div>`).join('');
+var mySubId=localStorage.getItem('user_subOfficeId')||''; var mySubName=localStorage.getItem('user_subOfficeName')||mySubId; var myDiv=localStorage.getItem('user_division')||''; var myOffice=localStorage.getItem('user_office')||''; var myUser=localStorage.getItem('user')||''; var myName=localStorage.getItem('user_name')||myUser;
+document.getElementById('lockSub').textContent=mySubName; document.getElementById('lockDiv').textContent=myDiv; document.getElementById('lockOffice').textContent=myOffice||'ALL'; document.getElementById('lockUser').textContent=myName;
+var nodes=loadLocal(N_KEY, defNodes); var questions=loadLocal(Q_KEY, defQs); var responses=loadLocal(R_KEY, function(){return [];});
+var curMain='extension', curL1=null, curL2=null, curL3=null, curSub=null, curItem=null, curItems=[], editingId=null, selHierSub='sub1', selHierDiv=null;
+function setLang(l){ showToast(l==='si'?'Sinhala':'Tamil',true); }
+function showSection(sec){ document.getElementById('panel-form').classList.toggle('hidden', sec!=='form'); document.getElementById('panel-mydata').classList.toggle('hidden', sec!=='mydata'); document.getElementById('btnForm').className= sec==='form'?'text-left rounded-2xl border-2 border-indigo-600 bg-indigo-600 text-white p-5':'text-left rounded-2xl border p-5 bg-white'; document.getElementById('btnMy').className= sec==='mydata'?'text-left rounded-2xl border-2 border-emerald-600 bg-emerald-600 text-white p-5':'text-left rounded-2xl border p-5 bg-white'; if(sec==='mydata') renderMy(); }
+function uSelectMain(m){ curMain=m; curL1=null; curL2=null; curL3=null; curSub=null; curItems=[]; document.getElementById('uExt').className= m==='extension'?'py-3 rounded-xl font-semibold bg-indigo-600 text-white':'py-3 rounded-xl font-semibold bg-slate-100'; document.getElementById('uDev').className= m==='development'?'py-3 rounded-xl font-semibold bg-emerald-600 text-white':'py-3 rounded-xl font-semibold bg-slate-100'; document.getElementById('uL3Wrap').classList.toggle('hidden', m!=='development'); document.getElementById('uSubWrap').classList.toggle('hidden', m!=='extension'); document.getElementById('uItemWrap').classList.toggle('hidden', m!=='development'); renderUSelects(); }
+function publishedChildren(parentId, level){ return nodes.filter(function(n){ return n.main_type===curMain && n.level===level && (parentId? n.parent_id===parentId : !n.parent_id) && n.is_published; }).sort(function(a,b){return a.sort_order-b.sort_order;}); }
+function renderUSelects(){
+  document.getElementById('uL1Label').textContent= curMain==='extension'?'2. Season தேர்வு செய்யுங்கள் * - 2026/27 Maha, 2027 Yala...':'2. Year தேர்வு செய்யுங்கள் * - 2026, 2027, 2028...';
+  document.getElementById('uL2Label').textContent= curMain==='extension'?'3. Cultivation தேர்வு செய்யுங்கள் * - Paddy / Vegetable / OFC':'3. Program தேர்வு செய்யுங்கள் * - PSDG / KNUCKLES / CBG / FAO';
+  // FIX: Dropdown-ஐ மீண்டும் கட்டும் போது தேர்வு செய்த Value-ஐ திரும்ப வைக்க வேண்டும், இல்லையென்றால் 3வது/4வது படியில் நின்றுவிடும்
+  var l1=publishedChildren(null,1); var h1='<option value="">-- තෝරන්න --</option>'; for(var i=0;i<l1.length;i++){ h1+='<option value="'+l1[i].id+'">'+l1[i].title+'</option>'; } document.getElementById('uL1').innerHTML=h1; if(l1.length===1){ document.getElementById('uL1').value=l1[0].id; curL1=l1[0].id; } else if(curL1){ document.getElementById('uL1').value=curL1; }
+  var l2= curL1? publishedChildren(curL1,2):[]; var h2='<option value="">-- තෝරන්න --</option>'; for(var j=0;j<l2.length;j++){ h2+='<option value="'+l2[j].id+'">'+l2[j].title+'</option>'; } document.getElementById('uL2').innerHTML=h2; if(l2.length===1){ document.getElementById('uL2').value=l2[0].id; curL2=l2[0].id; } else if(curL2){ document.getElementById('uL2').value=curL2; }
+  if(curMain==='extension'){
+    var subs= curL2? publishedChildren(curL2,3):[];
+    var hs='<option value="">— உப பிரிவு இல்லை —</option>'; for(var s=0;s<subs.length;s++){ hs+='<option value="'+subs[s].id+'">'+subs[s].title+'</option>'; }
+    document.getElementById('uSub').innerHTML=hs;
+    if(subs.length===1){ document.getElementById('uSub').value=subs[0].id; curSub=subs[0].id; }
+    else if(curSub){ document.getElementById('uSub').value=curSub; } else { document.getElementById('uSub').value=''; }
+  }
+  if(curMain==='development'){
+    var l3= curL2? publishedChildren(curL2,3):[]; var h3='<option value="">-- Sub Program தோරන්න --</option>'; for(var k=0;k<l3.length;k++){ h3+='<option value="'+l3[k].id+'">'+l3[k].title+'</option>'; } document.getElementById('uL3').innerHTML=h3; if(l3.length===1){ document.getElementById('uL3').value=l3[0].id; curL3=l3[0].id; } else if(curL3){ document.getElementById('uL3').value=curL3; }
+    renderUItems();
+  }
+  renderUForm();
 }
+function renderUItems(){
+  var items = curL3 ? publishedChildren(curL3,4) : [];
+  var wrap=document.getElementById('uItemList'); if(!wrap) return;
+  if(!items.length){ wrap.innerHTML='<label class="flex items-center gap-2 text-sm"><input type="checkbox" checked disabled> Item இல்லை — Sub Program நேரடியாக</label>'; curItems=[]; return; }
+  var h=''; for(var i=0;i<items.length;i++){ var it=items[i]; var chk = curItems.indexOf(it.id)>-1?'checked':''; h+='<label class="flex items-center gap-2 text-sm border rounded-lg px-3 py-2 bg-white"><input type="checkbox" value="'+it.id+'" '+chk+' onchange="uToggleItem(this)"> '+it.title+'</label>'; }
+  wrap.innerHTML=h;
+}
+function uToggleItem(el){ if(el.checked){ if(curItems.indexOf(el.value)===-1) curItems.push(el.value); } else { curItems=curItems.filter(function(x){return x!==el.value;}); } renderUForm(); }
+function uPickSub(){ curSub=document.getElementById('uSub').value||null; renderUForm(); }
 
-document.getElementById('entryForm').addEventListener('submit', async (e)=>{
-  e.preventDefault();
-  const payload={
-    id:Date.now().toString(),
-    year_period:document.getElementById('period').value,
-    division:document.getElementById('division').value,
-    project:document.getElementById('project').value,
-    sub_program:document.getElementById('subProgram').value||'',
-    item:document.getElementById('item').value||'',
-    answers:{
-      name:document.getElementById('bName').value,
-      phone:document.getElementById('bPhone').value,
-      nic:document.getElementById('bNic').value,
-      unit_type:document.getElementById('bUnit').value,
-      quantity:document.getElementById('bQty').value,
-      note:document.getElementById('bNote').value,
-      project:document.getElementById('project').value,
-      sub_program:document.getElementById('subProgram').value,
-      item:document.getElementById('item').value,
-    },
-    created_at:new Date().toISOString()
-  };
-  // collect dynamic
-  document.querySelectorAll('[data-qid]').forEach(el=>{payload.answers['q_'+el.dataset.qid]=el.value;});
-  myEntries.unshift(payload);
-  localStorage.setItem('myEntries',JSON.stringify(myEntries));
-  // Supabase attempt
-  try{const {data:{user}}=await client.auth.getUser(); const {data:prof}=await client.from('profiles').select('division_id').eq('id',user?.id||'').single(); await client.from('field_work_entries').insert([{unit_id:prof?.division_id||null,submitted_by:user?.id||null,year_period:payload.year_period,answers:payload.answers}]);}catch(err){}
-  document.getElementById('ok').classList.remove('hidden'); setTimeout(()=>document.getElementById('ok').classList.add('hidden'),3000);
-  e.target.reset(); document.getElementById('subWrap').classList.add('hidden'); document.getElementById('itemWrap').classList.add('hidden'); document.getElementById('dynQuestions').innerHTML=''; renderMy();
-});
-
+function uPickL1(){ curL1=document.getElementById('uL1').value||null; curL2=null; curL3=null; curSub=null; curItems=[]; renderUSelects(); }
+function uPickL2(){ curL2=document.getElementById('uL2').value||null; curL3=null; curSub=null; curItems=[]; renderUSelects(); }
+function uPickL3(){ curL3=document.getElementById('uL3').value||null; curItems=[]; renderUItems(); renderUForm(); }
+function leafIds(){
+  // Admin-இல் உருவாக்கிய வினாக்கள் எந்த Node-இல் உள்ளனவோ, அதே Node-களின் வினாக்கள் தான் Unit-இல் வரும்
+  if(curMain==='development'){ if(curItems.length) return curItems.slice(); if(curL3) return [curL3]; return []; }
+  if(curSub) return [curSub];
+  var subs=nodes.filter(function(n){return n.main_type==='extension'&&n.level===3&&n.parent_id===curL2;});
+  if(subs.length) return []; // உப பிரிவு தேர்வு செய்ய வேண்டும்
+  if(curL2) return [curL2];
+  return [];
+}
+function leafId(){ if(curMain==='development'){ if(curItems.length) return curItems[0]; return curL3; } if(curSub) return curSub; var subs=nodes.filter(function(n){return n.main_type==='extension'&&n.level===3&&n.parent_id===curL2;}); if(subs.length) return null; return curL2; }
+function nodePath(){
+  var parts=[]; if(curL1){ var n1=nodes.find(function(x){return x.id===curL1;}); if(n1) parts.push(n1.title); } if(curL2){ var n2=nodes.find(function(x){return x.id===curL2;}); if(n2) parts.push(n2.title); } if(curL3){ var n3=nodes.find(function(x){return x.id===curL3;}); if(n3) parts.push(n3.title); } if(curSub){ var ns=nodes.find(function(x){return x.id===curSub;}); if(ns) parts.push(ns.title); } if(curItems.length){ var itNames=curItems.map(function(id){var nn=nodes.find(function(x){return x.id===id;}); return nn?nn.title:id;}); parts.push('Item: '+itNames.join(', ')); } return parts.join(' > ');
+}
+function renderField(q){
+  var req=q.is_required?'required':'';
+  if(q.question_type==='short_text') return '<input data-qid="'+q.id+'" '+req+' placeholder="Type කරන්න...">';
+  if(q.question_type==='paragraph') return '<textarea data-qid="'+q.id+'" rows="3" '+req+' placeholder="Type කරන්න..."></textarea>';
+  if(q.question_type==='number') return '<input type="number" data-qid="'+q.id+'" '+req+' placeholder="0">';
+  if(q.question_type==='date') return '<input type="date" data-qid="'+q.id+'" '+req+'>';
+  if(q.question_type==='yes_no') return '<div class="flex gap-2"><label class="flex-1 text-center rounded-xl border py-2 text-sm"><input type="radio" name="q_'+q.id+'" value="Yes" data-qid="'+q.id+'" class="hidden"> Yes</label><label class="flex-1 text-center rounded-xl border py-2 text-sm"><input type="radio" name="q_'+q.id+'" value="No" data-qid="'+q.id+'" class="hidden"> No</label></div>';
+  if(q.question_type==='multiple_choice'){ var h=''; for(var a=0;a<q.options.length;a++){ h+='<label class="flex gap-2 items-center text-sm py-1"><input type="radio" name="q_'+q.id+'" value="'+q.options[a]+'" data-qid="'+q.id+'" '+(q.is_required?'required':'')+' class="!w-auto"> '+q.options[a]+'</label>'; } return h; }
+  if(q.question_type==='checkbox'){ var h2=''; for(var b=0;b<q.options.length;b++){ h2+='<label class="flex gap-2 items-center text-sm py-1"><input type="checkbox" value="'+q.options[b]+'" data-qid="'+q.id+'" data-multi="1" class="!w-auto"> '+q.options[b]+'</label>'; } return h2; }
+  if(q.question_type==='dropdown'){ var h3='<select data-qid="'+q.id+'" '+(q.is_required?'required':'')+'><option value="">-- තෝරන්න --</option>'; for(var c=0;c<q.options.length;c++){ h3+='<option>'+q.options[c]+'</option>'; } h3+='</select>'; return h3; }
+  if(q.question_type==='scale'){ var h4='<div class="flex gap-2">'; for(var d=1;d<=5;d++){ h4+='<label class="flex-1 text-center rounded-xl border py-2 text-sm"><input type="radio" name="q_'+q.id+'" value="'+d+'" data-qid="'+q.id+'" class="hidden"> '+d+'</label>'; } h4+='</div>'; return h4; }
+  return '<input data-qid="'+q.id+'" '+req+'>';
+}
+function renderUForm(){
+  var wrap=document.getElementById('uFormWrap'); var empty=document.getElementById('uEmpty');
+  var lids=leafIds();
+  if(!lids.length){
+    if(curMain==='extension' && curL2){ wrap.innerHTML='<div class="rounded-xl bg-amber-50 border border-amber-200 p-3 text-sm text-amber-700">⚠️ இந்த Cultivation-இன் கீழ் உப பிரிவு உள்ளது — மேலே 4. உப பிரிவு-ஐ தேர்வு செய்யுங்கள். உப பிரிவு தேவை இல்லை என்றால் “— இல்லை —” என்பதை தேர்வு செய்யுங்கள்.</div>'; }
+    else { wrap.innerHTML=''; }
+    empty.classList.add('hidden'); return;
+  }
+  var groups=[];
+  for(var gi=0; gi<lids.length; gi++){
+    var lid=lids[gi];
+    var qs=questions.filter(function(q){return q.node_id===lid;}).sort(function(a,b){return a.order_index-b.order_index;});
+    var node=nodes.find(function(x){return x.id===lid;});
+    groups.push({lid:lid, title: node?node.title:'', qs:qs});
+  }
+  var totalQs=0; for(var tt=0;tt<groups.length;tt++) totalQs+=groups[tt].qs.length;
+  if(!totalQs){ wrap.innerHTML=''; empty.classList.remove('hidden'); empty.innerHTML='இந்த பிரிவுக்கு Admin இன்னும் வினா உருவாக்கவில்லை. Admin → வினா தயாரிப்பு → இதே பிரிவை தேர்வு செய்து வினா உருவாக்கவும்.'; return; }
+  empty.classList.add('hidden');
+  var html='<div class="rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-[12px]">Auto Fill: <b>'+mySubName+' | '+myDiv+' | '+myOffice+' | '+nodePath()+' | '+myName+'</b><br><span class="text-emerald-700">Admin-இல் உருவாக்கிய வினாக்கள் ('+totalQs+') — '+(curMain==='extension'?'🌾 Extension':'🏗️ Development')+'</span></div>';
+  html+='<form id="dynForm" class="mt-4 space-y-4" onsubmit="return submitUForm(event)">';
+  var qNum=0;
+  for(var g=0; g<groups.length; g++){
+    if(groups.length>1){ html+='<div class="font-bold text-[15px] mt-2 px-1">📦 '+(groups[g].title||('Item '+(g+1)))+' — வினாக்கள்</div>'; }
+    if(!groups[g].qs.length){ html+='<div class="text-xs text-slate-400 px-1">இந்த Item-க்கு வினா இல்லை</div>'; continue; }
+    for(var i=0;i<groups[g].qs.length;i++){ var q=groups[g].qs[i]; qNum++; html+='<div class="rounded-xl border p-4 bg-white"><label class="text-[14px] font-semibold">'+qNum+'. '+q.question_text+' '+(q.is_required?'<span class="text-red-500">*</span>':'')+'</label><div class="mt-2">'+renderField(q)+'</div></div>'; }
+  }
+  html+='<div id="okBox" class="hidden rounded-xl bg-green-50 border border-green-200 p-3 text-sm text-green-700">Save வுணா! අලුත් එකක් පුරවන්න Clear Button එක ඔබන්න.</div>';
+  html+='<div class="flex gap-2"><button class="btn btn-primary flex-1 py-3.5">Submit - Save</button><button type="button" onclick="clearUForm()" class="btn btn-ghost px-4">Clear - අලුත් Form</button></div></form>';
+  wrap.innerHTML=html;
+}
+function collectAns(){ var ans={}; document.querySelectorAll('#uFormWrap [data-qid]').forEach(function(el){ var id=el.dataset.qid; if(el.dataset.multi==='1'){ if(el.checked){ if(!ans[id]) ans[id]=[]; ans[id].push(el.value); } } else if(el.type==='radio'){ if(el.checked) ans[id]=el.value; } else ans[id]=el.value; }); return ans; }
+async function submitUForm(e){
+  e.preventDefault(); var f=document.getElementById('dynForm'); if(!f.checkValidity()){ f.reportValidity(); return false; }
+  var ans=collectAns(); var lid=leafId();
+  var payload={id:'r'+Date.now(), node_id:lid, main_type:curMain, level1: curL1? (nodes.find(function(x){return x.id===curL1;})||{}).title:'', level2: curL2? (nodes.find(function(x){return x.id===curL2;})||{}).title:'', level3: curL3? (nodes.find(function(x){return x.id===curL3;})||{}).title:'', node_path: nodePath(), subOfficeId:mySubId, subOfficeName:mySubName, division:myDiv, office:myOffice, submittedBy:myUser, submittedName:myName, answers:ans, selected_items: curItems.slice(), selected_sub: curSub, created_at:new Date().toISOString()};
+  if(sb){ try{ var u=await sb.auth.getUser(); var uid=u.data&&u.data.user?u.data.user.id:null; var ins=await sb.from('responses').insert({node_id:lid, main_type:curMain, level1:payload.level1, level2:payload.level2, level3:payload.level3, node_path:payload.node_path, sub_office_id:mySubId, sub_office_name:mySubName, division:myDiv, office:myOffice, submitted_by:uid, submitted_by_email:myUser, submitted_by_name:myName, answers:ans}); if(ins.data) payload.id=ins.data.id; }catch(err){} }
+  responses.unshift(payload); saveLocal(R_KEY, responses);
+  document.getElementById('okBox').classList.remove('hidden');
+  f.querySelectorAll('[data-qid]').forEach(function(el){ if(el.type==='checkbox'||el.type==='radio') el.checked=false; else el.value=''; });
+  renderMy(); showToast('Save වුණා! ✓',true);
+  return false;
+}
+function clearUForm(){ renderUForm(); }
 function renderMy(){
-  const tb=document.getElementById('myTbody');
-  tb.innerHTML=myEntries.map(en=>`<tr><td><span class="badge badge-blue">${en.year_period}</span><div class="text-[11px] text-slate-500">${new Date(en.created_at).toLocaleDateString()}</div></td><td class="text-xs"><b>${en.answers.name}</b><br>${en.project} • ${en.answers.quantity} ${en.answers.unit_type}<br><span class="text-slate-400">${en.division}</span></td><td><button onclick="viewMy('${en.id}')" class="text-xs px-2 py-1 rounded bg-slate-100">View</button></td></tr>`).join('')||`<tr><td colspan=3 class="text-center py-6 text-slate-400">දත්ත නොමැත</td></tr>`;
+  var fMain=document.getElementById('myFilterMain').value, fL1=document.getElementById('myFilterL1').value, s=(document.getElementById('mySearch').value||'').toLowerCase();
+  var mine=responses.filter(function(r){ return r.division===myDiv && r.office===myOffice; });
+  if(fMain) mine=mine.filter(function(r){return r.main_type===fMain;});
+  if(fL1) mine=mine.filter(function(r){return r.level1===fL1;});
+  if(s) mine=mine.filter(function(r){return (JSON.stringify(r.answers)+(r.node_path||'')).toLowerCase().indexOf(s)>-1;});
+  // Fill L1 filter
+  var l1s=[]; responses.forEach(function(r){ if(r.level1 && l1s.indexOf(r.level1)===-1) l1s.push(r.level1); }); var sel=document.getElementById('myFilterL1'); var cur=sel.value; sel.innerHTML='<option value="">All Season / Year</option>'+l1s.map(function(x){return '<option>'+x+'</option>';}).join(''); sel.value=cur;
+  var h=''; for(var i=0;i<mine.slice(0,100).length;i++){ var r=mine[i]; h+='<tr><td class="text-xs"><b>'+r.node_path+'</b></td><td class="text-xs">'+JSON.stringify(r.answers).substring(0,200)+'</td><td class="text-xs">'+new Date(r.created_at).toLocaleDateString()+'</td><td><button onclick="editMy(\''+r.id+'\')" class="btn btn-ghost px-2 py-1 text-xs">Edit</button><button onclick="delMy(\''+r.id+'\')" class="text-red-500 text-xs px-2">Delete</button></td></tr>'; }
+  document.getElementById('myTbody').innerHTML=h||'<tr><td colspan=4 class="text-center py-6 text-slate-400">Data නැහැ</td></tr>';
 }
-function viewMy(id){const e=myEntries.find(x=>x.id===id); alert(JSON.stringify(e.answers,null,2));}
-function downloadMy(){
-  if(!myEntries.length) return alert('දත්ත නොමැත');
-  let csv='data:text/csv;charset=utf-8,Period,Division,Project,Name,Phone,NIC,Qty,Unit,Date\n'+myEntries.map(e=>`"${e.year_period}","${e.division}","${e.project}","${e.answers.name}","${e.answers.phone}","${e.answers.nic}","${e.answers.quantity}","${e.answers.unit_type}","${e.created_at}"`).join('\n');
-  const a=document.createElement('a'); a.href=encodeURI(csv); a.download='my_entries.csv'; a.click();
+function editMy(id){ var r=responses.find(function(x){return x.id===id;}); if(!r) return; editingId=id; document.getElementById('myEditBox').classList.remove('hidden'); var qs=questions.filter(function(q){return q.node_id===r.node_id;}); var h=''; for(var i=0;i<qs.length;i++){ var q=qs[i]; h+='<div><label class="text-xs font-semibold">'+q.question_text+'</label><input data-my-qid="'+q.id+'" value="'+(r.answers[q.id]||'')+'"></div>'; } document.getElementById('myEditFields').innerHTML=h||'<div class="text-xs">Questions නැහැ</div>'; }
+function saveMyEdit(){ var r=responses.find(function(x){return x.id===editingId;}); if(!r) return; var na={}; document.querySelectorAll('[data-my-qid]').forEach(function(el){ na[el.dataset.myQid]=el.value; }); r.answers=na; r.updated_at=new Date().toISOString(); saveLocal(R_KEY, responses); if(sb){ try{ sb.from('responses').update({answers:na}).eq('id', r.id); }catch(e){} } closeMyEdit(); renderMy(); showToast('Edit Save වුණා! ✓',true); }
+function closeMyEdit(){ editingId=null; document.getElementById('myEditBox').classList.add('hidden'); }
+async function delMy(id){ if(!(await profConfirm('இந்த பதில் Delete ஆகும்.','Delete செய்யவா?'))) return; responses=responses.filter(function(x){return x.id!==id;}); saveLocal(R_KEY, responses); if(sb){ try{ sb.from('responses').delete().eq('id', id); }catch(e){} } renderMy(); }
+function downloadMyCSV(){
+  var mine=responses.filter(function(r){ return r.division===myDiv && r.office===myOffice; }); if(!mine.length) return showToast('Data නැහැ',false);
+  var csv='data:text/csv;charset=utf-8,Date,Main,Path,SubOffice,Division,Office,User,Answers\n';
+  for(var i=0;i<mine.length;i++){ var r=mine[i]; csv+='"'+r.created_at+'","'+r.main_type+'","'+r.node_path+'","'+r.subOfficeName+'","'+r.division+'","'+r.office+'","'+r.submittedName+'","'+JSON.stringify(r.answers).replace(/"/g,'""')+'"\n'; }
+  var a=document.createElement('a'); a.href=encodeURI(csv); a.download='my_data.csv'; a.click();
 }
-function logout(){localStorage.clear(); location.href='index.html';}
-async function loadLiveQuestions(){try{const {data}=await client.from('form_questions').select('*').limit(50); if(data&&data.length) liveQuestions=data.map(q=>({id:q.id,question_text:q.question_text,field_type:q.field_type||'text',required:false,options:''})); renderDynQuestions();}catch{}}
-renderMy(); loadLiveQuestions();
-</script>
-</body>
-</html>
+async function logout(){ try{ if(typeof sb!=='undefined' && sb) await sb.auth.signOut(); }catch(e){} ['role','user','user_name','user_subOfficeId','user_subOfficeName','user_division','user_office','fw_session'].forEach(function(k){localStorage.removeItem(k);}); location.href='index.html'; }
+async function sbLoad(){
+  if(!sb) return; try{
+    var n=await sb.from('nodes').select('*').order('sort_order'); if(n.data && n.data.length){ nodes=n.data.map(function(x){ return {id:x.id, main_type:x.main_type, level:x.level, parent_id:x.parent_id, title:x.title, subtitle:x.subtitle||'', is_published:x.is_published, sort_order:x.sort_order||0}; }); saveLocal(N_KEY, nodes); }
+    var q=await sb.from('questions').select('*').order('order_index'); if(q.data && q.data.length){ questions=q.data.map(function(x){ return {id:x.id, node_id:x.node_id, question_text:x.question_text, question_type:x.question_type, options:x.options||[], is_required:x.is_required, order_index:x.order_index}; }); saveLocal(Q_KEY, questions); }
+    var r=await sb.from('responses').select('*').order('created_at',{ascending:false}).limit(500); if(r.data){ responses=r.data.map(function(x){ return {id:x.id, node_id:x.node_id, main_type:x.main_type, level1:x.level1, level2:x.level2, level3:x.level3, node_path:x.node_path, subOfficeId:x.sub_office_id, subOfficeName:x.sub_office_name, division:x.division, office:x.office, submittedBy:x.submitted_by_email, submittedName:x.submitted_by_name, answers:x.answers||{}, created_at:x.created_at}; }); saveLocal(R_KEY, responses); }
+  }catch(e){} renderUSelects(); renderMy();
+}
+uSelectMain('extension'); sbLoad(); setInterval(function(){ sbLoad(); }, 10000);
+</script></body></html>

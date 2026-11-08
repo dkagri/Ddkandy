@@ -57,7 +57,7 @@
 </aside>
 
 <div class="main">
-<div class="topbar"><div class="flex items-center gap-3"><button onclick="openSidebar()" class="lg:hidden btn btn-ghost px-3">☰ Menu</button><h1 class="font-bold text-[17px] md:text-[19px]" id="pageTitle">Dashboard</h1><span class="text-[10px] px-2 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold whitespace-nowrap" title="இது தெரியவில்லை என்றால் GitHub-இல் பழைய File இருக்கிறது">v11 • DD Kandy • 2026-11-08</span></div><div class="flex items-center gap-2"><span id="sbStatus" class="text-[11px] px-2 py-1 rounded bg-slate-100">Supabase...</span><button onclick="goNav('builder')" class="btn btn-primary px-4 py-2 text-xs">+ புதிய வினா தயாரி</button></div></div>
+<div class="topbar"><div class="flex items-center gap-3"><button onclick="openSidebar()" class="lg:hidden btn btn-ghost px-3">☰ Menu</button><h1 class="font-bold text-[17px] md:text-[19px]" id="pageTitle">Dashboard</h1><span class="text-[10px] px-2 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold whitespace-nowrap" title="இது தெரியவில்லை என்றால் GitHub-இல் பழைய File இருக்கிறது">v12 FINAL • DD Kandy • 2026-11-08</span></div><div class="flex items-center gap-2"><span id="sbStatus" class="text-[11px] px-2 py-1 rounded bg-slate-100">Supabase...</span><button onclick="goNav('builder')" class="btn btn-primary px-4 py-2 text-xs">+ புதிய வினா தயாரி</button></div></div>
 
 <div class="p-4 md:p-6 max-w-[1100px] mx-auto space-y-5">
 
@@ -270,8 +270,8 @@ document.getElementById('roleLabel').textContent=role==='main_admin'?'Main Admin
 document.getElementById('userLabel').textContent=localStorage.getItem('user')||'';
 document.getElementById('scopeLabel').textContent=role==='main_admin'?'45 பிரிவு — எல்லாம்':'Scope: '+(localStorage.getItem('user_subOfficeName')||mySub);
 var hierarchy=loadHier();
-(function checkVersion(){ try{ var first=(hierarchy&&hierarchy[0])?hierarchy[0].name:''; if(first!=='ADA Kundasale'){ var b=document.createElement('div'); b.style.cssText='background:#dc2626;color:#fff;padding:14px;text-align:center;font-weight:bold;font-size:14px;position:fixed;top:0;left:0;right:0;z-index:9999'; b.textContent='⚠️ OLD FILE — GitHub-இல் பழைய admin.html இருக்கிறது. புதிய admin.html (v11 • DD Kandy)-ஐ Upload செய்து Hard Refresh (Ctrl+Shift+R) செய்யுங்கள். இப்போது தெரிவது: '+first; document.body.prepend(b); } }catch(e){} })(); var nodes=loadLocal(N_KEY,defNodes); var questions=loadLocal(Q_KEY,defQs); var users=loadLocal(U_KEY,defUsers); var responses=loadLocal(R_KEY,function(){return[];});
-var curMain=null, curL1=null, curL2=null, curL3=null, curStep=1, curOptions=[], selHierSub='sub1', selHierDiv=null, editingId=null;
+(function checkVersion(){ try{ var first=(hierarchy&&hierarchy[0])?hierarchy[0].name:''; if(first!=='ADA Kundasale'){ var b=document.createElement('div'); b.style.cssText='background:#dc2626;color:#fff;padding:14px;text-align:center;font-weight:bold;font-size:14px;position:fixed;top:0;left:0;right:0;z-index:9999'; b.textContent='⚠️ OLD FILE — GitHub-இல் பழைய admin.html இருக்கிறது. புதிய admin.html (v12 FINAL • DD Kandy)-ஐ Upload செய்து Hard Refresh (Ctrl+Shift+R) செய்யுங்கள். இப்போது தெரிவது: '+first; document.body.prepend(b); } }catch(e){} })(); var nodes=loadLocal(N_KEY,defNodes); var questions=loadLocal(Q_KEY,defQs); var users=loadLocal(U_KEY,defUsers); var responses=loadLocal(R_KEY,function(){return[];});
+var curMain=null, curL1=null, curL2=null, curL3=null, curSub=null, curItem=null, curStep=1, curOptions=[], selHierSub='sub1', selHierDiv=null, editingId=null;
 function setLang(l){showToast(l==='ta'?'தமிழ் தேர்வு செய்யப்பட்டது':'Sinhala තෝරා ඇත');}
 function openSidebar(){var sb=document.getElementById('sidebar');sb.classList.add('open');sb.style.transform='translateX(0)';sb.style.left='0';sb.style.display='flex';var ov=document.getElementById('sidebarOverlay');if(ov)ov.classList.remove('hidden');var fab=document.getElementById('sidebarCloseFab');if(fab)fab.classList.remove('hidden');}
 function closeSidebar(){var sb=document.getElementById('sidebar');sb.classList.remove('open');if(window.innerWidth<1024){sb.style.transform='translateX(-110%)';}var ov=document.getElementById('sidebarOverlay');if(ov)ov.classList.add('hidden');var fab=document.getElementById('sidebarCloseFab');if(fab)fab.classList.add('hidden');}
@@ -380,6 +380,46 @@ function addItem(){
   nodes.push(n); saveLocal(N_KEY,nodes); document.getElementById('newItem').value=''; curItem=n.id; sbSaveNode(n); renderItem(); showToast('Item Add ஆனது ✓',true);
 }
 
+async 
+/* ---------- Node Actions — FIX: முன்பு இந்த 4 Functions இல்லாமல் Rename/Copy/Delete/Publish Button-கள் Error கொடுத்தன ---------- */
+async function renameNode(id){
+  var n=nodes.find(function(x){return x.id===id;}); if(!n) return;
+  var v=await profPrompt('புதிய பெயர் / New Name', n.title, 'பெயரை Type செய்யுங்கள்');
+  if(v===null) return; v=(v||'').trim(); if(!v) return showToast('பெயரை Type செய்யுங்கள்',false);
+  n.title=v; saveLocal(N_KEY,nodes); sbSaveNode(n); renderAllSteps(); updateKPI(); showToast('பெயர் மாற்றப்பட்டது ✓',true);
+}
+async function togglePub(id){
+  var n=nodes.find(function(x){return x.id===id;}); if(!n) return;
+  n.is_published=!n.is_published; saveLocal(N_KEY,nodes); sbSaveNode(n); renderAllSteps(); updateKPI();
+  showToast(n.is_published?'Published ✓':'Hidden ✓',true);
+}
+async function copyNode(id){
+  var n=nodes.find(function(x){return x.id===id;}); if(!n) return;
+  var nid='n'+Date.now();
+  var nn={id:nid,main_type:n.main_type,level:n.level,parent_id:n.parent_id,title:n.title+' (Copy)',subtitle:n.subtitle||'',is_published:n.is_published,sort_order:childrenOf(n.parent_id,n.level).length+1};
+  nodes.push(nn); saveLocal(N_KEY,nodes); sbSaveNode(nn);
+  // அதன் கீழ் உள்ள வினாக்களையும் Copy செய்
+  var qs=questions.filter(function(x){return x.node_id===id;});
+  for(var i=0;i<qs.length;i++){ var q=qs[i]; var nq={id:'q'+Date.now()+i,node_id:nid,question_text:q.question_text,question_type:q.question_type,options:(q.options||[]).slice(),is_required:q.is_required,order_index:q.order_index}; questions.push(nq); }
+  saveLocal(Q_KEY,questions);
+  renderAllSteps(); updateKPI(); showToast('Node Copy ஆனது ✓',true);
+}
+async function delNode(id){
+  var n=nodes.find(function(x){return x.id===id;}); if(!n) return;
+  var childCount=nodes.filter(function(x){return x.parent_id===id;}).length;
+  var qCount=questions.filter(function(x){return x.node_id===id;}).length;
+  if(childCount>0) return showToast('முதலில் இதன் கீழ் உள்ள '+childCount+' Sub Node-களை Delete செய்யுங்கள்',false);
+  if(!(await profConfirm('“'+n.title+'” நீக்கப்படும். அதன் கீழ் உள்ள '+qCount+' வினாக்களும் நீக்கப்படும்.','Node Delete செய்யவா?'))) return;
+  nodes=nodes.filter(function(x){return x.id!==id;}); saveLocal(N_KEY,nodes);
+  questions=questions.filter(function(x){return x.node_id!==id;}); saveLocal(Q_KEY,questions);
+  if(sb){ try{ await sb.from('questions').delete().eq('node_id',id); }catch(e){} try{ await sb.from('nodes').delete().eq('id',id); }catch(e){} }
+  if(curL1===id)curL1=null; if(curL2===id)curL2=null; if(curL3===id)curL3=null; if(curSub===id)curSub=null; if(curItem===id)curItem=null;
+  renderAllSteps(); updateKPI(); showToast('Node Delete ஆனது ✓',true);
+}
+
+
+function renderAllSteps(){ try{renderL1();}catch(e){} try{renderL2();}catch(e){} try{renderL3();}catch(e){} try{renderL4();}catch(e){} try{renderQuestions();}catch(e){} try{renderDashboard();}catch(e){} }
+
 async function copyQ(id){
   var q=questions.find(function(x){return x.id===id;}); if(!q) return;
   var nq={id:'q'+Date.now(),node_id:q.node_id,question_text:q.question_text+' (Copy)',question_type:q.question_type,options:(q.options||[]).slice(),is_required:q.is_required,order_index:questions.filter(function(x){return x.node_id===q.node_id;}).length+1};
@@ -413,7 +453,7 @@ function renderQuestions(){
   document.getElementById('qPreview').innerHTML=ph||'<div class="text-xs text-slate-400">Preview இல்லை</div>';
   updateCrumb();
 }
-function moveQ(id,dir){var lid=leafId();var qs=questions.filter(function(q){return q.node_id===lid;}).sort(function(a,b){return a.order_index-b.order_index;});var idx=qs.findIndex(function(q){return q.id===id;});var nIdx=idx+dir;if(nIdx<0||nIdx>=qs.length)return;var tmp=qs[idx].order_index;qs[idx].order_index=qs[nIdx].order_index;qs[nIdx].order_index=tmp;saveLocal(Q_KEY,questions);renderQuestions();}
+async function moveQ(id,dir){var lid=leafId();var qs=questions.filter(function(q){return q.node_id===lid;}).sort(function(a,b){return a.order_index-b.order_index;});var idx=qs.findIndex(function(q){return q.id===id;});var nIdx=idx+dir;if(nIdx<0||nIdx>=qs.length)return;var tmp=qs[idx].order_index;qs[idx].order_index=qs[nIdx].order_index;qs[nIdx].order_index=tmp;saveLocal(Q_KEY,questions);renderQuestions();}
 document.getElementById('qForm').addEventListener('submit',async function(e){e.preventDefault();var lid=leafId();if(!lid)return showToast('முதலில் பிரிவை தேர்வு செய்யுங்கள்',false);var id=document.getElementById('qId').value;var payload={id:id||'q'+Date.now(),node_id:lid,question_text:document.getElementById('qText').value.trim(),question_type:document.getElementById('qType').value,options:curOptions.slice(),is_required:document.getElementById('qReq').value==='1',order_index:id?(questions.find(function(q){return q.id===id;})||{}).order_index||0:questions.filter(function(q){return q.node_id===lid;}).length+1};if(id){var idx=questions.findIndex(function(q){return q.id===id;});if(idx>-1)questions[idx]=payload;}else questions.push(payload);saveLocal(Q_KEY,questions);if(sb){try{await sb.from('questions').upsert({id:payload.id,node_id:payload.node_id,question_text:payload.question_text,question_type:payload.question_type,options:payload.options,is_required:payload.is_required,order_index:payload.order_index});}catch(err){}}resetQ();renderQuestions();showToast('வினா Save ஆனது ✓',true);});
 function editQ(id){var q=questions.find(function(x){return x.id===id;});if(!q)return;document.getElementById('qId').value=q.id;document.getElementById('qText').value=q.question_text;document.getElementById('qType').value=q.question_type;document.getElementById('qReq').value=q.is_required?'1':'0';curOptions=(q.options||[]).slice();renderOpts();onQType();window.scrollTo({top:document.getElementById('qForm').offsetTop-80,behavior:'smooth'});}
 async function delQ(id){if(!(await profConfirm('இந்த வினா நீக்கப்படும்.','வினாவை Delete செய்யவா?')))return;questions=questions.filter(function(x){return x.id!==id;});saveLocal(Q_KEY,questions);if(sb){try{sb.from('questions').delete().eq('id',id);}catch(e){}}renderQuestions();}
