@@ -1,283 +1,507 @@
 <!DOCTYPE html>
-<html lang="si">
-<head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>පරිපාලක පුවරුව | Admin — FieldWork OS</title>
+<html lang="ta"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin Dashboard | FieldWork OS</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="styles.css">
+<style>
+.wizard-step{display:none}.wizard-step.active{display:block}
+.step-dot{width:32px;height:32px;border-radius:999px;display:grid;place-items:center;font-weight:700;font-size:13px;background:#e2e8f0;color:#64748b}
+.step-dot.done{background:#059669;color:#fff}.step-dot.now{background:#4f46e5;color:#fff}
+.node-card{border:2px solid #e2e8f0;border-radius:16px;padding:14px;background:#fff;cursor:pointer}
+.node-card.sel{border-color:#4f46e5;background:#eef2ff}
+.node-card.off{opacity:.6}
+.switch{width:44px;height:24px;border-radius:999px;background:#cbd5e1;position:relative;cursor:pointer;flex-shrink:0}
+.switch:after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:999px;background:#fff;transition:.15s}
+.switch.on{background:#059669}.switch.on:after{left:23px}
+.q-preview{border:1px dashed #94a3b8;border-radius:14px;padding:14px;background:#f8fafc}
+</style><script>window.addEventListener('error',function(e){var d=document.getElementById('jsError');if(!d){d=document.createElement('div');d.id='jsError';d.style.cssText='background:#fef2f2;color:#b91c1c;padding:12px;margin:12px;border-radius:12px;font-size:13px';document.body.prepend(d);}d.textContent='JS Error: '+(e.message||'unknown')+' — Screenshot எடுத்து அனுப்புங்கள்';});</script>
+<style>
+.modal-back{position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(2px);z-index:100;display:none;align-items:flex-end;justify-content:center;padding:12px}
+.modal-back.show{display:flex}
+.modal-card{background:#fff;border-radius:22px 22px 16px 16px;width:100%;max-width:460px;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:slideUp .22s ease}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(80px);background:#0f172a;color:#fff;padding:12px 18px;border-radius:999px;font-size:13px;font-weight:600;z-index:120;transition:.25s;max-width:92vw;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.ok{background:#059669}.toast.err{background:#dc2626}
+@media(min-width:640px){.modal-back{align-items:center;padding:20px}.modal-card{border-radius:20px}}
+</style>
 </head>
+
+<div id="modalBack" class="modal-back" onclick="if(event.target===this) closeModal(false)"><div class="modal-card">
+<div id="modalIcon" class="text-3xl">ℹ️</div><h3 id="modalTitle" class="font-bold text-[18px] mt-2">Title</h3><p id="modalMsg" class="text-sm text-slate-500 mt-1"></p>
+<div id="modalInputWrap" class="hidden mt-3"><input id="modalInput" placeholder=""></div>
+<div id="modalSelectWrap" class="hidden mt-3"><select id="modalSelect"></select></div>
+<div class="flex gap-2 mt-5"><button id="modalCancel" onclick="closeModal(false)" class="btn btn-ghost flex-1">Cancel</button><button id="modalOk" onclick="closeModal(true)" class="btn btn-primary flex-1">OK</button></div>
+</div></div>
+<div id="toast" class="toast"></div>
 <body class="bg-[#f8fafc]">
-<!-- Sidebar -->
-<aside id="sidebar" class="sidebar p-6 flex flex-col">
-  <div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-white text-slate-900 grid place-items-center font-bold">ආ</div><div><div class="font-bold leading-none">FieldWork OS</div><div class="text-[11px] text-slate-400">Admin Panel</div></div></div>
-  <nav class="mt-8 space-y-1">
-    <button data-tab="reports" class="tab-btn w-full text-left px-4 py-3 rounded-xl bg-white text-slate-900 font-semibold">📊 දත්ත සහ වාර්තා (Reports)</button>
-    <button data-tab="questions" class="tab-btn w-full text-left px-4 py-3 rounded-xl text-slate-300 hover:bg-white/10">❓ ප්‍රශ්න කළමනාකරණය</button>
-    <button data-tab="users" class="tab-btn w-full text-left px-4 py-3 rounded-xl text-slate-300 hover:bg-white/10">👥 උප අංශ 4 කළමනාකරණය</button>
-    <button data-tab="analytics" class="tab-btn w-full text-left px-4 py-3 rounded-xl text-slate-300 hover:bg-white/10">📈 Analytics</button>
-  </nav>
-  <div class="mt-auto rounded-2xl bg-white/10 p-4"><div class="text-sm font-semibold" id="roleLabel">ප්‍රධාන පරිපාලක</div><div class="text-xs text-slate-400" id="userLabel">admin@system.lk</div><button onclick="logout()" class="mt-3 w-full rounded-xl bg-red-500 py-2 text-sm font-semibold">Logout / පිටවීම</button></div>
+<!-- SIDEBAR OVERLAY: Menu-க்கு வெளியே Click செய்தால் Menu மூடும் -->
+<div id="sidebarOverlay" onclick="closeSidebar()" class="fixed inset-0 bg-black/50 z-[35] hidden lg:hidden"></div>
+<button id="sidebarCloseFab" onclick="closeSidebar()" class="hidden lg:hidden fixed top-3 right-3 z-[60] w-11 h-11 rounded-full bg-white shadow-xl text-xl font-bold" aria-label="Close Menu">✕</button>
+<!-- SIDEBAR -->
+<aside id="sidebar" class="sidebar p-5 flex flex-col">
+<div class="flex items-center gap-3"><div class="w-11 h-11 rounded-xl bg-white text-slate-900 grid place-items-center font-bold text-lg shrink-0">A</div><div class="min-w-0 flex-1"><div class="font-bold leading-tight">FieldWork OS</div><div class="text-[11px] text-slate-400">DD Kandy • Admin Dashboard</div></div><button onclick="closeSidebar()" aria-label="Menu-ஐ மூடு / Close Menu" class="lg:hidden shrink-0 w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 text-white text-[20px] font-bold grid place-items-center leading-none">✕</button></div>
+<div class="lg:hidden mt-3"><button onclick="closeSidebar()" class="w-full rounded-xl bg-white text-slate-900 py-2.5 text-sm font-bold">✕ Close Menu — Menu-ஐ மூடு</button></div>
+<nav class="mt-7 space-y-1 text-[14px]">
+<button data-nav="dashboard" onclick="goNav('dashboard')" class="nav-btn w-full text-left px-4 py-3 rounded-xl bg-white text-slate-900 font-semibold">🏠 Dashboard</button>
+<button data-nav="builder" onclick="goNav('builder')" class="nav-btn w-full text-left px-4 py-3 rounded-xl text-slate-300 hover:bg-white/10">🧩 வினா தயாரிப்பு<br><span class="text-[11px] font-normal opacity-80">Form Builder</span></button>
+<button data-nav="data" onclick="goNav('data')" class="nav-btn w-full text-left px-4 py-3 rounded-xl text-slate-300 hover:bg-white/10">📊 தரவுகள்<br><span class="text-[11px] font-normal opacity-80">Data • Edit / Delete / Filter</span></button>
+<button data-nav="users" onclick="goNav('users')" class="nav-btn w-full text-left px-4 py-3 rounded-xl text-slate-300 hover:bg-white/10">👥 Users</button>
+<button data-nav="hierarchy" onclick="goNav('hierarchy')" class="nav-btn w-full text-left px-4 py-3 rounded-xl text-slate-300 hover:bg-white/10">🏛️ 45 உப பிரிவு + காரியாலயம்</button>
+</nav>
+<div class="lg:hidden mt-2"><button onclick="closeSidebar()" class="w-full rounded-xl bg-white/10 py-2 text-xs font-semibold">← Back to Page — பக்கத்துக்கு போ</button></div>
+<div class="mt-auto rounded-2xl bg-white/10 p-4"><div class="text-sm font-semibold" id="roleLabel">Admin</div><div class="text-xs text-slate-300" id="userLabel"></div><div class="text-[11px] text-emerald-300 mt-1" id="scopeLabel"></div>
+<div class="flex gap-1 mt-3"><button onclick="setLang('ta')" class="flex-1 rounded-lg bg-white/20 py-1.5 text-xs">தமிழ்</button><button onclick="setLang('si')" class="flex-1 rounded-lg bg-white/10 py-1.5 text-xs">සිංහල</button></div>
+<button onclick="logout()" class="mt-3 w-full rounded-xl bg-red-500 py-2 text-sm font-semibold">Logout</button></div>
 </aside>
 
 <div class="main">
-  <div class="topbar">
-    <div class="flex items-center gap-3"><button onclick="document.getElementById('sidebar').classList.toggle('open')" class="lg:hidden btn btn-ghost px-3">☰</button><h1 class="font-bold text-[18px]">පරිපාලක කළමනාකරණ පුවරුව</h1><span class="hidden md:inline-flex badge badge-blue">Live • Responsive • PWA</span></div>
-    <div class="flex items-center gap-2"><span class="text-xs text-slate-500 hidden sm:block">Mobile / Desktop / Tab / Android / iOS / Windows</span><div class="w-8 h-8 rounded-full bg-indigo-600 grid place-items-center text-white font-bold text-xs">A</div></div>
-  </div>
+<div class="topbar"><div class="flex items-center gap-3"><button onclick="openSidebar()" class="lg:hidden btn btn-ghost px-3">☰ Menu</button><h1 class="font-bold text-[17px] md:text-[19px]" id="pageTitle">Dashboard</h1><span class="text-[10px] px-2 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold whitespace-nowrap" title="இது தெரியவில்லை என்றால் GitHub-இல் பழைய File இருக்கிறது">v11 • DD Kandy • 2026-11-08</span></div><div class="flex items-center gap-2"><span id="sbStatus" class="text-[11px] px-2 py-1 rounded bg-slate-100">Supabase...</span><button onclick="goNav('builder')" class="btn btn-primary px-4 py-2 text-xs">+ புதிய வினா தயாரி</button></div></div>
 
-  <div class="p-4 md:p-6 space-y-6">
-    <!-- KPI -->
-    <div class="kpi">
-      <div class="kpi-card"><div class="text-white/80 text-xs">මුළු ඇතුළත් කිරීම්</div><div class="text-3xl font-bold mt-1" id="kpiTotal">0</div><div class="text-xs mt-2 opacity-80">All Divisions • සියලුම ඒකක</div></div>
-      <div class="card"><div class="text-xs text-slate-500">උප අංශ 4</div><div class="text-2xl font-bold mt-1">4 Divisions Active</div><div class="mt-2 flex gap-2"><span class="badge badge-blue">Division A</span><span class="badge badge-green">B</span><span class="badge badge-amber">C</span><span class="badge badge-blue">D</span></div></div>
-      <div class="card"><div class="text-xs text-slate-500">අද දත්ත</div><div class="text-2xl font-bold mt-1" id="kpiToday">0</div><div class="text-xs text-slate-400 mt-2">Filter & Download Ready</div></div>
-    </div>
+<div class="p-4 md:p-6 max-w-[1100px] mx-auto space-y-5">
 
-    <!-- REPORTS TAB -->
-    <div id="tab-reports" class="tab-panel">
-      <div class="card">
-        <div class="flex flex-wrap gap-3 items-end">
-          <div class="flex-1 min-w-[160px]"><label class="text-xs font-semibold">කාලසීමාව (Period)</label><select id="fPeriod" onchange="renderTable()"><option value="">සියලුම</option><option>2026-H1</option><option>2026-H2</option><option>2025-H2</option></select></div>
-          <div class="flex-1 min-w-[160px]"><label class="text-xs font-semibold">ඒකකය / Division (උප අංශ 4)</label><select id="fDivision" onchange="renderTable()"><option value="">සියලුම උප අංශ</option><option value="උප අංශය 01 - උතුර">උප අංශය 01 - උතුර</option><option value="උප අංශය 02 - දකුණ">උප අංශය 02 - දකුණ</option><option value="උප අංශය 03 - නැගෙනහිර">උප අංශය 03 - නැගෙනහිර</option><option value="උප අංශය 04 - බටහිර">උප අංශය 04 - බටහිර</option></select></div>
-          <div class="flex-1 min-w-[160px]"><label class="text-xs font-semibold">ව්‍යාපෘතිය (Project)</label><select id="fProject" onchange="renderTable()"><option value="">සියලුම ව්‍යාපෘති</option><option>PSDG ව්‍යාපෘතිය</option><option>CBG ව්‍යාපෘතිය</option><option>නකල්ස් ව්‍යාපෘතිය</option></select></div>
-          <div class="flex-1 min-w-[200px]"><label class="text-xs font-semibold">සෙවීම / Search</label><input id="fSearch" placeholder="නම, NIC, දුරකථන..." oninput="renderTable()"></div>
-          <button onclick="downloadCSV(true)" class="btn btn-success">⬇ CSV / Excel බාගත</button>
-          <button onclick="downloadJSON()" class="btn btn-ghost">⬇ JSON</button>
-        </div>
-
-        <div class="table-wrap mt-5">
-          <table id="mainTable">
-            <thead><tr><th>කාලය</th><th>උප අංශය</th><th>ව්‍යාපෘතිය</th><th>ප්‍රතිලාභී නම</th><th>ප්‍රමාණය</th><th>දිනය</th><th>තත්ත්වය</th><th>ක්‍රියා</th></tr></thead>
-            <tbody id="tbody"></tbody>
-          </table>
-        </div>
-        <div class="flex justify-between items-center mt-4 text-xs text-slate-500"><span id="countLabel"></span><div class="flex gap-2"><button onclick="changePage(-1)" class="btn btn-ghost px-3 py-1">‹ Prev</button><span id="pageLabel" class="px-2 py-1"></span><button onclick="changePage(1)" class="btn btn-ghost px-3 py-1">Next ›</button></div></div>
-      </div>
-    </div>
-
-    <!-- QUESTIONS TAB - Full CRUD -->
-    <div id="tab-questions" class="tab-panel hidden space-y-4">
-      <div class="grid lg:grid-cols-[380px_1fr] gap-6">
-        <div class="card h-fit">
-          <h3 class="font-bold">නව ප්‍රශ්නයක් එක් කරන්න / Edit</h3>
-          <p class="text-xs text-slate-500 mt-1">Admin හට Create, Edit, Delete, Update, Reorder, Filter සියල්ල</p>
-          <form id="qForm" class="mt-4 space-y-3">
-            <input type="hidden" id="qId">
-            <div><label class="text-xs font-semibold">ප්‍රශ්න පාඨය (Question Text) *</label><textarea id="qText" rows="3" placeholder="උදා: බිත්තර වී ප්‍රමාණය කොපමණද?" required></textarea></div>
-            <div class="grid grid-cols-2 gap-3">
-              <div><label class="text-xs font-semibold">වර්ගය (Type)</label><select id="qType"><option value="text">Text</option><option value="number">Number</option><option value="select">Select / Dropdown</option><option value="radio">Radio</option><option value="checkbox">Checkbox</option><option value="date">Date</option></select></div>
-              <div><label class="text-xs font-semibold">කාණ්ඩය</label><select id="qCategory"><option value="field_work">ක්ෂේත්‍ර කාර්ය</option><option value="psdg">PSDG</option><option value="cbg">CBG</option><option value="beneficiary">ප්‍රතිලාභී</option></select></div>
-            </div>
-            <div><label class="text-xs font-semibold">Options (comma separated - select/radio සඳහා)</label><input id="qOptions" placeholder="kg, පැකට්, අංක"></div>
-            <div class="grid grid-cols-2 gap-3">
-              <div><label class="text-xs font-semibold">කාලසීමාව</label><select id="qPeriod"><option>2026-H1</option><option>2026-H2</option></select></div>
-              <div><label class="text-xs font-semibold">අවශ්‍යද? *</label><select id="qRequired"><option value="true">ඔව් (Required)</option><option value="false">නැත</option></select></div>
-            </div>
-            <button class="btn btn-primary w-full">💾 සුරකින්න / Save Question</button>
-            <button type="button" onclick="resetQForm()" class="btn btn-ghost w-full">Reset</button>
-          </form>
-        </div>
-        <div class="card">
-          <div class="flex justify-between items-center"><h3 class="font-bold">පවතින ප්‍රශ්න (All Questions)</h3><div class="flex gap-2"><input id="qSearch" placeholder="සොයන්න..." class="w-[160px]" oninput="renderQuestions()"><button onclick="downloadQuestionsCSV()" class="btn btn-ghost text-xs">Export CSV</button></div></div>
-          <div id="qList" class="mt-4 space-y-2 max-h-[560px] overflow-auto"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- USERS TAB -->
-    <div id="tab-users" class="tab-panel hidden">
-      <div class="card">
-        <h3 class="font-bold">උප අංශ 4 සහ ප්‍රධාන පරිපාලක කළමනාකරණය</h3>
-        <p class="text-sm text-slate-500">නிறுவන තලවர் (main_admin) හට සියලුම උප අංශ 4 දත්ත බැලීම / Edit. උප අංශ පරිපාලක (sub_admin) හට තම අංශය පමණක්.</p>
-        <div class="grid md:grid-cols-4 gap-4 mt-5">
-          <div class="rounded-2xl border p-4 bg-gradient-to-br from-indigo-50 to-white"><div class="font-bold">ප්‍රධාන පරිපාලක</div><div class="text-xs text-slate-500 mt-1">main_admin • සියල්ල View/Edit/Download/Filter</div><div class="mt-3 badge badge-blue">Full Access</div></div>
-          <div class="rounded-2xl border p-4"><div class="font-bold">උප අංශය 01</div><div class="text-xs text-slate-500">sub_admin • උතුර</div><div class="mt-2 text-xs">✔ View own division<br>✔ Edit/Delete<br>✔ Export</div></div>
-          <div class="rounded-2xl border p-4"><div class="font-bold">උප අංශය 02</div><div class="text-xs text-slate-500">sub_admin • දකුණ</div><div class="mt-2 text-xs">✔ View own division<br>✔ Edit/Delete<br>✔ Export</div></div>
-          <div class="rounded-2xl border p-4"><div class="font-bold">උප අංශය 03 & 04</div><div class="text-xs text-slate-500">sub_admin</div><div class="mt-2 text-xs">Role based filtering applied</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ANALYTICS -->
-    <div id="tab-analytics" class="tab-panel hidden">
-      <div class="card"><h3 class="font-bold">Analytics • දත්ත විශ්ලේෂණය</h3><canvas id="chart" class="mt-4 w-full h-[280px] bg-slate-50 rounded-xl"></canvas><p class="text-xs text-slate-500 mt-2">Chart placeholder — Supabase data වෙතින් live update වේ</p></div>
-    </div>
-  </div>
+<!-- ============ DASHBOARD ============ -->
+<div id="page-dashboard" class="page">
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+<div class="kpi-card"><div class="text-white/80 text-xs">Extension பிரிவுகள்</div><div class="text-2xl font-bold mt-1" id="kExt">0</div><div class="text-[11px] opacity-80 mt-1">Season + Cultivation</div></div>
+<div class="kpi-card" style="background:linear-gradient(135deg,#059669,#0d9488)"><div class="text-white/80 text-xs">Development பிரிவுகள்</div><div class="text-2xl font-bold mt-1" id="kDev">0</div><div class="text-[11px] opacity-80 mt-1">Year + Program + Sub Program</div></div>
+<div class="card !p-4"><div class="text-xs text-slate-500">மொத்த வினாக்கள்</div><div class="text-2xl font-bold mt-1" id="kQ">0</div></div>
+<div class="card !p-4"><div class="text-xs text-slate-500">மொத்த பதில்கள்</div><div class="text-2xl font-bold mt-1" id="kR">0</div></div>
 </div>
 
-<!-- Edit Modal -->
-<div id="editModal" class="modal">
-  <div class="card w-full max-w-[520px] animate-in">
-    <h3 class="font-bold text-lg">දත්ත සංස්කරණය / Edit Entry — ප්‍රධාන සහ උප අංශ 4 හට</h3>
-    <form id="editForm" class="mt-4 space-y-3">
-      <input type="hidden" id="editId">
-      <div><label class="text-xs font-semibold">ප්‍රතිලාභී නම</label><input id="eName" required></div>
-      <div class="grid grid-cols-2 gap-3"><div><label class="text-xs font-semibold">දුරකථන</label><input id="ePhone"></div><div><label class="text-xs font-semibold">NIC</label><input id="eNic"></div></div>
-      <div class="grid grid-cols-2 gap-3"><div><label class="text-xs font-semibold">ප්‍රමාණය</label><input id="eQty" type="number"></div><div><label class="text-xs font-semibold">� ඒකකය</label><select id="eUnit"><option>kg</option><option>පැකට්</option><option>අංක</option></select></div></div>
-      <div><label class="text-xs font-semibold">Answers JSON (Advanced)</label><textarea id="eAnswers" rows="4" class="font-mono text-xs"></textarea></div>
-      <div class="flex gap-2 justify-end pt-2"><button type="button" onclick="closeModal()" class="btn btn-ghost">අවලංගු</button><button class="btn btn-primary">යාවත්කාලීන කරන්න / Update</button></div>
-    </form>
-  </div>
+<div class="card !p-4 flex flex-wrap items-center gap-3"><div class="flex-1 min-w-[200px]"><h3 class="font-bold">🧩 வினா தயாரிப்பு — Form Builder</h3><p class="text-xs text-slate-500 mt-1">Extension / Development வினாக்களை உருவாக்க, Edit, Copy, Publish செய்ய இங்கே போங்கள். Menu தேவை இல்லை.</p></div><button onclick="goNav('builder')" class="btn btn-primary px-5 py-3">→ வினா தயாரிப்பு திற →</button></div>
+
+<div class="card"><h3 class="font-bold">இப்போது Unit-இல் காட்டப்படுவது — <span class="text-emerald-600">Published Only</span></h3><p class="text-xs text-slate-500 mt-1">இதை மாற்ற வேண்டுமென்றால்: வினா தயாரிப்பு → அந்த பிரிவை தேர்வு செய்து Publish ON / OFF செய்யுங்கள்.</p><div id="publishedBox" class="grid md:grid-cols-2 gap-3 mt-4"></div></div>
+
+<div class="card"><h3 class="font-bold">சமீபத்திய பதில்கள் (Latest 8)</h3><div id="recentBox" class="mt-3 space-y-2"></div><button onclick="goNav('data')" class="btn btn-ghost mt-3 text-xs">எல்லா தரவையும் பார்க்க →</button></div>
 </div>
 
+<!-- ============ BUILDER ============ -->
+<div id="page-builder" class="page hidden">
+<!-- Breadcrumb -->
+<div class="card !py-3 flex flex-wrap items-center gap-2 text-[13px]"><span class="font-bold">நீங்கள் இங்கே இருக்கிறீர்கள்:</span><span id="crumb" class="text-indigo-700 font-semibold">Extension / Development தேர்வு செய்யுங்கள்</span><button onclick="resetWizard()" class="ml-auto btn btn-ghost px-3 py-1.5 text-xs">↺ முதலில் இருந்து</button></div>
+
+<!-- Progress -->
+<div class="flex items-center gap-2 md:gap-3 text-[11px] md:text-xs font-semibold overflow-x-auto pb-1">
+<div class="flex items-center gap-2"><span class="step-dot now" id="dot1">1</span><span>பிரிவு</span></div><span class="text-slate-300">→</span>
+<div class="flex items-center gap-2"><span class="step-dot" id="dot2">2</span><span id="lbl2">Season / Year</span></div><span class="text-slate-300">→</span>
+<div class="flex items-center gap-2"><span class="step-dot" id="dot3">3</span><span id="lbl3">Cultivation / Program</span></div><span class="text-slate-300">→</span>
+<div class="flex items-center gap-2" id="step4Wrap"><span class="step-dot" id="dot4">4</span><span id="lbl4">Project</span></div><span class="text-slate-300" id="arrow4">→</span>
+<div class="flex items-center gap-2" id="step5Wrap"><span class="step-dot" id="dot5">5</span><span id="lbl5">வினாக்கள்</span></div><span class="text-slate-300" id="arrow5">→</span>
+<div class="flex items-center gap-2" id="step6Wrap"><span class="step-dot" id="dot6">6</span><span>வினாக்கள்</span></div>
+</div>
+
+<!-- STEP 1 -->
+<div id="w1" class="wizard-step active">
+<div class="card"><h2 class="font-bold text-[19px]">Step 1 — Extension / Development இல் ஒன்றை தேர்வு செய்யுங்கள்</h2><p class="text-sm text-slate-500 mt-1">ஒன்றை தேர்வு செய்தால் தான் அடுத்த Step வரும்.</p>
+<div class="grid md:grid-cols-2 gap-4 mt-5">
+<button onclick="pickMain('extension')" class="text-left rounded-2xl border-2 border-indigo-200 hover:border-indigo-600 p-5 bg-white"><div class="text-3xl">🌾</div><div class="font-bold text-lg mt-2">Extension — விவசாய விரிவாக்கம்</div><div class="text-sm text-slate-500 mt-1">அடுத்து: Season தேர்வு → Cultivation தேர்வு → வினாக்கள்<br><span class="text-xs">எ.கா: 2026/27 Maha → Paddy / Vegetable / OFC</span></div><div class="mt-3 text-indigo-600 font-semibold text-sm">தேர்வு செய் →</div></button>
+<button onclick="pickMain('development')" class="text-left rounded-2xl border-2 border-emerald-200 hover:border-emerald-600 p-5 bg-white"><div class="text-3xl">🏗️</div><div class="font-bold text-lg mt-2">Development — அபிவிருத்தி</div><div class="text-sm text-slate-500 mt-1">அடுத்து: Year தேர்வு → Program தேர்வு → Project தேர்வு → வினாக்கள்<br><span class="text-xs">எ.கா: 2026 → PSDG → Seed Distribution → Farmer விபரம்</span></div><div class="mt-3 text-emerald-600 font-semibold text-sm">தேர்வு செய் →</div></button>
+</div></div>
+</div>
+
+<!-- STEP 2 -->
+<div id="w2" class="wizard-step">
+<div class="card"><h2 class="font-bold text-[19px]" id="w2Title">Step 2 — Season தேர்வு செய்யுங்கள்</h2><p class="text-sm text-slate-500 mt-1" id="w2Desc">ஒன்றை Click செய்யுங்கள். புதிதாக வேண்டுமென்றால் கீழே Type செய்து Add செய்யுங்கள்.</p>
+<div class="flex gap-2 mt-4"><input id="newL1" placeholder="புதியது: எ.கா 2026/27 Maha அல்லது 2027"><button onclick="addL1()" class="btn btn-primary px-4 shrink-0">+ Add</button></div>
+<div id="l1List" class="mt-4 space-y-2"></div>
+<div class="flex gap-2 mt-5"><button onclick="gotoStep(1)" class="btn btn-ghost">← Back</button><button onclick="gotoStep(3)" id="w2Next" class="btn btn-primary ml-auto" disabled>Next: Cultivation / Program →</button></div></div>
+</div>
+
+<!-- STEP 3 -->
+<div id="w3" class="wizard-step">
+<div class="card"><h2 class="font-bold text-[19px]" id="w3Title">Step 3 — Cultivation தேர்வு செய்யுங்கள்</h2><p class="text-sm text-slate-500 mt-1" id="w3Desc"></p>
+<div class="flex gap-2 mt-4"><input id="newL2" placeholder="புதியது: எ.கா Paddy Cultivation அல்லது PSDG"><button onclick="addL2()" class="btn btn-primary px-4 shrink-0">+ Add</button></div>
+<div id="l2List" class="mt-4 space-y-2"></div>
+<div class="flex gap-2 mt-5"><button onclick="gotoStep(2)" class="btn btn-ghost">← Back</button><button onclick="w3Next()" id="w3Next" class="btn btn-primary ml-auto" disabled>Next →</button></div></div>
+</div>
+
+<!-- STEP 4: Extension = உப பிரிவு / Development = Project -->
+<div id="w4" class="wizard-step">
+<div class="card"><h2 class="font-bold text-[19px]" id="w4Title">Step 4 — Sub Program தேர்வு செய்யுங்கள்</h2><p class="text-sm text-slate-500 mt-1" id="w4Desc"></p>
+<div class="flex gap-2 mt-4"><input id="newL3" placeholder="புதியது..."><button onclick="addL3()" class="btn btn-primary px-4 shrink-0">+ Add</button></div>
+<div id="l3List" class="mt-4 space-y-2"></div>
+<div class="flex gap-2 mt-5"><button onclick="gotoStep(3)" class="btn btn-ghost">← Back</button><button onclick="w4Next()" id="w4Next" class="btn btn-primary ml-auto" disabled>Next →</button></div></div>
+</div>
+
+<!-- STEP 5: Development only = Item / Items -->
+<div id="w5" class="wizard-step">
+<div class="card"><h2 class="font-bold text-[19px]">Step 5 — Item / Items Name தேர்வு செய்யுங்கள்</h2><p class="text-sm text-slate-500 mt-1">ஒரு Sub Program-இல் <b>ஒரு பொருள் அல்லது ஒன்றுக்கு மேற்பட்ட பொருட்கள்</b> இருக்கலாம். எ.கா: Seed Distribution → Paddy Seed, Vegetable Seed. Item இல்லை என்றால் <b>“Item இல்லை — Sub Program நேரடியாக”</b> என்பதை தேர்வு செய்யுங்கள். Unit-இல் Item-களை ஒன்று அல்லது பல தேர்வு செய்ய முடியும்.</p>
+<div class="flex gap-2 mt-4"><input id="newItem" placeholder="புதிய Item: எ.கா Paddy Seed / Urea / Tools"><button onclick="addItem()" class="btn btn-primary px-4 shrink-0">+ Add Item</button></div>
+<div id="itemList" class="mt-4 space-y-2"></div>
+<div class="flex gap-2 mt-5"><button onclick="gotoStep(4)" class="btn btn-ghost">← Back</button><button onclick="gotoStep(6)" class="btn btn-primary ml-auto">Next: வினாக்கள் →</button></div></div>
+</div>
+
+<!-- STEP 6 -->
+<div id="w6" class="wizard-step">
+<div class="card"><h2 class="font-bold text-[19px]">Step 6 — வினாக்கள் உருவாக்குங்கள்</h2><p class="text-sm text-slate-500 mt-1">இந்த பிரிவுக்கான வினாக்கள் மட்டும் இங்கே. வேறு பிரிவின் வினா இங்கே வராது. <b>Manual-ஆக Type செய்து</b> உருவாக்குங்கள்.</p>
+<div class="flex flex-wrap gap-2 mt-3"><button onclick="loadDevTemplate()" class="btn btn-success text-xs px-3 py-2">Development Template — Farmer + Item (Name / Address / Tel / ID / Qty / Unit / 50% / Price) Auto Add</button><button onclick="loadExtTemplate()" class="btn btn-ghost text-xs px-3 py-2">Extension Template — Extent / Variety / Farmers</button></div>
+<div class="grid lg:grid-cols-[400px_1fr] gap-5 mt-4">
+<form id="qForm" class="space-y-3 border rounded-2xl p-4 h-fit bg-slate-50"><input type="hidden" id="qId">
+<div><label>வினா — Question * (Manual Type)</label><textarea id="qText" rows="2" placeholder="எ.கா: விவசாயியின் பெயர் / Farmer Name" required class="mt-1"></textarea></div>
+<div class="grid grid-cols-2 gap-3"><div><label>பதில் வகை — Type</label><select id="qType" onchange="onQType()" class="mt-1"><option value="short_text">Short Answer</option><option value="paragraph">Paragraph</option><option value="multiple_choice">Multiple Choice (ஒன்று)</option><option value="checkbox">Multi Choice (பல)</option><option value="dropdown">Dropdown</option><option value="number">Number</option><option value="date">Date</option><option value="scale">Scale 1-5</option><option value="yes_no">Yes / No</option></select></div><div><label>கட்டாயமா?</label><select id="qReq" class="mt-1"><option value="1">Yes — கட்டாயம் *</option><option value="0">No — விருப்பம்</option></select></div></div>
+<div id="optWrap" class="hidden"><label>Options — ஒவ்வொன்றாக Add செய்யுங்கள்</label><div id="optList" class="space-y-2 mt-1"></div><div class="flex gap-2 mt-2"><input id="optInput" placeholder="எ.கா: Nellu / Seeds / 50%"><button type="button" onclick="addOption()" class="btn btn-ghost px-3 shrink-0">+ Add</button></div></div>
+<button class="btn btn-primary w-full">வினாவை Save செய் — Add / Update</button><button type="button" onclick="resetQ()" class="btn btn-ghost w-full">Reset</button></form>
+<div><div class="flex justify-between items-center"><div class="font-semibold">இந்த பிரிவின் வினாக்கள் (<span id="qCount">0</span>)</div><span class="text-[11px] text-slate-400">↑↓ மூலம் வரிசை மாற்றலாம்</span></div><div id="qList" class="mt-3 space-y-2"></div>
+<div class="q-preview mt-4"><div class="font-semibold text-sm">👁️ Unit-இல் எப்படி தெரியும் — Live Preview</div><div id="qPreview" class="mt-3 space-y-3"></div><div class="text-[11px] text-slate-400 mt-2">Sub Office / பிரிவு / காரியாலயம் / Year / Season — Unit-இல் கேள்வியாக கேட்கப்படாது. அது தானாக Save ஆகும்.</div></div></div>
+</div>
+<div class="flex gap-2 mt-5"><button onclick="backFromQ()" class="btn btn-ghost">← Back</button><button onclick="finishWizard()" class="btn btn-success ml-auto">✓ முடிந்தது — Dashboard-க்கு போ</button></div></div>
+</div>
+</div>
+
+<!-- ============ DATA ============ -->
+<div id="page-data" class="page hidden">
+<div class="card"><div class="flex flex-wrap justify-between gap-2"><h2 class="font-bold text-[19px]">தரவுகள் — பார்க்க / Edit / Delete / Filter / Download</h2><button onclick="downloadCSV()" class="btn btn-success text-xs px-4">⬇ CSV Download</button></div>
+<p class="text-xs text-slate-500 mt-1" id="dataScopeNote">Main Admin: எல்லா தரவும். Sub Admin: தன் Sub Office-இன் தரவு மட்டும்.</p>
+<div class="grid md:grid-cols-4 gap-3 mt-4"><select id="fMain" onchange="renderData()"><option value="">எல்லாம் — Extension + Development</option><option value="extension">Extension மட்டும்</option><option value="development">Development மட்டும்</option></select><select id="fSub" onchange="renderData()"><option value="">எல்லா Sub Office</option></select><input id="fSearch" placeholder="Search: Farmer / Item / பிரிவு / காரியாலயம்..." oninput="renderData()"><select id="fDiv" onchange="renderData()"><option value="">எல்லா பிரிவு</option></select></div>
+<div class="table-wrap mt-4"><table><thead><tr><th>பிரிவு — Path</th><th>Sub / பிரிவு / காரியாலயம்</th><th>பதில்கள்</th><th>User / திகதி</th><th>Action</th></tr></thead><tbody id="dataTbody"></tbody></table></div>
+<div id="editBox" class="hidden mt-4 border-2 border-indigo-200 rounded-2xl p-4 bg-indigo-50/50"><h4 class="font-bold">✏️ Edit Response</h4><div id="editFields" class="mt-3 space-y-3"></div><div class="flex gap-2 mt-3"><button onclick="saveEdit()" class="btn btn-primary px-4">Save Edit</button><button onclick="closeEdit()" class="btn btn-ghost px-4">Cancel</button></div></div>
+</div></div>
+
+<!-- ============ USERS ============ -->
+<div id="page-users" class="page hidden">
+<div class="grid lg:grid-cols-[380px_1fr] gap-5"><div class="card h-fit"><h3 class="font-bold">User Add / Edit</h3><p class="text-[11px] text-slate-500 mt-1">Name / Username / Password / Role / Sub / பிரிவு / காரியாலயம் — இங்கே மாற்றினால் Local + Supabase profiles-இல் Save ஆகும். Password: தன் Password உடனே Supabase Auth-இலும் மாறும். வேறு User-இன் Password-ஐ Supabase Dashboard → Authentication → Users-இல் மாற்ற வேண்டும்.</p><form id="userForm" class="mt-4 space-y-3"><input type="hidden" id="uId"><div><label>பெயர் *</label><input id="uName" required class="mt-1"></div><div><label>Username / Email *</label><input id="uUsername" required class="mt-1"></div><div><label>Password *</label><input id="uPassword" type="password" required class="mt-1"></div><div class="grid grid-cols-2 gap-3"><div><label>Role</label><select id="uRole" class="mt-1"><option value="unit">Unit</option><option value="sub_admin">Sub Admin</option><option value="main_admin">Main Admin</option></select></div><div><label>Status</label><select id="uStatus" class="mt-1"><option value="active">Active</option><option value="inactive">Inactive</option></select></div></div><div><label>Sub Office</label><select id="uSub" onchange="onUSub()" class="mt-1"></select></div><div><label>பிரிவு</label><select id="uDiv" onchange="onUDiv()" class="mt-1"></select></div><div><label>காரியாலயம்</label><select id="uOffice" class="mt-1"></select></div><button class="btn btn-primary w-full">User Save</button><button type="button" onclick="resetUser()" class="btn btn-ghost w-full">Reset</button></form></div>
+<div class="card"><h3 class="font-bold">Users (<span id="userCount">0</span>)</h3><input id="userSearch" placeholder="Search..." class="mt-3" oninput="renderUsers()"><div id="userList" class="mt-4 space-y-2"></div></div></div>
+</div>
+
+<!-- ============ HIERARCHY ============ -->
+<div id="page-hierarchy" class="page hidden">
+<div class="card"><h3 class="font-bold">45 உப பிரிவு + காரியாலயம்</h3><p class="text-sm text-slate-500">Sub Office → பிரிவு → காரியாலயம்</p><div class="grid md:grid-cols-[280px_1fr] gap-5 mt-5"><div class="space-y-2" id="hierList"></div><div><div class="rounded-2xl border p-4"><h4 class="font-bold" id="hierTitle"></h4><div id="hierDivs" class="mt-3 space-y-2"></div></div><div class="rounded-2xl border p-4 mt-4"><h4 class="font-bold" id="officeTitle"></h4><div id="officeList" class="mt-3 space-y-2"></div><div class="flex gap-2 mt-4"><input id="newOfficeName" placeholder="புதிய காரியாலயம்..."><button onclick="addOffice()" class="btn btn-primary px-4 shrink-0">+ Add</button></div></div></div></div></div>
+</div>
+
+</div></div>
 <script>
 const SUPABASE_URL='https://ecpoyxjuednjixmaajux.supabase.co';
 const SUPABASE_KEY='sb_publishable_kbTMWrgN1_lRxClNYU-PQg_Qc9jpmSe';
-const client=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-const role=localStorage.getItem('role')||'main_admin';
-document.getElementById('roleLabel').textContent= role==='main_admin'?'ප්‍රධාන පරිපාලක (Main Head)':'උප අංශ පරිපාලක (Sub Admin)';
-document.getElementById('userLabel').textContent=localStorage.getItem('user')||'admin@system.lk';
 
-// Demo data + live fetch fallback
-let allEntries=[
-  {id:'1',year_period:'2026-H1',division:'උප අංශය 01 - උතුර',project:'PSDG ව්‍යාපෘතිය',answers:{name:'සුනිල් පෙරේරා',phone:'0712345678',nic:'199012345678',quantity:50,unit_type:'kg',project:'PSDG ව්‍යාපෘතිය'},created_at:new Date().toISOString()},
-  {id:'2',year_period:'2026-H1',division:'උප අංශය 02 - දකුණ',project:'CBG ව්‍යාපෘතිය',answers:{name:'කමලා සිල්වා',phone:'0771234567',nic:'198523456789',quantity:120,unit_type:'පැකට්',project:'CBG ව්‍යාපෘතිය'},created_at:new Date(Date.now()-86400000).toISOString()},
-  {id:'3',year_period:'2026-H2',division:'උප අංශය 03 - නැගෙනහිර',project:'නකල්ස් ව්‍යාපෘතිය',answers:{name:'අමල් ප්‍රනාන්දු',phone:'0769876543',nic:'199512345678',quantity:30,unit_type:'අංක',project:'නකල්ස් ව්‍යාපෘතිය'},created_at:new Date(Date.now()-172800000).toISOString()},
-];
-let questions=[
-  {id:'q1',question_text:'බිත්තර වී ගොවිපල සඳහා බිත්තර වී සැපයීම (50%)',field_type:'number',category:'psdg',year_period:'2026-H1',required:true},
-  {id:'q2',question_text:'ඇසුරුම් බෑග් සැපයීම (නොමිලේ)',field_type:'select',category:'psdg',options:'50kg, 25kg, 10kg',year_period:'2026-H1',required:false},
-  {id:'q3',question_text:'ප්‍රතිලාභියාගේ නම සහ NIC තහවුරු කර තිබේද?',field_type:'radio',category:'beneficiary',options:'ඔව්, නැත',year_period:'2026-H1',required:true},
-];
-let currentPage=1, pageSize=10;
+var __modalResolve=null;
+function showToast(msg,ok){var t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+(ok===false?'err':ok===true?'ok':'');setTimeout(function(){t.className='toast';},2600);}
+function openModal(opt){return new Promise(function(res){__modalResolve=res;document.getElementById('modalIcon').textContent=opt.icon||'ℹ️';document.getElementById('modalTitle').textContent=opt.title||'';document.getElementById('modalMsg').textContent=opt.msg||'';var iw=document.getElementById('modalInputWrap');var sw=document.getElementById('modalSelectWrap');iw.classList.add('hidden');sw.classList.add('hidden');if(opt.input){iw.classList.remove('hidden');var inp=document.getElementById('modalInput');inp.value=opt.value||'';inp.placeholder=opt.placeholder||'';}if(opt.selectOptions){sw.classList.remove('hidden');document.getElementById('modalSelect').innerHTML=opt.selectOptions.map(function(o){return '<option value="'+o.v+'">'+o.l+'</option>';}).join('');}document.getElementById('modalCancel').style.display=opt.hideCancel?'none':'';document.getElementById('modalOk').textContent=opt.okText||'OK';document.getElementById('modalBack').classList.add('show');setTimeout(function(){var el=document.getElementById('modalInput');if(opt.input)el.focus();},80);});}
+function closeModal(ok){document.getElementById('modalBack').classList.remove('show');if(__modalResolve){var r=__modalResolve;__modalResolve=null;if(ok){var iw=document.getElementById('modalInputWrap');var sw=document.getElementById('modalSelectWrap');var val=null;if(!iw.classList.contains('hidden'))val=document.getElementById('modalInput').value;else if(!sw.classList.contains('hidden'))val=document.getElementById('modalSelect').value;r({ok:true,value:val});}else r({ok:false});}}
+function profAlert(msg,title){return openModal({title:title||'தகவல்',msg:msg,icon:'✅',hideCancel:true,okText:'சரி / OK'});}
+function profConfirm(msg,title){return openModal({title:title||'நிச்சயமா?',msg:msg,icon:'⚠️',okText:'ஆம், செய்'}).then(function(r){return r.ok;});}
+function profPrompt(msg,defVal,placeholder){return openModal({title:'பெயர் / Name',msg:msg,icon:'✏️',input:true,value:defVal||'',placeholder:placeholder||''}).then(function(r){return r.ok?r.value:null;});}
 
-// Tabs
-document.querySelectorAll('.tab-btn').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    document.querySelectorAll('.tab-btn').forEach(b=>b.className='tab-btn w-full text-left px-4 py-3 rounded-xl text-slate-300 hover:bg-white/10');
-    btn.className='tab-btn w-full text-left px-4 py-3 rounded-xl bg-white text-slate-900 font-semibold';
-    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.add('hidden'));
-    document.getElementById('tab-'+btn.dataset.tab).classList.remove('hidden');
-    if(btn.dataset.tab==='questions') renderQuestions();
-  });
-});
+const sb=(typeof supabase!=='undefined')?supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;
 
-function filtered(){
-  const p=document.getElementById('fPeriod').value, d=document.getElementById('fDivision').value, pr=document.getElementById('fProject').value, s=document.getElementById('fSearch').value.toLowerCase();
-  return allEntries.filter(e=>{
-    if(p && e.year_period!==p) return false;
-    if(d && e.division!==d) return false;
-    if(pr && e.project!==pr) return false;
-    if(s && !(JSON.stringify(e.answers).toLowerCase().includes(s) || e.division.toLowerCase().includes(s))) return false;
-    // sub_admin can only see own division demo: if role sub_admin filter to division 01
-    if(role==='sub_admin' && !e.division.includes('01')) return false;
-    return true;
-  });
-}
-
-function renderTable(){
-  const data=filtered();
-  document.getElementById('kpiTotal').textContent=data.length;
-  document.getElementById('kpiToday').textContent=data.filter(e=> new Date(e.created_at).toDateString()===new Date().toDateString()).length;
-  const start=(currentPage-1)*pageSize, slice=data.slice(start,start+pageSize);
-  const tbody=document.getElementById('tbody');
-  tbody.innerHTML=slice.map(e=>`
-    <tr>
-      <td><span class="badge badge-blue">${e.year_period}</span></td>
-      <td class="font-semibold">${e.division}</td>
-      <td>${e.project}</td>
-      <td>${e.answers.name||'-'}</td>
-      <td>${e.answers.quantity||'-'} ${e.answers.unit_type||''}</td>
-      <td class="text-xs">${new Date(e.created_at).toLocaleDateString('si-LK')}</td>
-      <td><span class="badge badge-green">Verified</span></td>
-      <td class="flex gap-1">
-        <button onclick="openEdit('${e.id}')" class="px-2.5 py-1 rounded-lg bg-indigo-600 text-white text-xs">Edit</button>
-        <button onclick="deleteEntry('${e.id}')" class="px-2.5 py-1 rounded-lg bg-red-50 text-red-600 text-xs border">Delete</button>
-        <button onclick="viewEntry('${e.id}')" class="px-2.5 py-1 rounded-lg bg-slate-100 text-xs">View</button>
-      </td>
-    </tr>`).join('')||`<tr><td colspan=8 class="text-center py-8 text-slate-400">දත්ත නොමැත / No data</td></tr>`;
-  document.getElementById('countLabel').textContent=`මුළු ${data.length} • පිටුව ${currentPage}/${Math.max(1,Math.ceil(data.length/pageSize))}`;
-  document.getElementById('pageLabel').textContent=`${currentPage}`;
-}
-
-function changePage(dir){
-  const max=Math.max(1,Math.ceil(filtered().length/pageSize));
-  currentPage=Math.min(max,Math.max(1,currentPage+dir));
-  renderTable();
-}
-
-function openEdit(id){
-  const e=allEntries.find(x=>x.id===id); if(!e) return;
-  document.getElementById('editId').value=e.id;
-  document.getElementById('eName').value=e.answers.name||'';
-  document.getElementById('ePhone').value=e.answers.phone||'';
-  document.getElementById('eNic').value=e.answers.nic||'';
-  document.getElementById('eQty').value=e.answers.quantity||'';
-  document.getElementById('eUnit').value=e.answers.unit_type||'kg';
-  document.getElementById('eAnswers').value=JSON.stringify(e.answers,null,2);
-  document.getElementById('editModal').classList.add('open');
-}
-function closeModal(){document.getElementById('editModal').classList.remove('open');}
-function viewEntry(id){const e=allEntries.find(x=>x.id===id); alert('විස්තර:\n'+JSON.stringify(e.answers,null,2));}
-function deleteEntry(id){if(confirm('මකන්නද? Delete this entry?')){allEntries=allEntries.filter(x=>x.id!==id); renderTable();}}
-
-document.getElementById('editForm').addEventListener('submit', (ev)=>{
-  ev.preventDefault();
-  const id=document.getElementById('editId').value;
-  const idx=allEntries.findIndex(x=>x.id===id);
-  if(idx>-1){
-    let answers; try{answers=JSON.parse(document.getElementById('eAnswers').value);}catch{answers={};}
-    answers.name=document.getElementById('eName').value;
-    answers.phone=document.getElementById('ePhone').value;
-    answers.nic=document.getElementById('eNic').value;
-    answers.quantity=document.getElementById('eQty').value;
-    answers.unit_type=document.getElementById('eUnit').value;
-    allEntries[idx].answers=answers;
-    // Supabase update attempt
-    client.from('field_work_entries').update({answers}).eq('id',id).then(()=>{});
-    closeModal(); renderTable();
-  }
-});
-
-// Questions CRUD
-function renderQuestions(){
-  const s=(document.getElementById('qSearch').value||'').toLowerCase();
-  const list=document.getElementById('qList');
-  const data=questions.filter(q=> !s || q.question_text.toLowerCase().includes(s));
-  list.innerHTML=data.map(q=>`
-    <div class="rounded-xl border p-3 flex justify-between gap-3 bg-white">
-      <div><div class="font-medium text-[14px]">${q.question_text}</div><div class="mt-1 flex gap-2"><span class="badge badge-blue">${q.field_type}</span><span class="badge badge-green">${q.category}</span><span class="text-[11px] text-slate-400">${q.year_period} • ${q.required?'Required':''}</span></div><div class="text-[11px] text-slate-400 mt-1">${q.options||''}</div></div>
-      <div class="flex flex-col gap-1">
-        <button onclick="editQ('${q.id}')" class="btn btn-ghost px-2 py-1 text-xs">Edit</button>
-        <button onclick="delQ('${q.id}')" class="btn text-xs px-2 py-1 bg-red-50 text-red-600">Delete</button>
-      </div>
-    </div>`).join('');
-}
-
-document.getElementById('qForm').addEventListener('submit', (e)=>{
-  e.preventDefault();
-  const id=document.getElementById('qId').value;
-  const payload={
-    id: id||'q'+Date.now(),
-    question_text:document.getElementById('qText').value,
-    field_type:document.getElementById('qType').value,
-    category:document.getElementById('qCategory').value,
-    options:document.getElementById('qOptions').value,
-    year_period:document.getElementById('qPeriod').value,
-    required:document.getElementById('qRequired').value==='true'
-  };
-  if(id){ const i=questions.findIndex(x=>x.id===id); questions[i]=payload; } else { questions.unshift(payload); }
-  // supabase insert
-  client.from('form_questions').insert([{question_text:payload.question_text, field_type:payload.field_type, category:payload.category, year_period:payload.year_period}]).then(()=>{});
-  resetQForm(); renderQuestions();
-});
-function editQ(id){const q=questions.find(x=>x.id===id); if(!q) return; document.getElementById('qId').value=q.id; document.getElementById('qText').value=q.question_text; document.getElementById('qType').value=q.field_type; document.getElementById('qCategory').value=q.category; document.getElementById('qOptions').value=q.options||''; document.getElementById('qPeriod').value=q.year_period; document.getElementById('qRequired').value=q.required?'true':'false'; window.scrollTo({top:0,behavior:'smooth'});}
-function delQ(id){if(confirm('ප්‍රශ්නය මකන්නද?')){questions=questions.filter(x=>x.id!==id); client.from('form_questions').delete().eq('id',id).then(()=>{}); renderQuestions();}}
-function resetQForm(){document.getElementById('qForm').reset(); document.getElementById('qId').value='';}
-function downloadQuestionsCSV(){let csv='data:text/csv;charset=utf-8,Question,Type,Category,Period,Options\n'+questions.map(q=>`"${q.question_text.replace(/"/g,'""')}","${q.field_type}","${q.category}","${q.year_period}","${(q.options||'').replace(/"/g,'""')}"`).join('\n'); const a=document.createElement('a'); a.href=encodeURI(csv); a.download='questions.csv'; a.click();}
-
-function downloadCSV(filteredOnly){
-  const data=filteredOnly?filtered():allEntries;
-  if(!data.length) return alert('බාගත කිරීමට දත්ත නොමැත');
-  let csv='data:text/csv;charset=utf-8,Period,Division,Project,Name,Phone,NIC,Quantity,Unit,Date\n'+data.map(e=>`"${e.year_period}","${e.division}","${e.project}","${(e.answers.name||'').replace(/"/g,'""')}","${e.answers.phone||''}","${e.answers.nic||''}","${e.answers.quantity||''}","${e.answers.unit_type||''}","${e.created_at}"`).join('\n');
-  const link=document.createElement('a'); link.href=encodeURI(csv); link.download='all_divisions_report_'+new Date().toISOString().slice(0,10)+'.csv'; document.body.appendChild(link); link.click(); document.body.removeChild(link);
-}
-function downloadJSON(){const data=filtered(); const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='report.json'; a.click();}
-
-function logout(){localStorage.clear(); client.auth.signOut().then(()=>location.href='index.html');}
-async function tryLiveLoad(){try{const {data}=await client.from('field_work_entries').select('*, divisions(name)').order('created_at',{ascending:false}).limit(200); if(data&&data.length){allEntries=data.map(d=>({id:d.id,year_period:d.year_period,division:d.divisions?.name||'N/A',project:d.answers?.project||'-',answers:d.answers,created_at:d.created_at})); renderTable();} const {data:qs}=await client.from('form_questions').select('*').limit(100); if(qs&&qs.length){questions=qs.map(q=>({id:q.id,question_text:q.question_text,field_type:q.field_type||'text',category:q.category||'field_work',year_period:q.year_period||'2026-H1',required:true,options:''})); renderQuestions();}}catch(e){}}
-renderTable(); renderQuestions(); tryLiveLoad();
+// SECURE: localStorage role-ஐ நம்பாதே — Supabase JWT + profiles-இல் உள்ள உண்மையான role-ஐ சரி பார்.
+// localStorage-இல் role=main_admin என்று Type செய்து Hack செய்வது இதனால் முடியாது.
+(async function verifySupabaseSession(){
+  try{
+    if(!sb) return;
+    var sess = await sb.auth.getSession();
+    if(!sess || !sess.data || !sess.data.session){ window.location.href='index.html'; return; }
+    var uid = sess.data.session.user.id;
+    var prof = await sb.from('profiles').select('role,status').eq('id', uid).single();
+    if(!prof || !prof.data || prof.data.status!=='active'){ await sb.auth.signOut(); window.location.href='index.html'; return; }
+    var realRole = prof.data.role;
+    if(realRole!=='main_admin' && realRole!=='sub_admin'){ await sb.auth.signOut(); window.location.href='index.html'; return; }
+    // localStorage-ஐ உண்மையான role-ஆல் Overwrite செய் — பழைய Hacked Value நிற்காது
+    try{ localStorage.setItem('role', realRole); }catch(e){}
+  }catch(e){ /* Network தடங்கல் என்றால் localStorage Guard மட்டும் வேலை செய்யும் */ }
+})();
+const H_KEY='fw7_hier', N_KEY='fw7_nodes', Q_KEY='fw7_qs', U_KEY='fw7_users', R_KEY='fw7_resp';
+function defHier(){return JSON.parse(document.getElementById('hier-data').textContent);}
+function loadHier(){try{var s=localStorage.getItem(H_KEY);if(s){var a=JSON.parse(s);if(a.length)return a;}}catch(e){}return defHier();}
+function saveHier(h){localStorage.setItem(H_KEY,JSON.stringify(h));}
+function getOffices(div){var h=loadHier();for(var i=0;i<h.length;i++)for(var j=0;j<h[i].divisions.length;j++)if(h[i].divisions[j].name===div)return h[i].divisions[j].offices;return[];}
+function loadLocal(k,fn){try{var s=localStorage.getItem(k);if(s){var a=JSON.parse(s);if(Array.isArray(a))return a;}}catch(e){}return fn();}
+function saveLocal(k,v){localStorage.setItem(k,JSON.stringify(v));}
+function defNodes(){return [
+{id:'n_ext_2627',main_type:'extension',level:1,parent_id:null,title:'2026/27 Maha',subtitle:'Maha Season',is_published:true,sort_order:1},
+{id:'n_ext_27y',main_type:'extension',level:1,parent_id:null,title:'2027 Yala',subtitle:'Yala Season',is_published:false,sort_order:2},
+{id:'n_ext_2728',main_type:'extension',level:1,parent_id:null,title:'2027/28 Maha',subtitle:'Maha Season',is_published:false,sort_order:3},
+{id:'n_paddy',main_type:'extension',level:2,parent_id:'n_ext_2627',title:'Paddy Cultivation',subtitle:'වී වගාව / நெல்',is_published:true,sort_order:1},
+{id:'n_veg',main_type:'extension',level:2,parent_id:'n_ext_2627',title:'Vegetable Cultivation',subtitle:'එළවළු වගාව',is_published:true,sort_order:2},
+{id:'n_ofc',main_type:'extension',level:2,parent_id:'n_ext_2627',title:'OFC Cultivation',subtitle:'වෙනත් බෝග',is_published:true,sort_order:3},
+{id:'n_dev26',main_type:'development',level:1,parent_id:null,title:'2026',subtitle:'Year 2026',is_published:true,sort_order:1},
+{id:'n_dev27',main_type:'development',level:1,parent_id:null,title:'2027',subtitle:'Year 2027',is_published:false,sort_order:2},
+{id:'n_dev28',main_type:'development',level:1,parent_id:null,title:'2028',subtitle:'Year 2028',is_published:false,sort_order:3},
+{id:'n_psdg',main_type:'development',level:2,parent_id:'n_dev26',title:'PSDG',subtitle:'PSDG Program',is_published:true,sort_order:1},
+{id:'n_knuck',main_type:'development',level:2,parent_id:'n_dev26',title:'KNUCKLES',subtitle:'Knuckles',is_published:true,sort_order:2},
+{id:'n_cbg',main_type:'development',level:2,parent_id:'n_dev26',title:'CBG',subtitle:'CBG',is_published:true,sort_order:3},
+{id:'n_fao',main_type:'development',level:2,parent_id:'n_dev26',title:'FAO',subtitle:'FAO',is_published:true,sort_order:4},
+{id:'n_psdg_p1',main_type:'development',level:3,parent_id:'n_psdg',title:'Seed Distribution Project',subtitle:'බීජ බෙදාදීම',is_published:true,sort_order:1},
+{id:'n_psdg_p2',main_type:'development',level:3,parent_id:'n_psdg',title:'Fertilizer Project',subtitle:'පොහොර',is_published:true,sort_order:2},
+{id:'n_cbg_p1',main_type:'development',level:3,parent_id:'n_cbg',title:'Tool Distribution',subtitle:'උපකරණ',is_published:true,sort_order:1}
+];}
+function defQs(){return [
+{id:'q1',node_id:'n_paddy',question_text:'வகை / Variety',question_type:'dropdown',options:['BG 352','BG 360','AT 362','Other'],is_required:true,order_index:1},
+{id:'q2',node_id:'n_paddy',question_text:'Extent (Acres) / வகை பரப்பு',question_type:'number',options:[],is_required:true,order_index:2},
+{id:'q3',node_id:'n_paddy',question_text:'Farmers Count / கொவீன் எண்ணிக்கை',question_type:'number',options:[],is_required:true,order_index:3},
+{id:'qd1',node_id:'n_psdg_p1',question_text:'விவசாயியின் பெயர் / Farmer Name',question_type:'short_text',options:[],is_required:true,order_index:1},
+{id:'qd2',node_id:'n_psdg_p1',question_text:'Address / முகவரி',question_type:'paragraph',options:[],is_required:true,order_index:2},
+{id:'qd3',node_id:'n_psdg_p1',question_text:'Telephone Number',question_type:'short_text',options:[],is_required:true,order_index:3},
+{id:'qd4',node_id:'n_psdg_p1',question_text:'ID Number',question_type:'short_text',options:[],is_required:true,order_index:4},
+{id:'qd5',node_id:'n_psdg_p1',question_text:'வழங்கப்பட்ட பொருள் / Item Given',question_type:'dropdown',options:['Seeds','Fertilizer','Tools','Other'],is_required:true,order_index:5},
+{id:'qd6',node_id:'n_psdg_p1',question_text:'Quantity / அளவு',question_type:'number',options:[],is_required:true,order_index:6},
+{id:'qd7',node_id:'n_psdg_p1',question_text:'Unit / அலகு',question_type:'dropdown',options:['kg','Litre','Nos','Packet','Bag'],is_required:true,order_index:7},
+{id:'qd8',node_id:'n_psdg_p1',question_text:'Subsidy — 50% or 25% or Free',question_type:'dropdown',options:['50%','25%','Free','Full Price'],is_required:true,order_index:8},
+{id:'qd9',node_id:'n_psdg_p1',question_text:'Price (Rs.) / விலை',question_type:'number',options:[],is_required:true,order_index:9}
+];}
+function defUsers(){return [];}
 </script>
-</body>
-</html>
+<script id="hier-data" type="application/json">[{"id":"sub1","name":"ADA Kundasale","divisions":[{"name":"Dambagahapitiya","offices":["Dambagahapitiya - Pradhana Karyalaya"]},{"name":"Kalunthenna","offices":["Kalunthenna - Pradhana Karyalaya"]},{"name":"Nugethenna","offices":["Nugethenna - Pradhana Karyalaya"]},{"name":"Morayaya","offices":["Morayaya - Pradhana Karyalaya"]},{"name":"Ulpathagama","offices":["Ulpathagama - Pradhana Karyalaya"]},{"name":"Namadagala","offices":["Namadagala - Pradhana Karyalaya"]},{"name":"Theldeniya","offices":["Theldeniya - Pradhana Karyalaya"]},{"name":"Udispaththuwa","offices":["Udispaththuwa - Pradhana Karyalaya"]},{"name":"Wendaruwa","offices":["Wendaruwa - Pradhana Karyalaya"]},{"name":"Digana","offices":["Digana - Pradhana Karyalaya"]},{"name":"Gunnepana","offices":["Gunnepana - Pradhana Karyalaya"]},{"name":"Manikhinna","offices":["Manikhinna - Pradhana Karyalaya"]},{"name":"Wavinna","offices":["Wavinna - Pradhana Karyalaya"]},{"name":"Medamahanuwara","offices":["Medamahanuwara - Pradhana Karyalaya"]}]},{"id":"sub2","name":"ADA Kandy","divisions":[{"name":"Waththegama","offices":["Waththegama - Pradhana Karyalaya"]},{"name":"Huluganga","offices":["Huluganga - Pradhana Karyalaya"]},{"name":"Bowala","offices":["Bowala - Pradhana Karyalaya"]},{"name":"Ketawalaleula","offices":["Ketawalaleula - Pradhana Karyalaya"]},{"name":"Galaha","offices":["Galaha - Pradhana Karyalaya"]},{"name":"Marassana","offices":["Marassana - Pradhana Karyalaya"]},{"name":"Thalathuoya","offices":["Thalathuoya - Pradhana Karyalaya"]}]},{"id":"sub3","name":"ADA Udunuwara / Yatinuwara","divisions":[{"name":"Edaduwawe","offices":["Edaduwawe - Pradhana Karyalaya"]},{"name":"Giragama","offices":["Giragama - Pradhana Karyalaya"]},{"name":"Manikdiwella","offices":["Manikdiwella - Pradhana Karyalaya"]},{"name":"Alapalawala","offices":["Alapalawala - Pradhana Karyalaya"]},{"name":"Ambanwala","offices":["Ambanwala - Pradhana Karyalaya"]},{"name":"Imbuldeniya","offices":["Imbuldeniya - Pradhana Karyalaya"]},{"name":"Pethiyagoda","offices":["Pethiyagoda - Pradhana Karyalaya"]},{"name":"Thalawathura","offices":["Thalawathura - Pradhana Karyalaya"]},{"name":"Medapitiya","offices":["Medapitiya - Pradhana Karyalaya"]},{"name":"Mulgama","offices":["Mulgama - Pradhana Karyalaya"]},{"name":"Delpitiya","offices":["Delpitiya - Pradhana Karyalaya"]},{"name":"Gampola","offices":["Gampola - Pradhana Karyalaya"]},{"name":"Kuruduwaththa","offices":["Kuruduwaththa - Pradhana Karyalaya"]},{"name":"Rambukpitiya","offices":["Rambukpitiya - Pradhana Karyalaya"]}]},{"id":"sub4","name":"ADA Harispattuwa","divisions":[{"name":"Aludeniya","offices":["Aludeniya - Pradhana Karyalaya"]},{"name":"Galagedara","offices":["Galagedara - Pradhana Karyalaya"]},{"name":"Welivita","offices":["Welivita - Pradhana Karyalaya"]},{"name":"Ankumbura","offices":["Ankumbura - Pradhana Karyalaya"]},{"name":"Batugoda","offices":["Batugoda - Pradhana Karyalaya"]},{"name":"Wawala","offices":["Wawala - Pradhana Karyalaya"]},{"name":"Alawathugoda","offices":["Alawathugoda - Pradhana Karyalaya"]},{"name":"Medawala","offices":["Medawala - Pradhana Karyalaya"]},{"name":"Yatiwawala","offices":["Yatiwawala - Pradhana Karyalaya"]},{"name":"Hatharaliyadda","offices":["Hatharaliyadda - Pradhana Karyalaya"]}]}]</script>
+<script>
+
+// --- Login Guard: login செய்யாமல் Admin-க்குள் நுழைய முடியாது ---
+// FIX: ஒவ்வொரு File-உம் வேறு localhost Port-இல் திறந்தால் localStorage பகிரப்படாது.
+// அதனால் Login பக்கம் Session-ஐ URL Hash (#fw=...) வழியாகவும் அனுப்பும் — Guard அதை படித்து localStorage-இல் Restore செய்யும்.
+(function(){
+  try{
+    var h = (location.hash||'');
+    if(h.indexOf('#fw=')===0){
+      try{ var decoded = decodeURIComponent(escape(atob(h.slice(4)))); var hj = JSON.parse(decoded);
+        if(hj && hj.user && hj.role){ localStorage.setItem('fw_session', decoded); localStorage.setItem('role', hj.role); localStorage.setItem('user', hj.user); }
+      }catch(e2){}
+      try{ history.replaceState(null,'',location.pathname); }catch(e3){}
+    }
+  }catch(e){}
+  var sess, r, u;
+  try{ sess = localStorage.getItem('fw_session'); r = localStorage.getItem('role'); u = localStorage.getItem('user'); }catch(e){ sess=null; r=null; u=null; }
+  if(!sess || !r || !u){ document.addEventListener('DOMContentLoaded', function(){ var d=document.createElement('div'); d.style.cssText='background:#fef2f2;color:#b91c1c;padding:16px;margin:12px;border-radius:12px;font-size:14px;text-align:center'; d.innerHTML='⚠️ Session கிடைக்கவில்லை — Login பக்கத்துக்கு போகிறது...<br><span style="font-size:12px">ஒவ்வொரு File-ஐயும் தனித்தனி Tab / Port-இல் திறக்காதீர்கள். index.html-இல் Login செய்து, அங்கிருந்து Admin-க்கு போங்கள்.</span>'; document.body.prepend(d); }); setTimeout(function(){ window.location.href='index.html'; }, 1500); return; }
+  try{ var s=JSON.parse(sess); if(s.exp && Date.now()>s.exp){ localStorage.removeItem('fw_session'); window.location.href='index.html'; return; } }catch(e){}
+  if(r!=='main_admin' && r!=='sub_admin'){ window.location.href='index.html'; }
+})();
+
+var role=localStorage.getItem('role')||'main_admin'; var mySub=localStorage.getItem('user_subOfficeId')||'ALL';
+document.getElementById('roleLabel').textContent=role==='main_admin'?'Main Admin':role==='sub_admin'?'Sub Admin':'Unit';
+document.getElementById('userLabel').textContent=localStorage.getItem('user')||'';
+document.getElementById('scopeLabel').textContent=role==='main_admin'?'45 பிரிவு — எல்லாம்':'Scope: '+(localStorage.getItem('user_subOfficeName')||mySub);
+var hierarchy=loadHier();
+(function checkVersion(){ try{ var first=(hierarchy&&hierarchy[0])?hierarchy[0].name:''; if(first!=='ADA Kundasale'){ var b=document.createElement('div'); b.style.cssText='background:#dc2626;color:#fff;padding:14px;text-align:center;font-weight:bold;font-size:14px;position:fixed;top:0;left:0;right:0;z-index:9999'; b.textContent='⚠️ OLD FILE — GitHub-இல் பழைய admin.html இருக்கிறது. புதிய admin.html (v11 • DD Kandy)-ஐ Upload செய்து Hard Refresh (Ctrl+Shift+R) செய்யுங்கள். இப்போது தெரிவது: '+first; document.body.prepend(b); } }catch(e){} })(); var nodes=loadLocal(N_KEY,defNodes); var questions=loadLocal(Q_KEY,defQs); var users=loadLocal(U_KEY,defUsers); var responses=loadLocal(R_KEY,function(){return[];});
+var curMain=null, curL1=null, curL2=null, curL3=null, curStep=1, curOptions=[], selHierSub='sub1', selHierDiv=null, editingId=null;
+function setLang(l){showToast(l==='ta'?'தமிழ் தேர்வு செய்யப்பட்டது':'Sinhala තෝරා ඇත');}
+function openSidebar(){var sb=document.getElementById('sidebar');sb.classList.add('open');sb.style.transform='translateX(0)';sb.style.left='0';sb.style.display='flex';var ov=document.getElementById('sidebarOverlay');if(ov)ov.classList.remove('hidden');var fab=document.getElementById('sidebarCloseFab');if(fab)fab.classList.remove('hidden');}
+function closeSidebar(){var sb=document.getElementById('sidebar');sb.classList.remove('open');if(window.innerWidth<1024){sb.style.transform='translateX(-110%)';}var ov=document.getElementById('sidebarOverlay');if(ov)ov.classList.add('hidden');var fab=document.getElementById('sidebarCloseFab');if(fab)fab.classList.add('hidden');}
+function toggleSidebar(){var sb=document.getElementById('sidebar');if(sb.classList.contains('open'))closeSidebar();else openSidebar();}
+document.addEventListener('keydown',function(ev){if(ev.key==='Escape')closeSidebar();});
+function goNav(p){closeSidebar();document.querySelectorAll('.page').forEach(function(x){x.classList.add('hidden');});document.getElementById('page-'+p).classList.remove('hidden');document.querySelectorAll('.nav-btn').forEach(function(b){b.className='nav-btn w-full text-left px-4 py-3 rounded-xl text-slate-300 hover:bg-white/10';});var btn=document.querySelector('[data-nav="'+p+'"]');if(btn)btn.className='nav-btn w-full text-left px-4 py-3 rounded-xl bg-white text-slate-900 font-semibold';document.getElementById('pageTitle').textContent=p==='dashboard'?'Dashboard':p==='builder'?'வினா தயாரிப்பு — Form Builder':p==='data'?'தரவுகள் — Data':p==='users'?'Users':'45 உப பிரிவு + காரியாலயம்';toggleSidebarOff();if(p==='dashboard')renderDashboard();if(p==='data')renderData();if(p==='users')renderUsers();if(p==='hierarchy')renderHierarchy();}
+function toggleSidebarOff(){if(window.innerWidth<1024)closeSidebar();}
+async function logout(){ try{ if(typeof sb!=='undefined' && sb) await sb.auth.signOut(); }catch(e){} ['role','user','user_name','user_subOfficeId','user_subOfficeName','user_division','user_office','fw_session'].forEach(function(k){localStorage.removeItem(k);});location.href='index.html';}
+/* ---------- Dashboard ---------- */
+function renderDashboard(){
+  var ext=nodes.filter(function(n){return n.main_type==='extension';}).length; var dev=nodes.filter(function(n){return n.main_type==='development';}).length;
+  document.getElementById('kExt').textContent=ext; document.getElementById('kDev').textContent=dev; document.getElementById('kQ').textContent=questions.length; document.getElementById('kR').textContent=responses.length;
+  var pub=nodes.filter(function(n){return n.is_published;});
+  var byMain={extension:[],development:[]}; pub.forEach(function(n){byMain[n.main_type].push(n);});
+  var html='';
+  [['extension','🌾 Extension — Unit-இல் இப்போது தெரிவது'],['development','🏗️ Development — Unit-இல் இப்போது தெரிவது']].forEach(function(pair){
+    var list=byMain[pair[0]]; var inner=list.map(function(n){return '<div class="text-[13px] py-1 border-b border-slate-100 flex justify-between"><span>'+'— '.repeat(n.level-1)+n.title+'</span><span class="badge badge-green">Published</span></div>';}).join('')||'<div class="text-xs text-slate-400">எதுவும் Published இல்லை</div>';
+    html+='<div class="rounded-xl border p-4 bg-white"><div class="font-semibold text-sm">'+pair[1]+'</div><div class="mt-2">'+inner+'</div></div>';
+  });
+  document.getElementById('publishedBox').innerHTML=html;
+  var recent=responses.slice(0,8); document.getElementById('recentBox').innerHTML=recent.map(function(r){return '<div class="flex justify-between gap-3 rounded-xl border p-3 text-[13px]"><div><b>'+(r.node_path||'')+'</b><div class="text-xs text-slate-500">'+(r.division||'')+' • '+(r.office||'')+'</div></div><div class="text-xs text-slate-400 shrink-0">'+new Date(r.created_at).toLocaleDateString()+'</div></div>';}).join('')||'<div class="text-xs text-slate-400">பதில்கள் இன்னும் இல்லை</div>';
+}
+/* ---------- Wizard ---------- */
+function resetWizard(){curMain=null;curL1=null;curL2=null;curL3=null;gotoStep(1);updateCrumb();}
+function updateCrumb(){
+  var parts=[]; if(curMain)parts.push(curMain==='extension'?'🌾 Extension':'🏗️ Development'); if(curL1){var n=nodes.find(function(x){return x.id===curL1;});if(n)parts.push(n.title);} if(curL2){var n2=nodes.find(function(x){return x.id===curL2;});if(n2)parts.push(n2.title);} if(curL3){var n3=nodes.find(function(x){return x.id===curL3;});if(n3)parts.push(n3.title);} if(curSub){var ns=nodes.find(function(x){return x.id===curSub;});if(ns)parts.push(ns.title);} if(curItem){var ni=nodes.find(function(x){return x.id===curItem;});if(ni)parts.push(ni.title);} if(curStep===6)parts.push('வினாக்கள்'); else if(curStep===5 && curMain==='development')parts.push('Item / Items');
+  document.getElementById('crumb').textContent=parts.length?parts.join('  →  '):'Extension / Development தேர்வு செய்யுங்கள்';
+}
+function gotoStep(s){
+  // FIX: Extension-இல் Step 5 என்பது வினாக்கள் (w6). Item Step (w5) Development-க்கு மட்டும்.
+  // யாராவது Extension-இல் gotoStep(5) என்று அழைத்தாலும் வினாக்கள் பக்கத்துக்கு போக வேண்டும், Item பக்கத்துக்கு அல்ல.
+  var displayStep = s;
+  if(curMain==='extension' && s===5){ s = 6; displayStep = 5; }
+  if(curMain==='extension' && s===6){ displayStep = 5; }
+  curStep=s; document.querySelectorAll('.wizard-step').forEach(function(x){x.classList.remove('active');}); var el=document.getElementById('w'+s); if(el) el.classList.add('active');
+  // Progress dots: Extension = 1,2,3,4,5(வினாக்கள்). Development = 1,2,3,4,5,6
+  for(var i=1;i<=6;i++){var d=document.getElementById('dot'+i); if(!d)continue; var isNow = (curMain==='extension' ? (i===displayStep) : (i===s)); var isDone = (curMain==='extension' ? (i<displayStep) : (i<s)); d.className='step-dot'+(isNow?' now':isDone?' done':'');}
+  var sw5=document.getElementById('step5Wrap'); var aw5=document.getElementById('arrow5');
+  var sw6=document.getElementById('step6Wrap'); var aw4=document.getElementById('arrow4'); var sw4=document.getElementById('step4Wrap');
+  if(curMain==='extension'){ var d6=document.getElementById('dot6'); if(d6) d6.textContent='5'; if(sw5)sw5.style.display='none'; if(aw5)aw5.style.display='none'; if(sw6)sw6.style.display='flex'; if(sw4)sw4.style.display='flex'; }
+  else { var d6b=document.getElementById('dot6'); if(d6b) d6b.textContent='6'; if(sw5)sw5.style.display='flex'; if(aw5)aw5.style.display=''; if(sw6)sw6.style.display='flex'; if(sw4)sw4.style.display='flex'; }
+  if(s===2)renderL1(); if(s===3)renderL2(); if(s===4)renderL4(); if(s===5){ if(curMain==='development') renderItem(); else renderQuestions(); } if(s===6)renderQuestions();
+  updateCrumb(); window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function pickMain(m){curMain=m;curL1=null;curL2=null;curL3=null;document.getElementById('lbl2').textContent=m==='extension'?'Season':'Year';document.getElementById('lbl3').textContent=m==='extension'?'Cultivation':'Program';gotoStep(2);}
+function childrenOf(pid,level){return nodes.filter(function(n){return n.main_type===curMain&&n.level===level&&(pid?n.parent_id===pid:!n.parent_id);}).sort(function(a,b){return a.sort_order-b.sort_order;});}
+function nodeCard(n,sel,clickFn){
+  return '<div class="node-card '+(sel?'sel':'')+' '+(!n.is_published?'off':'')+'" onclick="'+clickFn+'(\''+n.id+'\')"><div class="flex justify-between gap-3"><div><div class="font-semibold">'+n.title+'</div><div class="text-xs text-slate-500">'+(n.subtitle||'')+'</div><div class="mt-1"><span class="badge '+(n.is_published?'badge-green':'badge-red')+'">'+(n.is_published?'✓ Unit-இல் காட்டப்படும் — Published':'✕ Unit-இல் காட்டப்படாது — Hidden')+'</span> <span class="text-[11px] text-slate-400">வினாக்கள்: '+questions.filter(function(q){return q.node_id===n.id;}).length+'</span></div></div><div class="flex flex-col items-end gap-2 shrink-0" onclick="event.stopPropagation()"><div class="flex items-center gap-2"><span class="text-[11px] font-semibold">'+(n.is_published?'Published':'Hidden')+'</span><div class="switch '+(n.is_published?'on':'')+'" onclick="togglePub(\''+n.id+'\')"></div></div><button onclick="renameNode(\''+n.id+'\')" class="text-indigo-600 text-xs font-semibold">✏️ Rename</button><button onclick="copyNode(\''+n.id+'\')" class="text-emerald-600 text-xs font-semibold">📋 Copy</button><button onclick="delNode(\''+n.id+'\')" class="text-red-500 text-xs font-semibold">🗑 Delete</button></div></div></div>';
+}
+function renderL1(){
+  document.getElementById('w2Title').textContent=curMain==='extension'?'Step 2 — Season தேர்வு செய்யுங்கள் (2026/27 Maha, 2027 Yala...)':'Step 2 — Year தேர்வு செய்யுங்கள் (2026, 2027, 2028...)';
+  document.getElementById('w2Desc').textContent=curMain==='extension'?'ஒரு Season-ஐ Click செய்யுங்கள். அதன் கீழ் தான் Cultivation வரும்.':'ஒரு Year-ஐ Click செய்யுங்கள். அதன் கீழ் தான் Program வரும்.';
+  var list=childrenOf(null,1); document.getElementById('l1List').innerHTML=list.map(function(n){return nodeCard(n,curL1===n.id,'pickL1');}).join('')||'<div class="text-sm text-slate-400">இன்னும் இல்லை — கீழே Add செய்யுங்கள்</div>';
+  document.getElementById('w2Next').disabled=!curL1;
+}
+function pickL1(id){curL1=id;curL2=null;curL3=null;curSub=null;curItem=null;renderL1();}
+function addL1(){var v=document.getElementById('newL1').value.trim();if(!v)return showToast('பெயரை Type செய்யுங்கள்',false);var n={id:'n'+Date.now(),main_type:curMain,level:1,parent_id:null,title:v,subtitle:'',is_published:true,sort_order:childrenOf(null,1).length+1};nodes.push(n);saveLocal(N_KEY,nodes);document.getElementById('newL1').value='';curL1=n.id;sbSaveNode(n);renderL1();updateKPI();showToast('Add ஆனது ✓',true);}
+function renderL2(){
+  document.getElementById('w3Title').textContent=curMain==='extension'?'Step 3 — Cultivation தேர்வு செய்யுங்கள் (Paddy / Vegetable / OFC)':'Step 3 — Program தேர்வு செய்யுங்கள் (PSDG / KNUCKLES / CBG / FAO)';
+  var p=nodes.find(function(x){return x.id===curL1;}); document.getElementById('w3Desc').textContent=(p?p.title:'')+' இன் கீழ் உள்ளது. ஒன்றை Click செய்யுங்கள்.';
+  var list=childrenOf(curL1,2); document.getElementById('l2List').innerHTML=list.map(function(n){return nodeCard(n,curL2===n.id,'pickL2');}).join('')||'<div class="text-sm text-slate-400">இன்னும் இல்லை — Add செய்யுங்கள்</div>';
+  document.getElementById('w3Next').disabled=!curL2; document.getElementById('w3Next').textContent=curMain==='development'?'Next: Sub Program (Step 4) →':'Next: உப பிரிவு (Step 4) →';
+}
+function pickL2(id){curL2=id;curL3=null;curSub=null;curItem=null;renderL2();}
+function addL2(){if(!curL1)return showToast('முதலில் Step 2 தேர்வு செய்யுங்கள்',false);var v=document.getElementById('newL2').value.trim();if(!v)return showToast('பெயரை Type செய்யுங்கள்',false);var n={id:'n'+Date.now(),main_type:curMain,level:2,parent_id:curL1,title:v,subtitle:'',is_published:true,sort_order:childrenOf(curL1,2).length+1};nodes.push(n);saveLocal(N_KEY,nodes);document.getElementById('newL2').value='';curL2=n.id;sbSaveNode(n);renderL2();showToast('Add ஆனது ✓',true);}
+function w3Next(){gotoStep(4);}
+function w4Next(){if(curMain==='development')gotoStep(5);else gotoStep(6);}
+function backFromQ(){if(curMain==='development')gotoStep(5);else gotoStep(4);}
+function renderL4(){
+  var isExt = curMain==='extension';
+  document.getElementById('w4Title').textContent = isExt ? 'Step 4 — உப பிரிவு தேர்வு செய்யுங்கள் (Sub-section)' : 'Step 4 — Sub Program தேர்வு செய்யுங்கள்';
+  document.getElementById('w4Desc').textContent = isExt ? 'ஒவ்வொரு Cultivation-இன் பின் ஒரு உப பிரிவு வரும். எ.கா: Paddy → Paddy - Irrigated / Paddy - Rainfed. உப பிரிவு இல்லை என்றால் Next போகலாம் — அப்போது Cultivation-இன் வினாக்கள் நேரடியாக வரும்.' : 'Development-இல் Step 4 = Sub Program. முதலில் Sub Program தேர்வு செய்ய வேண்டும் — பின் Item, பின் வினாக்கள்.';
+  document.getElementById('newL3').placeholder = isExt ? 'புதிய உப பிரிவு: எ.கா Paddy - Irrigated' : 'புதிய Sub Program: எ.கா Seed Distribution';
+  var sel = isExt ? curSub : curL3;
+  var clickFn = isExt ? 'pickSub' : 'pickL3';
+  var list = childrenOf(curL2,3);
+  document.getElementById('l3List').innerHTML = list.map(function(n){return nodeCard(n, sel===n.id, clickFn);}).join('') || '<div class="text-sm text-slate-400">'+(isExt?'இன்னும் உப பிரிவு இல்லை — Add செய்யுங்கள் அல்லது Next போகலாம்':'இன்னும் Sub Program இல்லை — Add செய்யுங்கள்')+'</div>';
+  document.getElementById('w4Next').disabled = isExt ? false : !curL3;
+  document.getElementById('w4Next').textContent = isExt ? 'Next: வினாக்கள் (Step 5) →' : 'Next: Item / Items (Step 5) →';
+}
+function renderL3(){ renderL4(); }
+function pickL3(id){curL3=id; curItem=null; renderL4();}
+function pickSub(id){curSub=id; renderL4();}
+function addL3(){
+  var isExt = curMain==='extension';
+  if(!curL2) return showToast('முதலில் Step 3 தேர்வு செய்யுங்கள்',false);
+  var v=document.getElementById('newL3').value.trim(); if(!v) return showToast(isExt?'உப பிரிவு பெயரை Type செய்யுங்கள்':'Sub Program பெயரை Type செய்யுங்கள்',false);
+  var n={id:'n'+Date.now(),main_type:curMain,level:3,parent_id:curL2,title:v,subtitle:'',is_published:true,sort_order:childrenOf(curL2,3).length+1};
+  nodes.push(n); saveLocal(N_KEY,nodes); document.getElementById('newL3').value='';
+  if(isExt) curSub=n.id; else curL3=n.id;
+  sbSaveNode(n); renderL4(); showToast(isExt?'உப பிரிவு Add ஆனது ✓':'Sub Program Add ஆனது ✓',true);
+}
+// --- Development Step 5: Item / Items ---
+function renderItem(){
+  var list = curL3 ? nodes.filter(function(n){return n.main_type==='development'&&n.level===4&&n.parent_id===curL3;}).sort(function(a,b){return a.sort_order-b.sort_order;}) : [];
+  var html = '<div class="node-card '+(!curItem?'sel':'')+'" onclick="pickItem(null)"><div class="font-semibold">📦 Item இல்லை — Sub Program நேரடியாக</div><div class="text-xs text-slate-500">Sub Program-இன் வினாக்கள் நேரடியாக Unit-இல் வரும். Item தேவை இல்லை என்றால் இதை தேர்வு செய்யுங்கள்.</div></div>';
+  html += list.map(function(n){return nodeCard(n, curItem===n.id, 'pickItem');}).join('');
+  document.getElementById('itemList').innerHTML = html || '<div class="text-sm text-slate-400">Item இல்லை</div>';
+}
+function pickItem(id){ curItem=id; renderItem(); }
+function addItem(){
+  if(!curL3) return showToast('முதலில் Sub Program தேர்வு செய்யுங்கள்',false);
+  var v=document.getElementById('newItem').value.trim(); if(!v) return showToast('Item பெயரை Type செய்யுங்கள்',false);
+  var n={id:'n'+Date.now(),main_type:'development',level:4,parent_id:curL3,title:v,subtitle:'Item',is_published:true,sort_order:nodes.filter(function(x){return x.parent_id===curL3;}).length+1};
+  nodes.push(n); saveLocal(N_KEY,nodes); document.getElementById('newItem').value=''; curItem=n.id; sbSaveNode(n); renderItem(); showToast('Item Add ஆனது ✓',true);
+}
+
+async function copyQ(id){
+  var q=questions.find(function(x){return x.id===id;}); if(!q) return;
+  var nq={id:'q'+Date.now(),node_id:q.node_id,question_text:q.question_text+' (Copy)',question_type:q.question_type,options:(q.options||[]).slice(),is_required:q.is_required,order_index:questions.filter(function(x){return x.node_id===q.node_id;}).length+1};
+  questions.push(nq); saveLocal(Q_KEY,questions);
+  if(sb){try{await sb.from('questions').upsert({id:nq.id,node_id:nq.node_id,question_text:nq.question_text,question_type:nq.question_type,options:nq.options,is_required:nq.is_required,order_index:nq.order_index});}catch(e){}}
+  renderQuestions(); showToast('வினா Copy ஆனது ✓ — Edit செய்யலாம்',true);
+}
+
+async function sbSaveNode(n){if(!sb)return;try{await sb.from('nodes').upsert({id:n.id,main_type:n.main_type,level:n.level,parent_id:n.parent_id,title:n.title,subtitle:n.subtitle||'',is_published:n.is_published,sort_order:n.sort_order});}catch(e){}}
+/* ---------- Questions ---------- */
+function leafId(){
+  // FIX: வினாக்கள் எப்போதும் இலை (Leaf) Node-இல் Save ஆக வேண்டும் — Cultivation / Sub Program-இல் அல்ல
+  if(curMain==='development'){ if(curItem) return curItem; return curL3; }
+  if(curSub) return curSub;
+  var subs=nodes.filter(function(n){return n.main_type==='extension'&&n.level===3&&n.parent_id===curL2;});
+  if(subs.length) return null; // உப பிரிவு உள்ளது — முதலில் ஒன்றை தேர்வு செய்ய வேண்டும்
+  return curL2;
+}
+function onQType(){var t=document.getElementById('qType').value;document.getElementById('optWrap').classList.toggle('hidden',['multiple_choice','checkbox','dropdown'].indexOf(t)===-1);}
+function addOption(){var v=document.getElementById('optInput').value.trim();if(!v)return;curOptions.push(v);document.getElementById('optInput').value='';renderOpts();}
+function renderOpts(){var h='';for(var i=0;i<curOptions.length;i++){h+='<div class="flex gap-2"><input value="'+curOptions[i]+'" onchange="curOptions['+i+']=this.value"><button type="button" onclick="curOptions.splice('+i+',1);renderOpts()" class="btn btn-ghost px-2 shrink-0">✕</button></div>';}document.getElementById('optList').innerHTML=h;}
+function resetQ(){document.getElementById('qForm').reset();document.getElementById('qId').value='';curOptions=[];renderOpts();onQType();}
+function renderQuestions(){
+  var lid=leafId(); if(!lid){document.getElementById('qList').innerHTML='<div class="text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-xl p-3">⚠️ இந்த Cultivation-இன் கீழ் உப பிரிவு உள்ளது — முதலில் Step 4-இல் ஒரு உப பிரிவை தேர்வு செய்யுங்கள். உப பிரிவு தேவை இல்லை என்றால் Step 4-இல் உப பிரிவு எதையும் உருவாக்காதீர்கள்.</div>';document.getElementById('qCount').textContent='0';document.getElementById('qPreview').innerHTML='';return;}
+  var qs=questions.filter(function(q){return q.node_id===lid;}).sort(function(a,b){return a.order_index-b.order_index;});
+  document.getElementById('qCount').textContent=qs.length;
+  var h=''; for(var i=0;i<qs.length;i++){var q=qs[i]; h+='<div class="rounded-xl border p-3 bg-white flex justify-between gap-3"><div><div class="font-semibold text-[14px]">'+(i+1)+'. '+q.question_text+' '+(q.is_required?'<span class="text-red-500">*</span>':'')+'</div><div class="text-xs text-slate-400 mt-1">'+q.question_type+(q.options&&q.options.length?' • '+q.options.join(' | '):'')+'</div></div><div class="flex flex-col gap-1 shrink-0"><div class="flex gap-1"><button onclick="moveQ(\''+q.id+'\',-1)" class="btn btn-ghost px-2 py-1 text-xs">↑</button><button onclick="moveQ(\''+q.id+'\',1)" class="btn btn-ghost px-2 py-1 text-xs">↓</button></div><button onclick="editQ(\''+q.id+'\')" class="btn btn-ghost px-2 py-1 text-xs">Edit</button><button onclick="copyQ(\''+q.id+'\')" class="btn btn-ghost px-2 py-1 text-xs">📋 Copy</button><button onclick="delQ(\''+q.id+'\')" class="btn text-xs px-2 py-1 bg-red-50 text-red-600">Delete</button></div></div>';}
+  document.getElementById('qList').innerHTML=h||'<div class="text-sm text-slate-400">வினா இன்னும் இல்லை — இடது பக்கம் Type செய்து Add செய்யுங்கள்</div>';
+  // Preview
+  var ph=''; for(var j=0;j<qs.length;j++){var qq=qs[j]; ph+='<div><label class="text-[13px]">'+(j+1)+'. '+qq.question_text+(qq.is_required?' *':'')+'</label><div class="mt-1 text-xs text-slate-400">['+qq.question_type+(qq.options&&qq.options.length?' — '+qq.options.join(', '):'')+'] — Unit இங்கே பதில் எழுதுவார்</div></div>';}
+  document.getElementById('qPreview').innerHTML=ph||'<div class="text-xs text-slate-400">Preview இல்லை</div>';
+  updateCrumb();
+}
+function moveQ(id,dir){var lid=leafId();var qs=questions.filter(function(q){return q.node_id===lid;}).sort(function(a,b){return a.order_index-b.order_index;});var idx=qs.findIndex(function(q){return q.id===id;});var nIdx=idx+dir;if(nIdx<0||nIdx>=qs.length)return;var tmp=qs[idx].order_index;qs[idx].order_index=qs[nIdx].order_index;qs[nIdx].order_index=tmp;saveLocal(Q_KEY,questions);renderQuestions();}
+document.getElementById('qForm').addEventListener('submit',async function(e){e.preventDefault();var lid=leafId();if(!lid)return showToast('முதலில் பிரிவை தேர்வு செய்யுங்கள்',false);var id=document.getElementById('qId').value;var payload={id:id||'q'+Date.now(),node_id:lid,question_text:document.getElementById('qText').value.trim(),question_type:document.getElementById('qType').value,options:curOptions.slice(),is_required:document.getElementById('qReq').value==='1',order_index:id?(questions.find(function(q){return q.id===id;})||{}).order_index||0:questions.filter(function(q){return q.node_id===lid;}).length+1};if(id){var idx=questions.findIndex(function(q){return q.id===id;});if(idx>-1)questions[idx]=payload;}else questions.push(payload);saveLocal(Q_KEY,questions);if(sb){try{await sb.from('questions').upsert({id:payload.id,node_id:payload.node_id,question_text:payload.question_text,question_type:payload.question_type,options:payload.options,is_required:payload.is_required,order_index:payload.order_index});}catch(err){}}resetQ();renderQuestions();showToast('வினா Save ஆனது ✓',true);});
+function editQ(id){var q=questions.find(function(x){return x.id===id;});if(!q)return;document.getElementById('qId').value=q.id;document.getElementById('qText').value=q.question_text;document.getElementById('qType').value=q.question_type;document.getElementById('qReq').value=q.is_required?'1':'0';curOptions=(q.options||[]).slice();renderOpts();onQType();window.scrollTo({top:document.getElementById('qForm').offsetTop-80,behavior:'smooth'});}
+async function delQ(id){if(!(await profConfirm('இந்த வினா நீக்கப்படும்.','வினாவை Delete செய்யவா?')))return;questions=questions.filter(function(x){return x.id!==id;});saveLocal(Q_KEY,questions);if(sb){try{sb.from('questions').delete().eq('id',id);}catch(e){}}renderQuestions();}
+function loadDevTemplate(){var lid=leafId();if(!lid)return showToast('முதலில் Development Project தேர்வு செய்யுங்கள்',false);var tmpl=[['விவசாயியின் பெயர் / Farmer Name','short_text',[]],['Address / முகவரி','paragraph',[]],['Telephone Number','short_text',[]],['ID Number','short_text',[]],['வழங்கப்பட்ட பொருள் / Item Given','dropdown',['Seeds','Fertilizer','Tools','Other']],['Quantity / அளவு','number',[]],['Unit / அலகு','dropdown',['kg','Litre','Nos','Packet','Bag']],['Subsidy — 50% or 25% or Free','dropdown',['50%','25%','Free','Full Price']],['Price (Rs.) / விலை','number',[]]];var base=questions.filter(function(q){return q.node_id===lid;}).length;for(var i=0;i<tmpl.length;i++){questions.push({id:'q'+Date.now()+i,node_id:lid,question_text:tmpl[i][0],question_type:tmpl[i][1],options:tmpl[i][2],is_required:true,order_index:base+i+1});}saveLocal(Q_KEY,questions);renderQuestions();showToast('Development Template Add ஆனது ✓',true);}
+function loadExtTemplate(){var lid=leafId();if(!lid)return showToast('முதலில் Cultivation தேர்வு செய்யுங்கள்',false);var tmpl=[['Extent (Acres) / பரப்பு','number',[]],['Variety / வகை','dropdown',['BG 352','BG 360','Other']],['Farmers Count / விவசாயிகள் எண்ணிக்கை','number',[]],['Remarks / குறிப்பு','paragraph',[]]];var base=questions.filter(function(q){return q.node_id===lid;}).length;for(var i=0;i<tmpl.length;i++){questions.push({id:'q'+Date.now()+i,node_id:lid,question_text:tmpl[i][0],question_type:tmpl[i][1],options:tmpl[i][2],is_required:true,order_index:base+i+1});}saveLocal(Q_KEY,questions);renderQuestions();showToast('Extension Template Add ஆனது ✓',true);}
+function finishWizard(){renderDashboard();goNav('dashboard');showToast('முடிந்தது ✓',true);}
+function updateKPI(){}
+/* ---------- Data ---------- */
+function fillDataFilters(){var opts='';for(var i=0;i<hierarchy.length;i++){opts+='<option value="'+hierarchy[i].id+'">'+hierarchy[i].name+'</option>';}document.getElementById('fSub').innerHTML='<option value="">எல்லா Sub Office</option>'+opts;var divs=[];hierarchy.forEach(function(h){h.divisions.forEach(function(d){divs.push(d.name);});});document.getElementById('fDiv').innerHTML='<option value="">எல்லா பிரிவு</option>'+divs.map(function(d){return '<option>'+d+'</option>';}).join('');}
+function renderData(){
+  var fMain=document.getElementById('fMain').value,fSub=document.getElementById('fSub').value,fDiv=document.getElementById('fDiv').value,s=(document.getElementById('fSearch').value||'').toLowerCase();
+  var list=responses.slice(); if(role==='sub_admin')list=list.filter(function(r){return r.subOfficeId===mySub;});
+  if(fMain)list=list.filter(function(r){return r.main_type===fMain;});
+  if(fSub)list=list.filter(function(r){return r.subOfficeId===fSub;});
+  if(fDiv)list=list.filter(function(r){return r.division===fDiv;});
+  if(s)list=list.filter(function(r){return (JSON.stringify(r.answers)+(r.division||'')+(r.office||'')+(r.node_path||'')).toLowerCase().indexOf(s)>-1;});
+  document.getElementById('dataScopeNote').textContent=role==='main_admin'?'Main Admin: எல்லா தரவும் ('+responses.length+') — Filter செய்தது: '+list.length:'Sub Admin: தன் Sub Office-இன் தரவு மட்டும் — Filter செய்தது: '+list.length;
+  var h='';for(var i=0;i<list.slice(0,200).length;i++){var r=list[i];h+='<tr><td class="text-xs"><b>'+(r.node_path||'')+'</b><br><span class="text-slate-400">'+r.main_type+'</span></td><td class="text-xs">'+(r.subOfficeName||r.subOfficeId)+'<br><b>'+r.division+'</b><br>'+r.office+'</td><td class="text-xs">'+JSON.stringify(r.answers).substring(0,220)+'</td><td class="text-xs">'+(r.submittedName||'')+'<br>'+new Date(r.created_at).toLocaleDateString()+'</td><td><button onclick="editData(\''+r.id+'\')" class="btn btn-ghost px-2 py-1 text-xs">Edit</button><button onclick="delData(\''+r.id+'\')" class="text-red-500 text-xs px-2 font-semibold">Delete</button></td></tr>';}
+  document.getElementById('dataTbody').innerHTML=h||'<tr><td colspan=5 class="text-center py-6 text-slate-400">தரவு இல்லை</td></tr>';
+}
+function editData(id){var r=responses.find(function(x){return x.id===id;});if(!r)return;editingId=id;document.getElementById('editBox').classList.remove('hidden');var qs=questions.filter(function(q){return q.node_id===r.node_id;});var f='';for(var i=0;i<qs.length;i++){var q=qs[i];f+='<div><label class="text-xs font-semibold">'+q.question_text+'</label><input data-edit-qid="'+q.id+'" value="'+((r.answers||{})[q.id]||'')+'"></div>';}document.getElementById('editFields').innerHTML=f||'<div class="text-xs">வினாக்கள் இல்லை</div>';window.scrollTo({top:document.getElementById('editBox').offsetTop-80,behavior:'smooth'});}
+function saveEdit(){var r=responses.find(function(x){return x.id===editingId;});if(!r)return;var na={};document.querySelectorAll('[data-edit-qid]').forEach(function(el){na[el.dataset.editQid]=el.value;});r.answers=na;saveLocal(R_KEY,responses);if(sb){try{sb.from('responses').update({answers:na}).eq('id',r.id);}catch(e){}}closeEdit();renderData();showToast('Edit Save ஆனது ✓',true);}
+function closeEdit(){editingId=null;document.getElementById('editBox').classList.add('hidden');}
+async function delData(id){if(!(await profConfirm('இந்த பதில் நீக்கப்படும்.','Delete செய்யவா?')))return;responses=responses.filter(function(x){return x.id!==id;});saveLocal(R_KEY,responses);if(sb){try{sb.from('responses').delete().eq('id',id);}catch(e){}}renderData();renderDashboard();}
+function downloadCSV(){
+  if(!responses.length) return showToast('தரவு இல்லை',false);
+  var csv='Date,Main,Path,SubOffice,Division,Office,User,Answers\n';
+  for(var i=0;i<responses.length;i++){
+    var r=responses[i];
+    var row=[r.created_at||'',r.main_type||'',r.node_path||'',r.subOfficeName||r.subOfficeId||'',r.division||'',r.office||'',r.submittedName||'',JSON.stringify(r.answers||{})];
+    csv+=row.map(function(c){return '"'+String(c).replace(/"/g,'""')+'"';}).join(',')+'\n';
+  }
+  var blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='responses.csv'; a.click();
+}
+function renderUsers(){var s=(document.getElementById('userSearch').value||'').toLowerCase();document.getElementById('userCount').textContent=users.length;var h='';for(var i=0;i<users.length;i++){var x=users[i];if(s&&(x.name+x.username+x.division+x.office).toLowerCase().indexOf(s)===-1)continue;h+='<div class="rounded-xl border p-3 flex justify-between bg-white"><div><div class="font-semibold">'+x.name+'</div><div class="text-xs text-slate-500">'+x.username+' | '+x.role+' | '+x.division+' | '+x.office+'</div></div><div class="flex gap-1"><button onclick="editUser(\''+x.id+'\')" class="btn btn-ghost px-2 py-1 text-xs">Edit</button><button onclick="delUser(\''+x.id+'\')" class="btn text-xs px-2 py-1 bg-red-50 text-red-600">Delete</button></div></div>';}document.getElementById('userList').innerHTML=h;}
+document.getElementById('userForm').addEventListener('submit',function(e){e.preventDefault();var id=document.getElementById('uId').value;var p={id:id||'u'+Date.now(),name:document.getElementById('uName').value.trim(),username:document.getElementById('uUsername').value.trim(),password:document.getElementById('uPassword').value.trim(),role:document.getElementById('uRole').value,subOfficeId:document.getElementById('uSub').value,division:document.getElementById('uDiv').value,office:document.getElementById('uOffice').value,status:document.getElementById('uStatus').value};if(id){var idx=users.findIndex(function(x){return x.id===id;});if(idx>-1)users[idx]=p;}else users.unshift(p);saveLocal(U_KEY,users); saveUserToSupabase(p); resetUser();renderUsers();showToast('User Save ஆனது ✓',true);});
+function editUser(id){var x=users.find(function(u){return u.id===id;});if(!x)return;document.getElementById('uId').value=x.id;document.getElementById('uName').value=x.name;document.getElementById('uUsername').value=x.username;document.getElementById('uPassword').value=x.password;document.getElementById('uRole').value=x.role;document.getElementById('uSub').value=x.subOfficeId;onUSub();document.getElementById('uDiv').value=x.division;onUDiv();document.getElementById('uOffice').value=x.office;document.getElementById('uStatus').value=x.status;}
+async function delUser(id){if(await profConfirm('இந்த User நீக்கப்படுவார்.','User Delete செய்யவா?')){users=users.filter(function(x){return x.id!==id;});saveLocal(U_KEY,users);renderUsers();}}
+function resetUser(){document.getElementById('userForm').reset();document.getElementById('uId').value='';}
+function onUSub(){var sub=document.getElementById('uSub').value;var sel=document.getElementById('uDiv');var h=hierarchy.find(function(x){return x.id===sub;});var html='<option value="ALL">ALL</option>';if(h){for(var j=0;j<h.divisions.length;j++){html+='<option>'+h.divisions[j].name+'</option>';}}sel.innerHTML=html;onUDiv();}
+function onUDiv(){var div=document.getElementById('uDiv').value;var sel=document.getElementById('uOffice');if(div==='ALL'){sel.innerHTML='<option value="ALL">ALL</option>';return;}var offs=getOffices(div);var html='';for(var j=0;j<offs.length;j++){html+='<option>'+offs[j]+'</option>';}sel.innerHTML=html;}
+function renderHierarchy(){var list=document.getElementById('hierList');var h='';for(var i=0;i<hierarchy.length;i++){var hh=hierarchy[i];var off=0;hh.divisions.forEach(function(d){off+=d.offices.length;});h+='<button onclick="selectHier(\''+hh.id+'\')" class="w-full text-left rounded-xl border p-4 '+(selHierSub===hh.id?'bg-indigo-600 text-white':'bg-white')+'"><div class="font-bold">'+hh.name+'</div><div class="text-xs opacity-70">'+hh.divisions.length+' பிரிவு • '+off+' காரியாலயம்</div></button>';}list.innerHTML=h;var h2=hierarchy.find(function(x){return x.id===selHierSub;});document.getElementById('hierTitle').textContent=h2?h2.name:'';var dh='';if(h2){for(var k=0;k<h2.divisions.length;k++){var d=h2.divisions[k];dh+='<div onclick="selectDiv(\''+d.name.replace(/'/g,'')+'\')" class="cursor-pointer flex justify-between rounded-xl border p-3 text-sm '+(selHierDiv===d.name?'bg-indigo-50 border-indigo-300':'bg-slate-50')+'"><span>'+d.name+' ('+d.offices.length+')</span><span class="text-indigo-600 text-xs">›</span></div>';}}document.getElementById('hierDivs').innerHTML=dh;renderOffices();}
+function selectHier(id){selHierSub=id;selHierDiv=null;renderHierarchy();}
+function selectDiv(n){selHierDiv=n;renderHierarchy();}
+function renderOffices(){document.getElementById('officeTitle').textContent='காரியாலயம் — '+(selHierDiv||'பிரிவு தேர்வு செய்யுங்கள்');var h='';if(selHierDiv){var offs=getOffices(selHierDiv);for(var i=0;i<offs.length;i++){h+='<div class="flex justify-between rounded-xl bg-slate-50 border p-3 text-sm"><span>'+offs[i]+'</span><button onclick="delOffice('+i+')" class="text-red-500 text-xs">Delete</button></div>';}}document.getElementById('officeList').innerHTML=h||'<div class="text-xs text-slate-400">பிரிவு தேர்வு செய்யுங்கள்</div>';}
+function addOffice(){if(!selHierDiv)return showToast('முதலில் பிரிவு தேர்வு செய்யுங்கள்',false);var v=document.getElementById('newOfficeName').value.trim();if(!v)return showToast('பெயரை Type செய்யுங்கள்',false);var h=loadHier();for(var i=0;i<h.length;i++)for(var j=0;j<h[i].divisions.length;j++)if(h[i].divisions[j].name===selHierDiv){if(h[i].divisions[j].offices.indexOf(v)>-1)return showToast('ஏற்கனவே இருக்கிறது',false);h[i].divisions[j].offices.push(v);}saveHier(h);hierarchy=h;document.getElementById('newOfficeName').value='';renderHierarchy();fillDataFilters();}
+async function delOffice(idx){if(!(await profConfirm('இந்த காரியாலயம் நீக்கப்படும்.','Delete செய்யவா?')))return;var h=loadHier();for(var i=0;i<h.length;i++)for(var j=0;j<h[i].divisions.length;j++)if(h[i].divisions[j].name===selHierDiv){h[i].divisions[j].offices.splice(idx,1);}saveHier(h);hierarchy=h;renderHierarchy();}
+/* ---------- Supabase sync ---------- */
+async function sbSync(){
+  if(!sb){document.getElementById('sbStatus').textContent='Offline — Local Mode';return;}
+  try{
+    var n=await sb.from('nodes').select('*').order('sort_order'); if(n.data&&n.data.length){nodes=n.data.map(function(x){return{id:x.id,main_type:x.main_type,level:x.level,parent_id:x.parent_id,title:x.title,subtitle:x.subtitle||'',is_published:x.is_published,sort_order:x.sort_order||0};});saveLocal(N_KEY,nodes);}
+    var q=await sb.from('questions').select('*').order('order_index'); if(q.data&&q.data.length){questions=q.data.map(function(x){return{id:x.id,node_id:x.node_id,question_text:x.question_text,question_type:x.question_type,options:x.options||[],is_required:x.is_required,order_index:x.order_index};});saveLocal(Q_KEY,questions);}
+    var r=await sb.from('responses').select('*').order('created_at',{ascending:false}).limit(500); if(r.data){responses=r.data.map(function(x){return{id:x.id,node_id:x.node_id,main_type:x.main_type,level1:x.level1,level2:x.level2,level3:x.level3,node_path:x.node_path,subOfficeId:x.sub_office_id,subOfficeName:x.sub_office_name,division:x.division,office:x.office,submittedBy:x.submitted_by_email,submittedName:x.submitted_by_name,answers:x.answers||{},created_at:x.created_at};});saveLocal(R_KEY,responses);}
+    document.getElementById('sbStatus').textContent='Supabase: Connected ✓';
+  }catch(e){document.getElementById('sbStatus').textContent='Local Fallback';}
+  renderDashboard(); renderData();
+}
+
+// --- Supabase User Update: Admin-இல் User / Password மாற்றம் ---
+async function saveUserToSupabase(p){
+  // 1) profiles table-இல் Name / Username / Role / Sub / Division / Office update
+  if(sb){
+    try{
+      var prof = {username:p.username, name:p.name, role:p.role, sub_office_id:p.subOfficeId, division:p.division, office:p.office, status:p.status};
+      // id இருந்தால் அதே id-இல் upsert, இல்லையென்றால் username-இல் match செய்ய முயற்சி
+      var res = await sb.from('profiles').upsert(prof, {onConflict:'username'});
+      if(res.error) console.log('profiles upsert note:', res.error.message);
+    }catch(e){ console.log('profiles save failed', e); }
+  }
+  // 2) Password: Supabase Auth-இல் வேறு User-இன் Password-ஐ Browser-இல் இருந்து நேரடியாக மாற்ற முடியாது (Security).
+  //    - தன் Password என்றால்: Supabase Auth updateUser மூலம் உடனே மாறும்.
+  //    - வேறு User-இன் Password என்றால்: pending-ஆக Save செய்து, Admin-க்கு வழிமுறை காட்டுவோம்.
+  var me = localStorage.getItem('user')||'';
+  if(p.password){
+    if(p.username===me && sb){
+      try{ var up = await sb.auth.updateUser({password:p.password}); if(!up.error){ showToast('Password Supabase-இலும் மாற்றப்பட்டது ✓',true); return; } }catch(e){}
+      showToast('Password Local-இல் Save ஆனது. Supabase Auth-இல் மாற்ற: Dashboard > Authentication > Users > அந்த User > Reset Password',false);
+    } else {
+      // Pending password - Supabase Dashboard-இல் மாற்ற வேண்டும் என்று நினைவூட்டல்
+      var pend = {}; try{ pend = JSON.parse(localStorage.getItem('fw_pending_pw')||'{}'); }catch(e){}
+      pend[p.username]=p.password; localStorage.setItem('fw_pending_pw', JSON.stringify(pend));
+      profAlert('User "'+p.username+'" இன் Password Local + profiles-இல் Save ஆனது.\n\nSupabase Auth-இல் மாற்ற:\n1) Supabase Dashboard → Authentication → Users\n2) அந்த User-ஐ தேர்வு → Reset Password / Change Password\n3) புதிய Password-ஐ அங்கே Type செய்யுங்கள்.\n\nஇது Supabase Security விதி — Browser-இல் இருந்து வேறு User-இன் Auth Password-ஐ மாற்ற முடியாது.', 'Password — Supabase-இல் மாற்ற வேண்டும்');
+    }
+  }
+}
+
+function fillUserSelects(){var opts='';for(var i=0;i<hierarchy.length;i++){opts+='<option value="'+hierarchy[i].id+'">'+hierarchy[i].name+'</option>';}document.getElementById('uSub').innerHTML=opts;onUSub();}
+fillUserSelects(); fillDataFilters(); renderDashboard(); gotoStep(1); sbSync();
+</script></body></html>
