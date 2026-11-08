@@ -544,4 +544,5 @@ async function saveUserToSupabase(p){
 
 function fillUserSelects(){var opts='';for(var i=0;i<hierarchy.length;i++){opts+='<option value="'+hierarchy[i].id+'">'+hierarchy[i].name+'</option>';}document.getElementById('uSub').innerHTML=opts;onUSub();}
 fillUserSelects(); fillDataFilters(); renderDashboard(); gotoStep(1); sbSync();
-</script></body></html>
+</script><script src="app-sync.js"></script>
+</body></html>
