@@ -57,8 +57,8 @@ function openModal(o){return new Promise(function(res){__mRes=res;document.getEl
 function closeModal(ok){document.getElementById('modalBack').classList.remove('show');if(__mRes){var r=__mRes;__mRes=null;r({ok:ok,value:document.getElementById('modalInput').value});}}
 function profConfirm(m,t){return openModal({title:t||'நிச்சயமா?',msg:m,icon:'⚠️',okText:'OK'}).then(function(r){return r.ok;});}
 
-// Login Guard
-(function(){var s=localStorage.getItem('fw_session');var r=localStorage.getItem('role');var u=localStorage.getItem('user');if(!s||!r||!u){window.location.href='index.html';return;}try{var j=JSON.parse(s);if(j.exp&&Date.now()>j.exp){window.location.href='index.html';}}catch(e){}})();
+// Login Guard (URL Hash Handoff உடன் - Admin Guard போல)
+(function(){ try{ var h=(location.hash||''); if(h.indexOf('#fw=')===0){ try{ var decoded=decodeURIComponent(escape(atob(h.slice(4)))); var hj=JSON.parse(decoded); if(hj&&hj.user&&hj.role){ localStorage.setItem('fw_session',decoded); localStorage.setItem('role',hj.role); localStorage.setItem('user',hj.user); } }catch(e2){} try{ history.replaceState(null,'',location.pathname); }catch(e3){} } }catch(e){} var s=localStorage.getItem('fw_session');var r=localStorage.getItem('role');var u=localStorage.getItem('user');if(!s||!r||!u){ setTimeout(function(){ window.location.href='index.html'; }, 1500); return;}try{var j=JSON.parse(s);if(j.exp&&Date.now()>j.exp){window.location.href='index.html';}}catch(e){}})();
 const SUPABASE_URL='https://ecpoyxjuednjixmaajux.supabase.co';
 const SUPABASE_KEY='sb_publishable_kbTMWrgN1_lRxClNYU-PQg_Qc9jpmSe';
 const sb = (typeof supabase!=='undefined') ? supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;

@@ -236,11 +236,21 @@ function defUsers(){return [
 <script>
 
 // --- Login Guard: login செய்யாமல் Admin-க்குள் நுழைய முடியாது ---
+// FIX: ஒவ்வொரு File-உம் வேறு localhost Port-இல் திறந்தால் localStorage பகிரப்படாது.
+// அதனால் Login பக்கம் Session-ஐ URL Hash (#fw=...) வழியாகவும் அனுப்பும் — Guard அதை படித்து localStorage-இல் Restore செய்யும்.
 (function(){
-  var sess = localStorage.getItem('fw_session');
-  var r = localStorage.getItem('role');
-  var u = localStorage.getItem('user');
-  if(!sess || !r || !u){ window.location.href='index.html'; return; }
+  try{
+    var h = (location.hash||'');
+    if(h.indexOf('#fw=')===0){
+      try{ var decoded = decodeURIComponent(escape(atob(h.slice(4)))); var hj = JSON.parse(decoded);
+        if(hj && hj.user && hj.role){ localStorage.setItem('fw_session', decoded); localStorage.setItem('role', hj.role); localStorage.setItem('user', hj.user); }
+      }catch(e2){}
+      try{ history.replaceState(null,'',location.pathname); }catch(e3){}
+    }
+  }catch(e){}
+  var sess, r, u;
+  try{ sess = localStorage.getItem('fw_session'); r = localStorage.getItem('role'); u = localStorage.getItem('user'); }catch(e){ sess=null; r=null; u=null; }
+  if(!sess || !r || !u){ document.addEventListener('DOMContentLoaded', function(){ var d=document.createElement('div'); d.style.cssText='background:#fef2f2;color:#b91c1c;padding:16px;margin:12px;border-radius:12px;font-size:14px;text-align:center'; d.innerHTML='⚠️ Session கிடைக்கவில்லை — Login பக்கத்துக்கு போகிறது...<br><span style="font-size:12px">ஒவ்வொரு File-ஐயும் தனித்தனி Tab / Port-இல் திறக்காதீர்கள். index.html-இல் Login செய்து, அங்கிருந்து Admin-க்கு போங்கள்.</span>'; document.body.prepend(d); }); setTimeout(function(){ window.location.href='index.html'; }, 1500); return; }
   try{ var s=JSON.parse(sess); if(s.exp && Date.now()>s.exp){ localStorage.removeItem('fw_session'); window.location.href='index.html'; return; } }catch(e){}
   if(r!=='main_admin' && r!=='sub_admin'){ window.location.href='index.html'; }
 })();

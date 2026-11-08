@@ -1,94 +1,125 @@
 <!DOCTYPE html>
-<html lang="si">
-<head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>ආයතනික කළමනාකරණ පද්ධතිය | පිවිසුම</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link rel="stylesheet" href="styles.css">
-<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoi4Lit4Lah4LeK4Lia4LeK4Lav4LeK4Lia4LeK4Lav4LeK4LiaIn0=">
-</head>
+<html lang="si"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Login | FieldWork OS v8 - 45 Divisions</title><script src="https://cdn.tailwindcss.com"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><link rel="stylesheet" href="styles.css"></head>
 <body class="min-h-screen bg-[#f8fafc] flex">
-<!-- Left branding - desktop -->
-<div class="hidden lg:flex w-[52%] bg-[#0f172a] relative overflow-hidden flex-col justify-between p-12 text-white">
-  <div class="absolute inset-0 bg-gradient-to-br from-indigo-600/40 via-violet-600/30 to-sky-500/20"></div>
-  <div class="absolute -top-24 -right-24 w-[520px] h-[520px] bg-indigo-500 rounded-full blur-[120px] opacity-30"></div>
-  <div class="relative">
-    <div class="w-12 h-12 rounded-2xl bg-white text-slate-900 grid place-items-center font-bold text-xl">ආ</div>
-    <h1 class="mt-8 text-4xl font-bold leading-tight">ක්ෂේත්‍ර දත්ත<br>කළමනාකරණ පද්ධතිය</h1>
-    <p class="mt-4 text-slate-300 max-w-md">නிறுவන ප්‍රධානී, උප අංශ 04 සහ සියලුම ක්ෂේත්‍ර ඒකක සඳහා ආරක්ෂිත, වේගවත්, සිංහල ප්‍රමුඛ පද්ධතිය</p>
-  </div>
-  <div class="relative grid grid-cols-3 gap-4">
-    <div class="rounded-2xl bg-white/10 p-4 backdrop-blur"><div class="text-2xl font-bold">100%</div><div class="text-xs text-slate-300">Mobile / Desktop / Tab</div></div>
-    <div class="rounded-2xl bg-white/10 p-4 backdrop-blur"><div class="text-2xl font-bold">4+1</div><div class="text-xs text-slate-300">උප අංශ + ප්‍රධාන</div></div>
-    <div class="rounded-2xl bg-white/10 p-4 backdrop-blur"><div class="text-2xl font-bold">PWA</div><div class="text-xs text-slate-300">Android / iOS / Windows</div></div>
-  </div>
-</div>
-
-<!-- Right login -->
-<div class="flex-1 flex items-center justify-center p-4 sm:p-8">
-  <div class="w-full max-w-[440px]">
-    <div class="card animate-in">
-      <div class="flex items-center gap-3 mb-2">
-        <div class="w-10 h-10 rounded-xl bg-indigo-600 grid place-items-center text-white font-bold">ආ</div>
-        <span class="font-bold">FieldWork OS</span>
-        <span class="ml-auto badge badge-blue">v2.0 Modern</span>
-      </div>
-      <h2 class="text-[28px] font-bold tracking-tight mt-6">පද්ධතියට පිවිසෙන්න</h2>
-      <p class="text-sm text-slate-500 mt-1">ඔබගේ නිල විද්‍යුත් තැපෑල සහ මුරපදය ඇතුළත් කරන්න</p>
-
-      <div id="err" class="hidden mt-4 rounded-xl bg-red-50 border border-red-200 p-3 text-sm text-red-700"></div>
-
-      <form id="loginForm" class="mt-6 space-y-4">
-        <div>
-          <label class="text-[13px] font-semibold text-slate-700">විද්‍යුත් තැපෑල (Email) *</label>
-          <input type="email" id="email" placeholder="name@dept.gov.lk" required class="mt-1.5">
-        </div>
-        <div>
-          <label class="text-[13px] font-semibold text-slate-700">මුරපදය (Password) *</label>
-          <input type="password" id="password" placeholder="••••••••" required class="mt-1.5">
-          <div class="mt-2 flex justify-between text-xs"><a class="text-indigo-600 font-semibold" href="#">මුරපදය අමතකද?</a><span class="text-slate-400">Sinhala / தமிழ் / English</span></div>
-        </div>
-        <button class="btn btn-primary w-full py-3.5 text-[15px]">ඇතුළු වන්න — Login</button>
-        <div class="grid grid-cols-3 gap-2 text-[11px] text-slate-500 pt-2">
-          <div class="rounded-xl bg-slate-50 p-3 border">📱 Mobile Optimized</div>
-          <div class="rounded-xl bg-slate-50 p-3 border">💻 Desktop Ready</div>
-          <div class="rounded-xl bg-slate-50 p-3 border">📲 Android / iOS</div>
-        </div>
-      </form>
-
-      <div class="mt-6 rounded-xl bg-indigo-50 p-3 text-[12px] text-indigo-900 border border-indigo-100">
-        <b>Demo Roles:</b> main_admin@system.lk / sub_admin@system.lk / unit@system.lk — password: 123456
-      </div>
-    </div>
-    <p class="text-center text-[11px] text-slate-400 mt-4">© 2026 ආයතනික පද්ධතිය — All devices supported</p>
-  </div>
-</div>
-
+<div class="hidden lg:flex w-[52%] bg-[#0f172a] flex-col justify-between p-12 text-white"><div><div class="w-12 h-12 rounded-2xl bg-white text-slate-900 grid place-items-center font-bold">A</div>
+<h1 class="mt-8 text-4xl font-bold leading-tight">Kshetra Datha<br>Kalamanakarana Paddhathiya</h1>
+<p class="mt-4 text-slate-300">Main Admin - 4 Sub Admin - 45 Upa Privu - Pala Karyalaya<br>Login 1 varak - Sub Office / Privu / Karyalaya / Varudam / Season Auto Fill agum.</p>
+<div class="mt-8 space-y-2 text-sm"><div class="rounded-xl bg-white/10 p-3">Extension - Yala / Maha - Varudam thorum marum Form</div><div class="rounded-xl bg-white/10 p-3">Development - Varudaththukku 1 murai marum Form</div><div class="rounded-xl bg-white/10 p-3">45 Privu - Pala Karyalaya - Thanithaniye Pathivu</div></div></div>
+<div class="grid grid-cols-3 gap-4"><div class="rounded-2xl bg-white/10 p-4"><div class="text-2xl font-bold">45</div><div class="text-xs">Upa Privu</div></div><div class="rounded-2xl bg-white/10 p-4"><div class="text-2xl font-bold">1x Login</div><div class="text-xs">Auto Fill</div></div><div class="rounded-2xl bg-white/10 p-4"><div class="text-2xl font-bold">Supabase Form Builder</div><div class="text-xs">Live Embed</div></div></div></div>
+<div class="flex-1 flex items-center justify-center p-4"><div class="w-full max-w-[440px]"><div class="card">
+<div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-indigo-600 grid place-items-center text-white font-bold">A</div><span class="font-bold">FieldWork OS</span><span class="ml-auto badge badge-blue">v8 - 45 Div</span></div>
+<h2 class="text-[28px] font-bold mt-6">Pivisena - Login</h2><p class="text-sm text-slate-500">Admin wisin thandha Username / Password</p>
+<div id="loginStatus" class="text-[11px] text-slate-400 mt-2"></div><div id="err" class="hidden mt-4 rounded-xl bg-red-50 border border-red-200 p-3 text-sm text-red-700"></div>
+<form id="loginForm" class="mt-6 space-y-4"><div><label class="text-[13px] font-semibold">Username / Email *</label><input id="email" placeholder="unit_jaffna@system.lk" required class="mt-1.5"></div>
+<div><label class="text-[13px] font-semibold">Password *</label><input type="password" id="password" required class="mt-1.5"></div>
+<button class="btn btn-primary w-full py-3.5">Login</button></form>
+<div id="alreadyBox" class="hidden mt-4 rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-sm text-emerald-800"><b>✅ Already Logged In:</b> <span id="alreadyWho"></span><br><button type="button" onclick="continueLoggedIn()" class="btn btn-primary mt-2 px-4 py-2 text-xs">→ Continue — Admin / Unit-க்கு போ</button> <button type="button" onclick="doLogout()" class="btn btn-ghost mt-2 px-3 py-2 text-xs">Logout</button></div>
+<div class="mt-6 rounded-xl bg-indigo-50 p-3 text-[12px] text-indigo-900 border border-indigo-100"><b>Demo:</b><br>Main: main@system.lk / 123456<br>Sub1: sub1@system.lk / 123456<br>Unit: unit_jaffna@system.lk / 123456<br>Unit 2nd Office: unit_jaffna2@system.lk / 123456<br><br><button type="button" onclick="resetDemoUsers()" class="underline font-semibold">🔄 Reset Demo Users (Password வேலை செய்யவில்லை என்றால் இதை அழுத்துங்கள்)</button><br><span class="text-[11px]">இது Local-இல் Corrupt ஆன User List-ஐ அழித்து Demo User-களை மீண்டும் கொண்டு வரும். Supabase-இல் எதையும் அழிக்காது.</span></div>
+</div></div></div>
 <script>
+const H_KEY='fieldwork_hierarchy_v5';
+const GF_KEY='fieldwork_gforms_v5';
+const U_KEY='fw7_users'; // FIX: admin/unit-உடன் ஒரே Key. முன்பு fieldwork_users_v5 என்று இருந்ததால் Admin-இல் மாற்றிய Password Login-இல் வேலை செய்யவில்லை.
+const E_KEY='fieldwork_entries_v5';
+function defaultHierarchy(){ return [{"id": "sub1", "name": "Upa Karyalaya 01 - Uthura", "divisions": [{"name": "Upa Privu 1-01 - Yapanaya", "offices": ["Yapanaya - Pradhana Karyalaya"]}, {"name": "Upa Privu 1-02 - Kilinochchi", "offices": ["Kilinochchi - Pradhana Karyalaya"]}, {"name": "Upa Privu 1-03 - Mannaram", "offices": ["Mannaram - Pradhana Karyalaya"]}, {"name": "Upa Privu 1-04 - Vavuniya", "offices": ["Vavuniya - Pradhana Karyalaya", "Vavuniya - Upakaryalaya 2"]}, {"name": "Upa Privu 1-05 - Mullaitivu", "offices": ["Mullaitivu - Pradhana Karyalaya"]}, {"name": "Upa Privu 1-06 - Chavakachcheri", "offices": ["Chavakachcheri - Pradhana Karyalaya"]}, {"name": "Upa Privu 1-07 - Point Pedro", "offices": ["Point Pedro - Pradhana Karyalaya", "Point Pedro - Upakaryalaya 3"]}, {"name": "Upa Privu 1-08 - Nallur", "offices": ["Nallur - Pradhana Karyalaya", "Nallur - Upakaryalaya 2"]}, {"name": "Upa Privu 1-09 - Jaffna Town", "offices": ["Jaffna Town - Pradhana Karyalaya"]}, {"name": "Upa Privu 1-10 - Kayts", "offices": ["Kayts - Pradhana Karyalaya"]}, {"name": "Upa Privu 1-11 - Velanai", "offices": ["Velanai - Pradhana Karyalaya"]}, {"name": "Upa Privu 1-12 - Karainagar", "offices": ["Karainagar - Pradhana Karyalaya", "Karainagar - Upakaryalaya 2"]}]}, {"id": "sub2", "name": "Upa Karyalaya 02 - Dakuna", "divisions": [{"name": "Upa Privu 2-01 - Galle", "offices": ["Galle - Pradhana Karyalaya"]}, {"name": "Upa Privu 2-02 - Matara", "offices": ["Matara - Pradhana Karyalaya"]}, {"name": "Upa Privu 2-03 - Hambantota", "offices": ["Hambantota - Pradhana Karyalaya"]}, {"name": "Upa Privu 2-04 - Tangalle", "offices": ["Tangalle - Pradhana Karyalaya", "Tangalle - Upakaryalaya 2"]}, {"name": "Upa Privu 2-05 - Ambalangoda", "offices": ["Ambalangoda - Pradhana Karyalaya"]}, {"name": "Upa Privu 2-06 - Weligama", "offices": ["Weligama - Pradhana Karyalaya"]}, {"name": "Upa Privu 2-07 - Akuressa", "offices": ["Akuressa - Pradhana Karyalaya", "Akuressa - Upakaryalaya 3"]}, {"name": "Upa Privu 2-08 - Deniyaya", "offices": ["Deniyaya - Pradhana Karyalaya", "Deniyaya - Upakaryalaya 2"]}, {"name": "Upa Privu 2-09 - Beliatta", "offices": ["Beliatta - Pradhana Karyalaya"]}, {"name": "Upa Privu 2-10 - Tissamaharama", "offices": ["Tissamaharama - Pradhana Karyalaya"]}, {"name": "Upa Privu 2-11 - Walasmulla", "offices": ["Walasmulla - Pradhana Karyalaya"]}]}, {"id": "sub3", "name": "Upa Karyalaya 03 - Nagenahira", "divisions": [{"name": "Upa Privu 3-01 - Trincomalee", "offices": ["Trincomalee - Pradhana Karyalaya"]}, {"name": "Upa Privu 3-02 - Batticaloa", "offices": ["Batticaloa - Pradhana Karyalaya"]}, {"name": "Upa Privu 3-03 - Ampara", "offices": ["Ampara - Pradhana Karyalaya"]}, {"name": "Upa Privu 3-04 - Kinniya", "offices": ["Kinniya - Pradhana Karyalaya", "Kinniya - Upakaryalaya 2"]}, {"name": "Upa Privu 3-05 - Muttur", "offices": ["Muttur - Pradhana Karyalaya"]}, {"name": "Upa Privu 3-06 - Kalkudah", "offices": ["Kalkudah - Pradhana Karyalaya"]}, {"name": "Upa Privu 3-07 - Kalmunai", "offices": ["Kalmunai - Pradhana Karyalaya", "Kalmunai - Upakaryalaya 3"]}, {"name": "Upa Privu 3-08 - Sainthamaruthu", "offices": ["Sainthamaruthu - Pradhana Karyalaya", "Sainthamaruthu - Upakaryalaya 2"]}, {"name": "Upa Privu 3-09 - Akkaraipattu", "offices": ["Akkaraipattu - Pradhana Karyalaya"]}, {"name": "Upa Privu 3-10 - Pottuvil", "offices": ["Pottuvil - Pradhana Karyalaya"]}, {"name": "Upa Privu 3-11 - Dehiattakandiya", "offices": ["Dehiattakandiya - Pradhana Karyalaya"]}]}, {"id": "sub4", "name": "Upa Karyalaya 04 - Bathira", "divisions": [{"name": "Upa Privu 4-01 - Colombo", "offices": ["Colombo - Pradhana Karyalaya"]}, {"name": "Upa Privu 4-02 - Gampaha", "offices": ["Gampaha - Pradhana Karyalaya"]}, {"name": "Upa Privu 4-03 - Kalutara", "offices": ["Kalutara - Pradhana Karyalaya"]}, {"name": "Upa Privu 4-04 - Kegalle", "offices": ["Kegalle - Pradhana Karyalaya", "Kegalle - Upakaryalaya 2"]}, {"name": "Upa Privu 4-05 - Negombo", "offices": ["Negombo - Pradhana Karyalaya"]}, {"name": "Upa Privu 4-06 - Panadura", "offices": ["Panadura - Pradhana Karyalaya"]}, {"name": "Upa Privu 4-07 - Horana", "offices": ["Horana - Pradhana Karyalaya", "Horana - Upakaryalaya 3"]}, {"name": "Upa Privu 4-08 - Avissawella", "offices": ["Avissawella - Pradhana Karyalaya", "Avissawella - Upakaryalaya 2"]}, {"name": "Upa Privu 4-09 - Mawanella", "offices": ["Mawanella - Pradhana Karyalaya"]}, {"name": "Upa Privu 4-10 - Warakapola", "offices": ["Warakapola - Pradhana Karyalaya"]}, {"name": "Upa Privu 4-11 - Ruwanwella", "offices": ["Ruwanwella - Pradhana Karyalaya"]}]}]; }
+function loadHierarchy(){ try{ var s=localStorage.getItem(H_KEY); if(s){ var a=JSON.parse(s); if(Array.isArray(a)&&a.length) return a; } }catch(e){} return defaultHierarchy(); }
+function saveHierarchy(h){ localStorage.setItem(H_KEY, JSON.stringify(h)); }
+function getDivisionsForSub(subId){ var h=null; for(var i=0;i<loadHierarchy().length;i++){ if(loadHierarchy()[i].id===subId) h=loadHierarchy()[i]; } return h?h.divisions:[]; }
+function getOfficesForDiv(divName){ var h=loadHierarchy(); for(var i=0;i<h.length;i++){ for(var j=0;j<h[i].divisions.length;j++){ if(h[i].divisions[j].name===divName) return h[i].divisions[j].offices; } } return []; }
+function defaultUsers(){ return [
+{id:'u0',name:'Pradhana Admin',username:'main@system.lk',password:'123456',role:'main_admin',subOfficeId:'ALL',division:'ALL',office:'ALL',status:'active'},
+{id:'u1',name:'Sub Admin 01 - Uthura',username:'sub1@system.lk',password:'123456',role:'sub_admin',subOfficeId:'sub1',division:'ALL',office:'ALL',status:'active'},
+{id:'u2',name:'Sub Admin 02 - Dakuna',username:'sub2@system.lk',password:'123456',role:'sub_admin',subOfficeId:'sub2',division:'ALL',office:'ALL',status:'active'},
+{id:'u3',name:'Sub Admin 03 - Nagenahira',username:'sub3@system.lk',password:'123456',role:'sub_admin',subOfficeId:'sub3',division:'ALL',office:'ALL',status:'active'},
+{id:'u4',name:'Sub Admin 04 - Bathira',username:'sub4@system.lk',password:'123456',role:'sub_admin',subOfficeId:'sub4',division:'ALL',office:'ALL',status:'active'},
+{id:'u5',name:'Yapanaya - Pradhana Karyalaya',username:'unit_jaffna@system.lk',password:'123456',role:'unit',subOfficeId:'sub1',division:'Upa Privu 1-01 - Yapanaya',office:'Yapanaya - Pradhana Karyalaya',status:'active'},
+{id:'u6',name:'Galle - Pradhana Karyalaya',username:'unit_galle@system.lk',password:'123456',role:'unit',subOfficeId:'sub2',division:'Upa Privu 2-01 - Galle',office:'Galle - Pradhana Karyalaya',status:'active'},
+{id:'u7',name:'Yapanaya - Upakaryalaya 2 (2nd Office)',username:'unit_jaffna2@system.lk',password:'123456',role:'unit',subOfficeId:'sub1',division:'Upa Privu 1-04 - Vavuniya',office:'Vavuniya - Upakaryalaya 2',status:'active'}
+];}
+function loadUsers(){
+  // Old Key-இல் இருந்த User-களை புதிய Key-க்கு Migrate செய்
+  try{ var old=localStorage.getItem('fieldwork_users_v5'); if(old && !localStorage.getItem(U_KEY)){ localStorage.setItem(U_KEY, old); } }catch(e){}
+  try{ var s=localStorage.getItem(U_KEY); if(s){ var a=JSON.parse(s); if(Array.isArray(a)&&a.length) return a; } }catch(e){} return defaultUsers(); }
+function saveUsers(u){ localStorage.setItem(U_KEY, JSON.stringify(u)); }
+function defaultGForms(){ return [
+{id:'gf1', title:'Extension - Yala 2026 (Demo)', category:'ext_yala', year:'2026', season:'Yala', subOfficeId:'ALL', division:'ALL', office:'ALL', url:'https://docs.google.com/forms/d/e/1FAIpQLSd_demo/viewform?embedded=true', entrySub:'', entryDiv:'', entryOffice:'', entryYear:'', entrySeason:'', entryUser:''},
+{id:'gf2', title:'Extension - Maha 2026 (Demo)', category:'ext_maha', year:'2026', season:'Maha', subOfficeId:'ALL', division:'ALL', office:'ALL', url:'https://docs.google.com/forms/d/e/1FAIpQLSd_demo2/viewform?embedded=true', entrySub:'', entryDiv:'', entryOffice:'', entryYear:'', entrySeason:'', entryUser:''},
+{id:'gf3', title:'Development - 2026 (Demo)', category:'development', year:'2026', season:'', subOfficeId:'ALL', division:'ALL', office:'ALL', url:'https://docs.google.com/forms/d/e/1FAIpQLSd_demo3/viewform?embedded=true', entrySub:'', entryDiv:'', entryOffice:'', entryYear:'', entrySeason:'', entryUser:''}
+];}
+function loadGForms(){ try{ var s=localStorage.getItem(GF_KEY); if(s){ var a=JSON.parse(s); if(Array.isArray(a)) return a; } }catch(e){} return defaultGForms(); }
+function saveGForms(g){ localStorage.setItem(GF_KEY, JSON.stringify(g)); }
+function loadEntries(){ try{ return JSON.parse(localStorage.getItem(E_KEY)||'[]'); }catch(e){ return []; } }
+function saveEntries(e){ localStorage.setItem(E_KEY, JSON.stringify(e)); }
+function toEmbedUrl(url){ if(!url) return ''; url=url.trim(); var m=url.match(/src="([^"]+)"/); if(m) url=m[1]; if(url.indexOf('viewform')===-1 && url.indexOf('/d/')>-1){ url=url.replace(/\/$/,'')+'/viewform'; } if(url.indexOf('embedded=true')===-1){ url+=(url.indexOf('?')===-1?'?':'&')+'embedded=true'; } return url; }
+function buildPrefilledUrl(g, ctx){
+  var baseUrl=toEmbedUrl(g.url);
+  var params=[];
+  function add(entryId, val){ if(entryId && val) params.push(encodeURIComponent(entryId)+'='+encodeURIComponent(val)); }
+  add(g.entrySub, ctx.subOfficeName);
+  add(g.entryDiv, ctx.division);
+  add(g.entryOffice, ctx.office);
+  add(g.entryYear, ctx.year);
+  add(g.entrySeason, ctx.season);
+  add(g.entryUser, ctx.userName + ' (' + ctx.userEmail + ')');
+  if(!params.length) return baseUrl;
+  var sep = baseUrl.indexOf('?')===-1 ? '?' : '&';
+  return baseUrl + sep + params.join('&');
+}
+
 const SUPABASE_URL='https://ecpoyxjuednjixmaajux.supabase.co';
 const SUPABASE_KEY='sb_publishable_kbTMWrgN1_lRxClNYU-PQg_Qc9jpmSe';
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-document.getElementById('loginForm').addEventListener('submit', async (e)=>{
+const supabaseClient = (typeof supabase!=='undefined') ? supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+document.getElementById('loginForm').addEventListener('submit', async function(e){
   e.preventDefault();
-  const email=document.getElementById('email').value.trim();
-  const password=document.getElementById('password').value.trim();
-  const err=document.getElementById('err');
-  err.classList.add('hidden');
-
-  // Demo fallback without supabase auth for testing
-  if(email.includes('main_admin')){localStorage.setItem('role','main_admin');localStorage.setItem('user',email);location.href='admin.html';return;}
-  if(email.includes('sub_admin')){localStorage.setItem('role','sub_admin');localStorage.setItem('user',email);location.href='admin.html';return;}
-  if(email.includes('unit')){localStorage.setItem('role','unit');localStorage.setItem('user',email);location.href='unit.html';return;}
-
-  const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
-  if(error){err.textContent='පිවිසීමේ දෝෂයකි: '+error.message;err.classList.remove('hidden');return;}
-  const {data:profile}=await supabaseClient.from('profiles').select('role').eq('id',data.user.id).single();
-  const role=profile?.role||'unit';
-  localStorage.setItem('role',role);
-  if(role==='main_admin'||role==='sub_admin') location.href='admin.html'; else location.href='unit.html';
+  var email=document.getElementById('email').value.trim().toLowerCase();
+  var pw=document.getElementById('password').value.trim();
+  var err=document.getElementById('err'); err.classList.add('hidden');
+  var statusEl=document.getElementById('loginStatus'); if(statusEl) statusEl.textContent='Checking...';
+  // STEP 1 - LOCAL FIRST (Demo + Admin-இல் உருவாக்கிய User-கள்): Supabase Down / RLS Block / Auth-இல் User இல்லை என்றாலும் Demo வேலை செய்யும்
+  var users=loadUsers(); var f=null; for(var i=0;i<users.length;i++){ if(String(users[i].username||'').toLowerCase()===email && String(users[i].password||'')===pw){ f=users[i]; break; } }
+  if(f){
+    if(f.status!=='active'){ err.textContent='User Inactive.'; err.classList.remove('hidden'); return; }
+    var h2=loadHierarchy(); var so2=null; for(var k=0;k<h2.length;k++){ if(h2[k].id===f.subOfficeId) so2=h2[k]; }
+    localStorage.setItem('role', f.role); localStorage.setItem('user', f.username); localStorage.setItem('user_name', f.name); localStorage.setItem('user_subOfficeId', f.subOfficeId); localStorage.setItem('user_subOfficeName', so2?so2.name:f.subOfficeId); localStorage.setItem('user_division', f.division); localStorage.setItem('user_office', f.office||''); localStorage.setItem('fw_session', JSON.stringify({user:f.username, role:f.role, exp: Date.now()+12*60*60*1000}));
+    if(statusEl) statusEl.textContent='Local Login OK';
+    if(f.role==='main_admin'||f.role==='sub_admin') location.href='admin.html#fw='+sessionHandoff(); else location.href='unit.html#fw='+sessionHandoff();
+    return;
+  }
+  // STEP 2 - LOCAL-இல் இல்லை என்றால் மட்டும் Supabase Auth முயற்சி செய்
+  if(supabaseClient){
+    try{
+      var sbRes = await supabaseClient.auth.signInWithPassword({email: email, password: pw});
+      if(!sbRes.error && sbRes.data.user){
+        var prof = await supabaseClient.from('profiles').select('*').eq('id', sbRes.data.user.id).single();
+        var p = (prof && prof.data) ? prof.data : null;
+        if(!p){
+          err.textContent='Supabase Auth OK, ஆனால் profiles Table-இல் உங்கள் Row இல்லை / RLS Block. Supabase Dashboard-இல் profiles-இல் Row சேர்க்கவும்.'; err.classList.remove('hidden'); return;
+        }
+        if(p.status==='inactive'){ err.textContent='User Inactive.'; err.classList.remove('hidden'); return; }
+        var h=loadHierarchy(); var so=null; for(var j=0;j<h.length;j++){ if(h[j].id===(p.sub_office_id||p.subOfficeId)) so=h[j]; }
+        var role = p.role || 'unit';
+        localStorage.setItem('role', role); localStorage.setItem('user', email); localStorage.setItem('user_name', p.name||p.full_name||''); localStorage.setItem('user_subOfficeId', p.sub_office_id||p.subOfficeId||'ALL'); localStorage.setItem('user_subOfficeName', p.sub_office_name||(so?so.name:(p.sub_office_id||'ALL'))); localStorage.setItem('user_division', p.division||'ALL'); localStorage.setItem('user_office', p.office||''); localStorage.setItem('fw_session', JSON.stringify({user:email, role:role, exp: Date.now()+12*60*60*1000}));
+        if(role==='main_admin'||role==='sub_admin') location.href='admin.html#fw='+sessionHandoff(); else location.href='unit.html#fw='+sessionHandoff();
+        return;
+      } else {
+        var msg = sbRes.error ? sbRes.error.message : 'Supabase Login Failed';
+        err.textContent='Username / Password தவறு. (' + msg + ') — Demo: main@system.lk / 123456 முயற்சி செய்யுங்கள், அல்லது Reset Demo Users அழுத்துங்கள்.'; err.classList.remove('hidden'); return;
+      }
+    }catch(e2){ console.log('SB login error', e2); err.textContent='Supabase-ஐ அணுக முடியவில்லை (' + (e2.message||'Network Error') + ') — Demo Login-ஐ முயற்சி செய்யுங்கள்.'; err.classList.remove('hidden'); return; }
+  }
+  err.textContent='Username / Password தவறு. Demo: main@system.lk / 123456'; err.classList.remove('hidden');
 });
-</script>
-</body>
-</html>
+
+function sessionHandoff(){ try{ var s=localStorage.getItem('fw_session')||''; return btoa(unescape(encodeURIComponent(s))); }catch(e){ return ''; } }
+function continueLoggedIn(){ try{ var j=JSON.parse(localStorage.getItem('fw_session')||'{}'); var page=(j.role==='main_admin'||j.role==='sub_admin')?'admin.html':'unit.html'; location.href=page+'#fw='+sessionHandoff(); }catch(e){ location.href='admin.html'; } }
+function doLogout(){ ['role','user','user_name','user_subOfficeId','user_subOfficeName','user_division','user_office','fw_session'].forEach(function(k){ try{localStorage.removeItem(k);}catch(e){} }); location.reload(); }
+(function(){ try{ var s=localStorage.getItem('fw_session'); if(!s) return; var j=JSON.parse(s); if(j.exp && Date.now()>j.exp){ localStorage.removeItem('fw_session'); return; } var box=document.getElementById('alreadyBox'); if(box){ box.classList.remove('hidden'); document.getElementById('alreadyWho').textContent=(j.user||'')+' ('+(j.role||'')+')'; } }catch(e){} })();
+function resetDemoUsers(){
+  localStorage.removeItem('fw7_users'); localStorage.removeItem('fieldwork_users_v5');
+  var u=defaultUsers(); localStorage.setItem('fw7_users', JSON.stringify(u));
+  var s=document.getElementById('loginStatus'); if(s) s.textContent='Demo Users Reset ஆனது ✓ — main@system.lk / 123456 முயற்சி செய்யுங்கள்';
+  document.getElementById('email').value='main@system.lk'; document.getElementById('password').value='123456';
+  alert('Demo Users Reset ஆனது ✓\nMain: main@system.lk / 123456');
+}
+</script></body></html>
