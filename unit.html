@@ -228,12 +228,39 @@ function collectAns(){ var ans={}; document.querySelectorAll('#uFormWrap [data-q
 async function submitUForm(e){
   e.preventDefault(); var f=document.getElementById('dynForm'); if(!f.checkValidity()){ f.reportValidity(); return false; }
   var ans=collectAns(); var lid=leafId();
-  var payload={id:'r'+Date.now(), node_id:lid, main_type:curMain, level1: curL1? (nodes.find(function(x){return x.id===curL1;})||{}).title:'', level2: curL2? (nodes.find(function(x){return x.id===curL2;})||{}).title:'', level3: curL3? (nodes.find(function(x){return x.id===curL3;})||{}).title:'', node_path: nodePath(), subOfficeId:mySubId, subOfficeName:mySubName, division:myDiv, office:myOffice, submittedBy:myUser, submittedName:myName, answers:ans, selected_items: curItems.slice(), selected_sub: curSub, created_at:new Date().toISOString()};
-  if(sb){ try{ var u=await sb.auth.getUser(); var uid=u.data&&u.data.user?u.data.user.id:null; var ins=await sb.from('responses').insert({node_id:lid, main_type:curMain, level1:payload.level1, level2:payload.level2, level3:payload.level3, node_path:payload.node_path, sub_office_id:mySubId, sub_office_name:mySubName, division:myDiv, office:myOffice, submitted_by:uid, submitted_by_email:myUser, submitted_by_name:myName, answers:ans}); if(ins.data) payload.id=ins.data.id; }catch(err){} }
-  responses.unshift(payload); saveLocal(R_KEY, responses);
-  document.getElementById('okBox').classList.remove('hidden');
-  f.querySelectorAll('[data-qid]').forEach(function(el){ if(el.type==='checkbox'||el.type==='radio') el.checked=false; else el.value=''; });
-  renderMy(); showToast('Save විය! ✓',true);
+  if(!lid) return showToast('ප්‍රශ්න ඇති අංශය තෝරන්න',false);
+  try {
+    const ctx = await getProfile(); 
+    const payload = {
+      node_id: lid, main_type: curMain,
+      level1: curL1 ? (nodes.find(x=>x.id===curL1)||{}).title : '',
+      level2: curL2 ? (nodes.find(x=>x.id===curL2)||{}).title : '',
+      level3: curL3 ? (nodes.find(x=>x.id===curL3)||{}).title : '',
+      node_path: nodePath(),
+      sub_office_id: ctx.profile.sub_office_id, 
+      sub_office_name: ctx.profile.sub_office_name,
+      division: ctx.profile.division, 
+      office: ctx.profile.office, 
+      submitted_by: ctx.user.id, 
+      submitted_by_email: myUser,
+      submitted_by_name: myName,
+      answers: ans,
+      selected_items: curItems.slice(),
+      selected_sub: curSub || null
+    };
+    const saved = must(await sb.from('responses').insert(payload).select('*').single(),'response insert');
+    responses.unshift(mapResponse(saved)); 
+    saveLocal(R_KEY, responses);
+    document.getElementById('okBox').classList.remove('hidden');
+    f.querySelectorAll('[data-qid]').forEach(el=>{
+      if(el.type==='checkbox'||el.type==='radio') el.checked=false; else el.value='';
+    });
+    renderMy(); 
+    showToast('දත්ත Supabase වල Save විය ✓',true);
+  } catch(err) {
+    showToast('Save වුනේ නැත: '+err.message,false);
+    console.error('Response insert failed:',err);
+  }
   return false;
 }
 function clearUForm(){ renderUForm(); }

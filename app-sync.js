@@ -35,12 +35,10 @@
   });
 
   if (isAdmin) {
-    // Sub Admins retain scoped response management, while only Main Admin builds/publishes forms.
     if (localStorage.getItem('role') === 'sub_admin') {
       document.querySelectorAll('[data-nav="builder"]').forEach(el=>el.classList.add('hidden'));
       document.querySelectorAll('button[onclick*="goNav(\'builder\')"]').forEach(el=>el.classList.add('hidden'));
       
-      // Hide the user form for sub_admin
       setTimeout(() => {
           const uFormCard = document.getElementById('userFormCard');
           if(uFormCard) uFormCard.classList.add('hidden');
@@ -265,9 +263,9 @@
           level1:curL1?(nodes.find(x=>x.id===curL1)||{}).title:'',
           level2:curL2?(nodes.find(x=>x.id===curL2)||{}).title:'',
           level3:curL3?(nodes.find(x=>x.id===curL3)||{}).title:'',
-          node_path:nodePath(),sub_office_id:ctx.profile.sub_office_id||mySubId,
-          sub_office_name:ctx.profile.sub_office_name||mySubName,
-          division:ctx.profile.division||myDiv,office:ctx.profile.office||myOffice,
+          node_path:nodePath(),sub_office_id:ctx.profile.sub_office_id,
+          sub_office_name:ctx.profile.sub_office_name,
+          division:ctx.profile.division,office:ctx.profile.office,
           submitted_by:ctx.user.id,
           submitted_by_email:myUser,submitted_by_name:myName,
           answers:ans,selected_items:curItems.slice(),selected_sub:curSub||null};
