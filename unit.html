@@ -133,7 +133,7 @@ function defUsers(){ return [];}
 var mySubId=localStorage.getItem('user_subOfficeId')||''; var mySubName=localStorage.getItem('user_subOfficeName')||mySubId; var myDiv=localStorage.getItem('user_division')||''; var myOffice=localStorage.getItem('user_office')||''; var myUser=localStorage.getItem('user')||''; var myName=localStorage.getItem('user_name')||myUser;
 document.getElementById('lockSub').textContent=mySubName; document.getElementById('lockDiv').textContent=myDiv; document.getElementById('lockOffice').textContent=myOffice||'ALL'; document.getElementById('lockUser').textContent=myName;
 
-var hierarchy=loadHier(); // <--- இந்த வரி சேர்க்கப்பட்டுள்ளது
+var hierarchy=loadHier(); 
 var nodes=loadLocal(N_KEY, defNodes); var questions=loadLocal(Q_KEY, defQs); var responses=loadLocal(R_KEY, function(){return [];});
 var curMain='extension', curL1=null, curL2=null, curL3=null, curSub=null, curItem=null, curItems=[], editingId=null, selHierSub='sub1', selHierDiv=null;
 function setLang(l){ showToast(l==='si'?'Sinhala':'Tamil',true); }
@@ -294,6 +294,6 @@ async function sbLoad(){
     var r=await sb.from('responses').select('*').order('created_at',{ascending:false}).limit(500); if(r.data){ responses=r.data.map(function(x){ return {id:x.id, node_id:x.node_id, main_type:x.main_type, level1:x.level1, level2:x.level2, level3:x.level3, node_path:x.node_path, subOfficeId:x.sub_office_id, subOfficeName:x.sub_office_name, division:x.division, office:x.office, submittedBy:x.submitted_by_email, submittedName:x.submitted_by_name, answers:x.answers||{}, created_at:x.created_at}; }); saveLocal(R_KEY, responses); }
   }catch(e){} renderUSelects(); renderMy();
 }
-uSelectMain('extension'); sbLoad(); setInterval(function(){ sbLoad(); }, 10000);
+uSelectMain('extension'); sbLoad();
 </script><script src="app-sync.js"></script><script src="display-filters.js"></script>
 </body></html>

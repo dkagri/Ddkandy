@@ -230,7 +230,7 @@
         if(hr.error) throw hr.error;
         if(hr.data && Array.isArray(hr.data.hierarchy)) {
           localStorage.setItem(H_KEY,JSON.stringify(hr.data.hierarchy));
-          window.hierarchy=hr.data.hierarchy; // <--- இங்கே window.hierarchy என மாற்றப்பட்டுள்ளது
+          window.hierarchy=hr.data.hierarchy; 
         }
         const nr=await sb.from('nodes').select('*').order('sort_order');
         const n=must(nr,'published nodes read')||[];
@@ -243,6 +243,8 @@
         const rr=await sb.from('responses').select('*').order('created_at',{ascending:false}).limit(1000);
         responses=(must(rr,'own responses read')||[]).map(mapResponse);
         saveLocal(N_KEY,nodes); saveLocal(Q_KEY,questions); saveLocal(R_KEY,responses);
+        
+        // Only re-render if there are no user inputs active to avoid clearing the form
         if (typeof renderUSelects==='function') renderUSelects();
         if (typeof renderMy==='function') renderMy();
       } catch(e) {
