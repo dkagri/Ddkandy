@@ -115,8 +115,8 @@
         const hr = await sb.from('office_hierarchy').select('hierarchy').eq('id','default').maybeSingle();
         if (hr.error) throw hr.error;
         if (hr.data && Array.isArray(hr.data.hierarchy)) {
-          hierarchy = hr.data.hierarchy;
-          localStorage.setItem(H_KEY, JSON.stringify(hierarchy));
+          window.hierarchy = hr.data.hierarchy;
+          localStorage.setItem(H_KEY, JSON.stringify(window.hierarchy));
           if (typeof renderHierarchy==='function') renderHierarchy();
           if (typeof fillUserSelects==='function') fillUserSelects();
           if (typeof fillDataFilters==='function') fillDataFilters();
@@ -230,7 +230,7 @@
         if(hr.error) throw hr.error;
         if(hr.data && Array.isArray(hr.data.hierarchy)) {
           localStorage.setItem(H_KEY,JSON.stringify(hr.data.hierarchy));
-          hierarchy=hr.data.hierarchy;
+          window.hierarchy=hr.data.hierarchy; // <--- இங்கே window.hierarchy என மாற்றப்பட்டுள்ளது
         }
         const nr=await sb.from('nodes').select('*').order('sort_order');
         const n=must(nr,'published nodes read')||[];

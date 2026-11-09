@@ -132,6 +132,8 @@ function defUsers(){ return [];}
 
 var mySubId=localStorage.getItem('user_subOfficeId')||''; var mySubName=localStorage.getItem('user_subOfficeName')||mySubId; var myDiv=localStorage.getItem('user_division')||''; var myOffice=localStorage.getItem('user_office')||''; var myUser=localStorage.getItem('user')||''; var myName=localStorage.getItem('user_name')||myUser;
 document.getElementById('lockSub').textContent=mySubName; document.getElementById('lockDiv').textContent=myDiv; document.getElementById('lockOffice').textContent=myOffice||'ALL'; document.getElementById('lockUser').textContent=myName;
+
+var hierarchy=loadHier(); // <--- இந்த வரி சேர்க்கப்பட்டுள்ளது
 var nodes=loadLocal(N_KEY, defNodes); var questions=loadLocal(Q_KEY, defQs); var responses=loadLocal(R_KEY, function(){return [];});
 var curMain='extension', curL1=null, curL2=null, curL3=null, curSub=null, curItem=null, curItems=[], editingId=null, selHierSub='sub1', selHierDiv=null;
 function setLang(l){ showToast(l==='si'?'Sinhala':'Tamil',true); }
