@@ -6,19 +6,17 @@
   const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
   }[c]));
-  
   const csvCell = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
   
   const downloadCSV = (rows, filename) => {
     if (!rows.length) { if (window.showToast) showToast('දත්ත නැත', false); return; }
-    const csv = '\uFEFF' + rows.map(row => row.map(csvCell).join(',')).join('\r\n'); // \uFEFF adds UTF-8 BOM for Excel
+    const csv = '\uFEFF' + rows.map(row => row.map(csvCell).join(',')).join('\r\n');
     const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href=url; a.download=filename; a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
-  // CSV-ஐ தயாரிக்கும் புதிய Function (வினாக்களை Column-களாக மாற்றுகிறது)
   const generateFlattenedCSV = (dataList) => {
       const allQ = [];
       dataList.forEach(r => {
@@ -160,7 +158,7 @@
           const ps = must(pr,'profiles read') || [];
           users = ps.map(x=>({id:x.id,name:x.name||'',username:x.username||'',password:'',
             role:x.role||'unit',subOfficeId:x.sub_office_id||'ALL',division:x.division||'ALL',
-            office:x.office||'',status:x.status||'active'}));
+            office:x.office||'',officer_name:x.officer_name||'',status:x.status||'active'}));
           saveLocal(U_KEY,users);
           if (typeof renderUsers==='function') renderUsers();
         }
@@ -227,9 +225,9 @@
       } catch(e) { showToast('Delete අසාර්ථකයි: '+e.message,false); }
     };
     
-    // ADMIN DOWNLOAD (Excel Friendly)
+    // Export filtered data if available
     window.downloadCSV = function() {
-      const list = (responses || []);
+      let list = window.currentFilteredAdminData || (window.responses || []);
       if(!list.length) { if(window.showToast) showToast('දත්ත නැත', false); return; }
       const rows = generateFlattenedCSV(list);
       downloadCSV(rows, 'kandy_all_responses.xls');
@@ -244,12 +242,13 @@
         name:document.getElementById('uName').value.trim(),role:document.getElementById('uRole').value,
         sub_office_id:document.getElementById('uSub').value,division:document.getElementById('uDiv').value,
         office:document.getElementById('uOffice').value,status:document.getElementById('uStatus').value,
+        officer_name:document.getElementById('uOfficer').value.trim(),
         updated_at:new Date().toISOString()};
       try {
         must(await sb.from('profiles').update(payload).eq('id',id),'profile update');
         const ix=users.findIndex(x=>String(x.id)===String(id));
         if(ix>=0) users[ix]={...users[ix],name:payload.name,username:payload.username,role:payload.role,
-          subOfficeId:payload.sub_office_id,division:payload.division,office:payload.office,status:payload.status};
+          subOfficeId:payload.sub_office_id,division:payload.division,office:payload.office,officer_name:payload.officer_name,status:payload.status};
         saveLocal(U_KEY,users); renderUsers(); resetUser(); showToast('User Profile Save විය ✓',true);
       } catch(err) { showToast('Profile Save වුනේ නැත: '+err.message,false); }
     }, true);
@@ -335,11 +334,11 @@
       } catch(e) { showToast('Delete අසාර්ථකයි: '+e.message,false); }
     };
     
-    // UNIT DOWNLOAD (Excel Friendly)
+    // Export filtered data if available
     window.downloadMyCSV = function() {
-      const mine=(responses||[]).filter(r=>r.division===myDiv && r.office===myOffice);
-      if(!mine.length) { if(window.showToast) showToast('දත්ත නැත', false); return; }
-      const rows = generateFlattenedCSV(mine);
+      let list = window.currentFilteredUnitData || (responses||[]).filter(r=>r.division===myDiv && r.office===myOffice);
+      if(!list.length) { if(window.showToast) showToast('දත්ත නැත', false); return; }
+      const rows = generateFlattenedCSV(list);
       downloadCSV(rows, 'my_unit_data.xls');
     };
     
