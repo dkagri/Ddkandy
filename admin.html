@@ -1,8 +1,12 @@
+<!-- ========================================== -->
+<!-- FILE: admin.html                           -->
+<!-- ========================================== -->
 <!DOCTYPE html>
 <html lang="si"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Admin Dashboard | FieldWork OS</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link rel="stylesheet" href="styles.css">
 <style>
 .wizard-step{display:none}.wizard-step.active{display:block}
@@ -68,11 +72,33 @@
 <div class="card !p-4"><div class="text-xs text-slate-500">මුළු පිළිතුරු</div><div class="text-2xl font-bold mt-1" id="kR">0</div></div>
 </div>
 
-<div class="card !p-4 flex flex-wrap items-center gap-3"><div class="flex-1 min-w-[200px]"><h3 class="font-bold">🧩 ප්‍රශ්න සකස් කිරීම — Form Builder</h3><p class="text-xs text-slate-500 mt-1">Extension / Development ප්‍රශ්න සෑදීමට, Edit කිරීමට, Publish කිරීමට</p></div><button onclick="goNav('builder')" class="btn btn-primary px-5 py-3">→ ප්‍රශ්න සකසන්න →</button></div>
+<div class="card !p-4 flex flex-wrap items-center gap-3 mt-5"><div class="flex-1 min-w-[200px]"><h3 class="font-bold">🧩 ප්‍රශ්න සකස් කිරීම — Form Builder</h3><p class="text-xs text-slate-500 mt-1">Extension / Development ප්‍රශ්න සෑදීමට, Edit කිරීමට, Publish කිරීමට</p></div><button onclick="goNav('builder')" class="btn btn-primary px-5 py-3">→ ප්‍රශ්න සකසන්න →</button></div>
 
-<div class="card"><h3 class="font-bold">දැන් Unit එකේ පෙන්වන්නේ — <span class="text-emerald-600">Published Only</span></h3><div id="publishedBox" class="grid md:grid-cols-2 gap-3 mt-4"></div></div>
+<div class="card mt-5"><h3 class="font-bold">දැන් Unit එකේ පෙන්වන්නේ — <span class="text-emerald-600">Published Only</span></h3><div id="publishedBox" class="grid md:grid-cols-2 gap-3 mt-4"></div></div>
+<!-- CHARTS / SUMMARY REPORT -->
+<div class="card mt-5">
+    <h3 class="font-bold text-[18px]">📊 Summary Report - Data Distribution</h3>
+    <p class="text-xs text-slate-500 mt-1">மொத்த பதில்களின் அடிப்படையில் புள்ளிவிவரங்கள் (சதவீத வரைபடம்)</p>
+    <div class="grid md:grid-cols-2 gap-5 mt-4">
+        <div class="border p-4 rounded-2xl bg-white shadow-sm relative">
+            <h4 class="font-semibold text-center text-sm mb-3">AD Office Distribution (Overall)</h4>
+            <div class="relative h-64 w-full flex justify-center"><canvas id="chartAdOffice"></canvas></div>
+            <button onclick="downloadChart('chartAdOffice', 'AD_Office_Distribution')" class="btn btn-ghost mt-3 w-full text-xs">⬇ Download Chart</button>
+        </div>
+        <div class="border p-4 rounded-2xl bg-white shadow-sm relative">
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-3 gap-2">
+                <h4 class="font-semibold text-sm">AI Office Distribution</h4>
+                <select id="chartAdSelect" class="!w-auto text-xs px-2 py-1" onchange="renderCharts()">
+                    <option value="">All AD Offices</option>
+                </select>
+            </div>
+            <div class="relative h-64 w-full flex justify-center"><canvas id="chartAiOffice"></canvas></div>
+            <button onclick="downloadChart('chartAiOffice', 'AI_Office_Distribution')" class="btn btn-ghost mt-3 w-full text-xs">⬇ Download Chart</button>
+        </div>
+    </div>
+</div>
 
-<div class="card"><h3 class="font-bold">නවතම පිළිතුරු (Latest 8)</h3><div id="recentBox" class="mt-3 space-y-2"></div><button onclick="goNav('data')" class="btn btn-ghost mt-3 text-xs">සියලු දත්ත බලන්න →</button></div>
+<div class="card mt-5"><h3 class="font-bold">නවතම පිළිතුරු (Latest 8)</h3><div id="recentBox" class="mt-3 space-y-2"></div><button onclick="goNav('data')" class="btn btn-ghost mt-3 text-xs">සියලු දත්ත බලන්න →</button></div>
 </div>
 
 <!-- ============ BUILDER ============ -->
@@ -273,20 +299,130 @@ document.addEventListener('keydown',function(ev){if(ev.key==='Escape')closeSideb
 function goNav(p){closeSidebar();document.querySelectorAll('.page').forEach(function(x){x.classList.add('hidden');});document.getElementById('page-'+p).classList.remove('hidden');document.querySelectorAll('.nav-btn').forEach(function(b){b.className='nav-btn w-full text-left px-4 py-3 rounded-xl text-slate-300 hover:bg-white/10';});var btn=document.querySelector('[data-nav="'+p+'"]');if(btn)btn.className='nav-btn w-full text-left px-4 py-3 rounded-xl bg-white text-slate-900 font-semibold';document.getElementById('pageTitle').textContent=p==='dashboard'?'Dashboard':p==='builder'?'ප්‍රශ්න සකස් කිරීම':p==='data'?'දත්ත':p==='users'?'පරිශීලකයින්':'45 උප ප්‍රදේශ + කාර්යාල';toggleSidebarOff();if(p==='dashboard')renderDashboard();if(p==='data')renderData();if(p==='users')renderUsers();if(p==='hierarchy')renderHierarchy();}
 function toggleSidebarOff(){if(window.innerWidth<1024)closeSidebar();}
 async function logout(){ try{ if(typeof sb!=='undefined' && sb) await sb.auth.signOut(); }catch(e){} ['role','user','user_name','user_subOfficeId','user_subOfficeName','user_division','user_office','user_officer_name','fw_session'].forEach(function(k){localStorage.removeItem(k);});location.href='index.html';}
+
 /* ---------- Dashboard ---------- */
+var chartAdInstance = null;
+var chartAiInstance = null;
+
+function renderCharts() {
+    var list = responses;
+    if(role==='sub_admin') {
+        // Keep all for dashboard reporting
+    }
+
+    // 1. AD Office Distribution
+    var adCounts = {};
+    list.forEach(function(r) {
+        var ad = r.subOfficeName || r.subOfficeId || 'Unknown';
+        adCounts[ad] = (adCounts[ad] || 0) + 1;
+    });
+    var adLabels = Object.keys(adCounts);
+    var adData = Object.values(adCounts);
+
+    var ctxAd = document.getElementById('chartAdOffice');
+    if(chartAdInstance) chartAdInstance.destroy();
+    if(ctxAd && typeof Chart !== 'undefined') {
+        chartAdInstance = new Chart(ctxAd, {
+            type: 'pie',
+            data: {
+                labels: adLabels,
+                datasets: [{ 
+                    data: adData, 
+                    backgroundColor: ['#4f46e5', '#059669', '#d97706', '#dc2626', '#0891b2', '#7c3aed'] 
+                }]
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    }
+
+    // 2. Populate AD select
+    var select = document.getElementById('chartAdSelect');
+    if(select) {
+        var currentVal = select.value;
+        var opts = '<option value="">All AD Offices</option>';
+        var adList = [];
+        if(window.hierarchy) {
+            window.hierarchy.forEach(function(h) { adList.push(h.name); });
+        } else {
+            adList = adLabels;
+        }
+        adList.forEach(function(ad) {
+            opts += '<option value="'+ad+'">'+ad+'</option>';
+        });
+        select.innerHTML = opts;
+        if(adList.includes(currentVal)) select.value = currentVal;
+    }
+
+    // 3. AI Office Distribution
+    var selectedAd = select ? select.value : '';
+    var aiCounts = {};
+    list.forEach(function(r) {
+        if(!selectedAd || r.subOfficeName === selectedAd || r.subOfficeId === selectedAd) {
+            var ai = r.division || 'Unknown';
+            aiCounts[ai] = (aiCounts[ai] || 0) + 1;
+        }
+    });
+    var aiLabels = Object.keys(aiCounts);
+    var aiData = Object.values(aiCounts);
+
+    var ctxAi = document.getElementById('chartAiOffice');
+    if(chartAiInstance) chartAiInstance.destroy();
+    if(ctxAi && typeof Chart !== 'undefined') {
+        chartAiInstance = new Chart(ctxAi, {
+            type: 'pie',
+            data: {
+                labels: aiLabels,
+                datasets: [{ 
+                    data: aiData, 
+                    backgroundColor: ['#4f46e5', '#059669', '#d97706', '#dc2626', '#0891b2', '#7c3aed', '#db2777', '#ea580c', '#16a34a', '#2563eb'] 
+                }]
+            },
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    }
+}
+
+function downloadChart(canvasId, filename) {
+    var canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    var url = canvas.toDataURL('image/png');
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename + '.png';
+    a.click();
+}
+
 function renderDashboard(){
   var ext=nodes.filter(function(n){return n.main_type==='extension';}).length; var dev=nodes.filter(function(n){return n.main_type==='development';}).length;
   document.getElementById('kExt').textContent=ext; document.getElementById('kDev').textContent=dev; document.getElementById('kQ').textContent=questions.length; document.getElementById('kR').textContent=responses.length;
-  var pub=nodes.filter(function(n){return n.is_published;});
+  
+  // Only show Level 1 nodes (Season / Year) that are published
+  var pub=nodes.filter(function(n){return n.is_published && n.level === 1;});
   var byMain={extension:[],development:[]}; pub.forEach(function(n){byMain[n.main_type].push(n);});
   var html='';
   [['extension','🌾 Extension — Unit එකේ දැන් පෙනෙන දේ'],['development','🏗️ Development — Unit එකේ දැන් පෙනෙන දේ']].forEach(function(pair){
-    var list=byMain[pair[0]]; var inner=list.map(function(n){return '<div class="text-[13px] py-1 border-b border-slate-100 flex justify-between"><span>'+'— '.repeat(n.level-1)+n.title+'</span><span class="badge badge-green">Published</span></div>';}).join('')||'<div class="text-xs text-slate-400">කිසිවක් Published නැත</div>';
+    var list=byMain[pair[0]]; var inner=list.map(function(n){return '<div class="text-[13px] py-1 border-b border-slate-100 flex justify-between"><span>'+n.title+'</span><span class="badge badge-green">Published</span></div>';}).join('')||'<div class="text-xs text-slate-400">කිසිවක් Published නැත</div>';
     html+='<div class="rounded-xl border p-4 bg-white"><div class="font-semibold text-sm">'+pair[1]+'</div><div class="mt-2">'+inner+'</div></div>';
   });
   document.getElementById('publishedBox').innerHTML=html;
   var recent=responses.slice(0,8); document.getElementById('recentBox').innerHTML=recent.map(function(r){return '<div class="flex justify-between gap-3 rounded-xl border p-3 text-[13px]"><div><b>'+(r.node_path||'')+'</b><div class="text-xs text-slate-500">'+(r.division||'')+' • '+(r.office||'')+'</div></div><div class="text-xs text-slate-400 shrink-0">'+new Date(r.created_at).toLocaleDateString()+'</div></div>';}).join('')||'<div class="text-xs text-slate-400">පිළිතුරු තවම නැත</div>';
+  
+  // Render Charts
+  renderCharts();
 }
+
 /* ---------- Wizard ---------- */
 function resetWizard(){curMain=null;curL1=null;curL2=null;curL3=null;curSub=null;curItem=null;gotoStep(1);updateCrumb();}
 function updateCrumb(){
@@ -389,7 +525,6 @@ async function copyNode(id){
     var nn = {id:nid, main_type:node.main_type, level:node.level, parent_id:newParentId, title:newTitle, subtitle:node.subtitle||'', is_published:node.is_published, sort_order:node.sort_order||0};
     nodes.push(nn); saveLocal(N_KEY,nodes); sbSaveNode(nn);
     
-    // Copy Questions for this node
     var qs = questions.filter(x=>x.node_id===node.id);
     for(var i=0;i<qs.length;i++){ 
       var q=qs[i]; 
@@ -399,7 +534,6 @@ async function copyNode(id){
     }
     saveLocal(Q_KEY,questions);
     
-    // Find and Copy Children recursively
     var children = nodes.filter(x => x.parent_id === node.id && x.id !== nid && x.main_type === node.main_type);
     for (var c of children) {
       await deepCopy(c, nid, c.title);
