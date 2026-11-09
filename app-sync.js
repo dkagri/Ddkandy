@@ -6,15 +6,45 @@
   const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
   }[c]));
+  
   const csvCell = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  
   const downloadCSV = (rows, filename) => {
     if (!rows.length) { if (window.showToast) showToast('දත්ත නැත', false); return; }
-    const csv = '\uFEFF' + rows.map(row => row.map(csvCell).join(',')).join('\r\n');
+    const csv = '\uFEFF' + rows.map(row => row.map(csvCell).join(',')).join('\r\n'); // \uFEFF adds UTF-8 BOM for Excel
     const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href=url; a.download=filename; a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
+
+  // CSV-ஐ தயாரிக்கும் புதிய Function (வினாக்களை Column-களாக மாற்றுகிறது)
+  const generateFlattenedCSV = (dataList) => {
+      const allQ = [];
+      dataList.forEach(r => {
+          (window.questions || []).filter(q => String(q.node_id) === String(r.node_id)).forEach(q => {
+              if(!allQ.some(x => x.id === q.id)) allQ.push(q);
+          });
+      });
+      
+      const headers = ['Date', 'Main Type', 'Path', 'Sub Office', 'Division', 'Office', 'User'];
+      allQ.forEach(q => headers.push(q.question_text));
+      
+      const rows = [headers];
+      dataList.forEach(r => {
+          const answers = r.answers || {};
+          const row = [
+              r.created_at, r.main_type, r.node_path, r.subOfficeName || r.subOfficeId, r.division, r.office, r.submittedName
+          ];
+          allQ.forEach(q => {
+              const val = answers[q.id];
+              row.push(Array.isArray(val) ? val.join(', ') : (val !== undefined && val !== null ? String(val) : ''));
+          });
+          rows.push(row);
+      });
+      return rows;
+  };
+
   const must = (result, label) => {
     if (result && result.error) throw result.error;
     return result ? result.data : null;
@@ -196,11 +226,15 @@
         renderData(); renderDashboard(); showToast('දත්ත ඉවත් විය ✓',true);
       } catch(e) { showToast('Delete අසාර්ථකයි: '+e.message,false); }
     };
+    
+    // ADMIN DOWNLOAD (Excel Friendly)
     window.downloadCSV = function() {
-      const rows=[['Date','Main','Path','Sub Office','Division','Office','User','Answers']];
-      (responses||[]).forEach(r=>rows.push([r.created_at,r.main_type,r.node_path,r.subOfficeName||r.subOfficeId,r.division,r.office,r.submittedName,JSON.stringify(r.answers||{})]));
-      downloadCSV(rows,'kandy_all_responses.csv');
+      const list = (responses || []);
+      if(!list.length) { if(window.showToast) showToast('දත්ත නැත', false); return; }
+      const rows = generateFlattenedCSV(list);
+      downloadCSV(rows, 'kandy_all_responses.xls');
     };
+
     const userForm = document.getElementById('userForm');
     if (userForm) userForm.addEventListener('submit', async function(e) {
       e.preventDefault(); e.stopImmediatePropagation();
@@ -244,7 +278,6 @@
         responses=(must(rr,'own responses read')||[]).map(mapResponse);
         saveLocal(N_KEY,nodes); saveLocal(Q_KEY,questions); saveLocal(R_KEY,responses);
         
-        // Only re-render if there are no user inputs active to avoid clearing the form
         if (typeof renderUSelects==='function') renderUSelects();
         if (typeof renderMy==='function') renderMy();
       } catch(e) {
@@ -301,12 +334,15 @@
         renderMy(); showToast('දත්ත ඉවත් විය ✓',true);
       } catch(e) { showToast('Delete අසාර්ථකයි: '+e.message,false); }
     };
+    
+    // UNIT DOWNLOAD (Excel Friendly)
     window.downloadMyCSV = function() {
       const mine=(responses||[]).filter(r=>r.division===myDiv && r.office===myOffice);
-      const rows=[['Date','Main','Path','Sub Office','Division','Office','User','Answers']];
-      mine.forEach(r=>rows.push([r.created_at,r.main_type,r.node_path,r.subOfficeName||r.subOfficeId,r.division,r.office,r.submittedName,JSON.stringify(r.answers||{})]));
-      downloadCSV(rows,'my_unit_data.csv');
+      if(!mine.length) { if(window.showToast) showToast('දත්ත නැත', false); return; }
+      const rows = generateFlattenedCSV(mine);
+      downloadCSV(rows, 'my_unit_data.xls');
     };
+    
     window.sbLoad();
   }
 })();
