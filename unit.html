@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="si"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Unit - Data Entry | FieldWork OS v12 FINAL • DD Kandy</title><script src="https://cdn.tailwindcss.com"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><link rel="stylesheet" href="styles.css">
+<title>Unit - Data Entry | FieldWork DD Kandy</title><script src="https://cdn.tailwindcss.com"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><link rel="stylesheet" href="styles.css">
 <style>
 .modal-back{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:100;display:none;align-items:flex-end;justify-content:center;padding:12px}
 .modal-back.show{display:flex}
@@ -13,17 +13,17 @@
 
 <div id="modalBack" class="modal-back" onclick="if(event.target===this) closeModal(false)"><div class="modal-card"><div id="modalIcon" class="text-3xl">ℹ️</div><h3 id="modalTitle" class="font-bold text-[18px] mt-2"></h3><p id="modalMsg" class="text-sm text-slate-500 mt-1"></p><div id="modalInputWrap" class="hidden mt-3"><input id="modalInput"></div><div class="flex gap-2 mt-5"><button onclick="closeModal(false)" class="btn btn-ghost flex-1">Cancel</button><button onclick="closeModal(true)" class="btn btn-primary flex-1">OK</button></div></div></div><div id="toast" class="toast"></div>
 <body class="bg-[#f8fafc] min-h-screen"><div class="max-w-[1080px] mx-auto p-4 md:p-6">
-<div class="flex justify-between items-center mb-4"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-indigo-600 grid place-items-center text-white font-bold">A</div><div><div class="font-bold">ක්ෂේත්‍ර ඒකකය - Data Entry <span class="text-[10px] px-2 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold whitespace-nowrap">v12 FINAL • DD Kandy</span></div><div class="text-xs text-slate-500">Login 1 වරක් - සියල්ල Auto Fill</div></div></div><div class="flex gap-2"><button onclick="setLang('si')" class="btn btn-ghost px-2 text-xs">සිංහල</button><button onclick="setLang('ta')" class="btn btn-ghost px-2 text-xs">தமிழ்</button><button onclick="logout()" class="btn btn-ghost">Logout</button></div></div>
+<div class="flex justify-between items-center mb-4"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-indigo-600 grid place-items-center text-white font-bold">A</div><div><div class="font-bold">ක්ෂේත්‍ර ඒකකය - Data Entry <span class="text-[10px] px-2 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold whitespace-nowrap">DD Kandy</span></div><div class="text-xs text-slate-500">Login - Auto Fill</div></div></div><div class="flex gap-2"><button onclick="setLang('si')" class="btn btn-ghost px-2 text-xs">සිංහල</button><button onclick="logout()" class="btn btn-ghost">Logout</button></div></div>
 
-<div class="rounded-2xl bg-[#0f172a] text-white p-5"><div class="text-[11px] text-slate-400">LOCKED - Login එකෙන් Auto Set - වෙනස් කළ නොහැක - Response එකේ Auto Save වේ</div><div class="grid md:grid-cols-4 gap-4 mt-3">
-<div class="rounded-xl bg-white/10 p-3"><div class="text-[11px] text-slate-400">AD Office (ප්‍රධාන කාර්යාලය)</div><div class="font-bold text-sm mt-1" id="lockSub">-</div></div>
-<div class="rounded-xl bg-white/10 p-3"><div class="text-[11px] text-slate-400">AI Office (උප කාර්යාලය)</div><div class="font-bold text-sm mt-1" id="lockDiv">-</div></div>
-<div class="rounded-xl bg-white/10 p-3"><div class="text-[11px] text-slate-400">Karyalaya (Office)</div><div class="font-bold text-sm mt-1" id="lockOffice">-</div></div>
+<div class="rounded-2xl bg-[#0f172a] text-white p-5"><div class="text-[11px] text-slate-400">LOCKED - Login - Auto Set </div><div class="grid md:grid-cols-4 gap-4 mt-3">
+<div class="rounded-xl bg-white/10 p-3"><div class="text-[11px] text-slate-400">AD Office </div><div class="font-bold text-sm mt-1" id="lockSub">-</div></div>
+<div class="rounded-xl bg-white/10 p-3"><div class="text-[11px] text-slate-400">AI Office </div><div class="font-bold text-sm mt-1" id="lockDiv">-</div></div>
+<div class="rounded-xl bg-white/10 p-3"><div class="text-[11px] text-slate-400">Office</div><div class="font-bold text-sm mt-1" id="lockOffice">-</div></div>
 <div class="rounded-xl bg-white/10 p-3"><div class="text-[11px] text-slate-400">Officer</div><div class="font-bold text-sm mt-1" id="lockUser">-</div></div>
 </div></div>
 
 <div class="grid md:grid-cols-2 gap-4 mt-5">
-<button onclick="showSection('form')" id="btnForm" class="text-left rounded-2xl border-2 border-indigo-600 bg-indigo-600 text-white p-5"><div class="font-bold text-lg">📝 1. Data Entry - දත්ත ඇතුළත් කරන්න</div><div class="text-sm opacity-90 mt-1">Extension / Development - Admin Published ඒවා පමණයි</div></button>
+<button onclick="showSection('form')" id="btnForm" class="text-left rounded-2xl border-2 border-indigo-600 bg-indigo-600 text-white p-5"><div class="font-bold text-lg">📝 1. Data Entry - දත්ත ඇතුළත් කරන්න</div><div class="text-sm opacity-90 mt-1">Extension / Development</div></button>
 <button onclick="showSection('mydata')" id="btnMy" class="text-left rounded-2xl border p-5 bg-white"><div class="font-bold text-lg">📊 2. My Data - මගේ දත්ත</div><div class="text-sm text-slate-500 mt-1">බලන්න / Edit / Filter / Download</div></button>
 </div>
 
@@ -31,10 +31,10 @@
 <h2 class="font-bold text-[20px]">Data Entry - පියවරෙන් පියවර තෝරන්න</h2>
 <div class="mt-4 space-y-4">
 <div><label class="text-xs font-semibold">1. Extension / Development තෝරන්න *</label><div class="grid grid-cols-2 gap-3 mt-1"><button type="button" onclick="uSelectMain('extension')" id="uExt" class="py-3 rounded-xl font-semibold bg-indigo-600 text-white">🌾 Extension</button><button type="button" onclick="uSelectMain('development')" id="uDev" class="py-3 rounded-xl font-semibold bg-slate-100">🏗️ Development</button></div></div>
-<div id="uL1Wrap"><label class="text-xs font-semibold" id="uL1Label">2. Season / Year තෝරන්න *</label><select id="uL1" onchange="uPickL1()"></select><div class="text-[11px] text-slate-400 mt-1">Admin Publish කළ ඒවා පමණයි පෙන්වන්නේ.</div></div>
+<div id="uL1Wrap"><label class="text-xs font-semibold" id="uL1Label">2. Season / Year තෝරන්න *</label><select id="uL1" onchange="uPickL1()"></select></div>
 <div id="uL2Wrap"><label class="text-xs font-semibold" id="uL2Label">3. Cultivation / Program තෝරන්න *</label><select id="uL2" onchange="uPickL2()"></select></div>
 <div id="uL3Wrap" class="hidden"><label class="text-xs font-semibold">4. Sub Program තෝරන්න * (Development පමණි)</label><select id="uL3" onchange="uPickL3()"></select></div>
-<div id="uSubWrap" class="hidden"><label class="text-xs font-semibold">4. උප අංශය තෝරන්න * (Extension)</label><select id="uSub" onchange="uPickSub()"></select></div>
+<div id="uSubWrap" class="hidden"><label class="text-xs font-semibold">4. සීමාකාරී සාධකය අවම කිරීමට සඳහා ගනු ලබන ක්‍රියාමාර්ග</label><select id="uSub" onchange="uPickSub()"></select></div>
 <div id="uItemWrap" class="hidden"><label class="text-xs font-semibold">5. Item / Items Name — එකක් හෝ කිහිපයක් තෝරන්න * (Development)</label><div id="uItemList" class="mt-2 space-y-1"></div></div>
 </div>
 <div id="uFormWrap" class="mt-5"></div><div id="uEmpty" class="hidden rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm">මේ කොටසට Form / Questions නැහැ. Admin ගෙන් අහන්න.</div>
@@ -47,7 +47,7 @@
 <div id="myEditBox" class="hidden mt-4 border rounded-xl p-4"><h4 class="font-bold">Edit - සංස්කරණය</h4><div id="myEditFields" class="mt-3 space-y-3"></div><div class="flex gap-2 mt-3"><button onclick="saveMyEdit()" class="btn btn-primary px-4">Save Edit</button><button onclick="closeMyEdit()" class="btn btn-ghost px-4">Cancel</button></div></div>
 </div>
 
-<div class="rounded-2xl bg-indigo-600 text-white p-5 mt-5"><div class="font-bold">උපදෙස්</div><div class="text-sm opacity-90 mt-2">- Submit කළ පසු අලුත් Form එකක් පුරවන්න <b>Clear / අලුත් Form</b> Button එක ඔබන්න<br>- Development: Project → Item → Farmer Name / Address / Telephone / ID / Quantity / Unit / 50% / Price - පිළිවෙලට පුරවන්න<br>- එකම Privu එකේ කාර්යාල 2 ක් තිබේ නම්, එකින් එක Login වී වෙන වෙනම Submit කරන්න</div></div>
+<div class="rounded-2xl bg-indigo-600 text-white p-5 mt-5"><div class="font-bold">උපදෙස්</div><div class="text-sm opacity-90 mt-2">Need to know more details contuct the admin</div></div>
 </div>
 <script>
 
@@ -141,7 +141,7 @@ function uSelectMain(m){ curMain=m; curL1=null; curL2=null; curL3=null; curSub=n
 function publishedChildren(parentId, level){ return nodes.filter(function(n){ return n.main_type===curMain && n.level===level && (parentId? n.parent_id===parentId : !n.parent_id) && n.is_published; }).sort(function(a,b){return a.sort_order-b.sort_order;}); }
 function renderUSelects(){
   document.getElementById('uL1Label').textContent= curMain==='extension'?'2. Season තෝරන්න * - 2026/27 Maha, 2027 Yala...':'2. Year තෝරන්න * - 2026, 2027, 2028...';
-  document.getElementById('uL2Label').textContent= curMain==='extension'?'3. Cultivation තෝරන්න * - Paddy / Vegetable / OFC':'3. Program තෝරන්න * - PSDG / KNUCKLES / CBG / FAO';
+  document.getElementById('uL2Label').textContent= curMain==='extension'?'3. ක්‍රියාකාරකම - බෝගය / වැඩසටහන':'3. Program තෝරන්න * - PSDG / KNUCKLES / CBG / FAO';
   var l1=publishedChildren(null,1); var h1='<option value="">-- තෝරන්න --</option>'; for(var i=0;i<l1.length;i++){ h1+='<option value="'+l1[i].id+'">'+l1[i].title+'</option>'; } document.getElementById('uL1').innerHTML=h1; if(l1.length===1){ document.getElementById('uL1').value=l1[0].id; curL1=l1[0].id; } else if(curL1){ document.getElementById('uL1').value=curL1; }
   var l2= curL1? publishedChildren(curL1,2):[]; var h2='<option value="">-- තෝරන්න --</option>'; for(var j=0;j<l2.length;j++){ h2+='<option value="'+l2[j].id+'">'+l2[j].title+'</option>'; } document.getElementById('uL2').innerHTML=h2; if(l2.length===1){ document.getElementById('uL2').value=l2[0].id; curL2=l2[0].id; } else if(curL2){ document.getElementById('uL2').value=curL2; }
   if(curMain==='extension'){
@@ -221,7 +221,7 @@ function renderUForm(){
     if(!groups[g].qs.length){ html+='<div class="text-xs text-slate-400 px-1">මෙම Item එකට ප්‍රශ්න නැත</div>'; continue; }
     for(var i=0;i<groups[g].qs.length;i++){ var q=groups[g].qs[i]; qNum++; html+='<div class="rounded-xl border p-4 bg-white"><label class="text-[14px] font-semibold">'+qNum+'. '+q.question_text+' '+(q.is_required?'<span class="text-red-500">*</span>':'')+'</label><div class="mt-2">'+renderField(q)+'</div></div>'; }
   }
-  html+='<div id="okBox" class="hidden rounded-xl bg-green-50 border border-green-200 p-3 text-sm text-green-700">Save විය! අලුත් එකක් පුරවන්න Clear Button එක ඔබන්න.</div>';
+  html+='<div id="okBox" class="hidden rounded-xl bg-green-50 border border-green-200 p-3 text-sm text-green-700">your data is updated</div>';
   html+='<div class="flex gap-2"><button class="btn btn-primary flex-1 py-3.5">Submit - Save</button><button type="button" onclick="clearUForm()" class="btn btn-ghost px-4">Clear - අලුත් Form</button></div></form>';
   wrap.innerHTML=html;
 }

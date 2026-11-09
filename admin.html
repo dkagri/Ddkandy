@@ -42,22 +42,20 @@
 <!-- SIDEBAR -->
 <aside id="sidebar" class="sidebar p-5 flex flex-col">
 <div class="flex items-center gap-3"><div class="w-11 h-11 rounded-xl bg-white text-slate-900 grid place-items-center font-bold text-lg shrink-0">A</div><div class="min-w-0 flex-1"><div class="font-bold leading-tight">FieldWork OS</div><div class="text-[11px] text-slate-400">DD Kandy • Admin Dashboard</div></div><button onclick="closeSidebar()" aria-label="Close Menu" class="lg:hidden shrink-0 w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 text-white text-[20px] font-bold grid place-items-center leading-none">✕</button></div>
-<div class="lg:hidden mt-3"><button onclick="closeSidebar()" class="w-full rounded-xl bg-white text-slate-900 py-2.5 text-sm font-bold">✕ Close Menu</button></div>
 <nav class="mt-7 space-y-1 text-[14px]">
-<button data-nav="dashboard" onclick="goNav('dashboard')" class="nav-btn w-full text-left px-4 py-3 rounded-xl bg-white text-slate-900 font-semibold">🏠 උපකරණ පුවරුව (Dashboard)</button>
+<button data-nav="dashboard" onclick="goNav('dashboard')" class="nav-btn w-full text-left px-4 py-3 rounded-xl bg-white text-slate-900 font-semibold">🏠 Dashboard</button>
 <button data-nav="builder" onclick="goNav('builder')" class="nav-btn w-full text-left px-4 py-3 rounded-xl text-slate-300 hover:bg-white/10">🧩 ප්‍රශ්න සකස් කිරීම<br><span class="text-[11px] font-normal opacity-80">Form Builder</span></button>
 <button data-nav="data" onclick="goNav('data')" class="nav-btn w-full text-left px-4 py-3 rounded-xl text-slate-300 hover:bg-white/10">📊 දත්ත (Data)<br><span class="text-[11px] font-normal opacity-80">Edit / Delete / Filter</span></button>
 <button data-nav="users" onclick="goNav('users')" class="nav-btn w-full text-left px-4 py-3 rounded-xl text-slate-300 hover:bg-white/10">👥 පරිශීලකයින් (Users)</button>
-<button data-nav="hierarchy" onclick="goNav('hierarchy')" class="nav-btn w-full text-left px-4 py-3 rounded-xl text-slate-300 hover:bg-white/10">🏛️ 45 උප ප්‍රදේශ + කාර්යාල</button>
+<button data-nav="hierarchy" onclick="goNav('hierarchy')" class="nav-btn w-full text-left px-4 py-3 rounded-xl text-slate-300 hover:bg-white/10">🏛️ කාර්යාල</button>
 </nav>
 <div class="lg:hidden mt-2"><button onclick="closeSidebar()" class="w-full rounded-xl bg-white/10 py-2 text-xs font-semibold">← Back to Page</button></div>
 <div class="mt-auto rounded-2xl bg-white/10 p-4"><div class="text-sm font-semibold" id="roleLabel">Admin</div><div class="text-xs text-slate-300" id="userLabel"></div><div class="text-[11px] text-emerald-300 mt-1" id="scopeLabel"></div>
-<div class="flex gap-1 mt-3"><button onclick="setLang('ta')" class="flex-1 rounded-lg bg-white/20 py-1.5 text-xs">தமிழ்</button><button onclick="setLang('si')" class="flex-1 rounded-lg bg-white/10 py-1.5 text-xs">සිංහල</button></div>
 <button onclick="logout()" class="mt-3 w-full rounded-xl bg-red-500 py-2 text-sm font-semibold">ඉවත් වන්න (Logout)</button></div>
 </aside>
 
 <div class="main">
-<div class="topbar"><div class="flex items-center gap-3"><button onclick="openSidebar()" class="lg:hidden btn btn-ghost px-3">☰ Menu</button><h1 class="font-bold text-[17px] md:text-[19px]" id="pageTitle">Dashboard</h1><span class="text-[10px] px-2 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold whitespace-nowrap">v12 FINAL • DD Kandy</span></div><div class="flex items-center gap-2"><span id="sbStatus" class="text-[11px] px-2 py-1 rounded bg-slate-100">Supabase...</span><button onclick="goNav('builder')" class="btn btn-primary px-4 py-2 text-xs">+ නව ප්‍රශ්නයක් සාදන්න</button></div></div>
+<div class="topbar"><div class="flex items-center gap-3"><button onclick="openSidebar()" class="lg:hidden btn btn-ghost px-3">☰ Menu</button><h1 class="font-bold text-[17px] md:text-[19px]" id="pageTitle">Dashboard</h1><span class="text-[10px] px-2 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold whitespace-nowrap">DD Kandy</span></div><div class="flex items-center gap-2"><span id="sbStatus" class="text-[11px] px-2 py-1 rounded bg-slate-100">Supabase...</span><button onclick="goNav('builder')" class="btn btn-primary px-4 py-2 text-xs">+ නව ප්‍රශ්නයක් සාදන්න</button></div></div>
 
 <div class="p-4 md:p-6 max-w-[1100px] mx-auto space-y-5">
 
@@ -70,9 +68,9 @@
 <div class="card !p-4"><div class="text-xs text-slate-500">මුළු පිළිතුරු</div><div class="text-2xl font-bold mt-1" id="kR">0</div></div>
 </div>
 
-<div class="card !p-4 flex flex-wrap items-center gap-3"><div class="flex-1 min-w-[200px]"><h3 class="font-bold">🧩 ප්‍රශ්න සකස් කිරීම — Form Builder</h3><p class="text-xs text-slate-500 mt-1">Extension / Development ප්‍රශ්න සෑදීමට, Edit කිරීමට, Publish කිරීමට මෙතැනට යන්න.</p></div><button onclick="goNav('builder')" class="btn btn-primary px-5 py-3">→ ප්‍රශ්න සකසන්න →</button></div>
+<div class="card !p-4 flex flex-wrap items-center gap-3"><div class="flex-1 min-w-[200px]"><h3 class="font-bold">🧩 ප්‍රශ්න සකස් කිරීම — Form Builder</h3><p class="text-xs text-slate-500 mt-1">Extension / Development ප්‍රශ්න සෑදීමට, Edit කිරීමට, Publish කිරීමට</p></div><button onclick="goNav('builder')" class="btn btn-primary px-5 py-3">→ ප්‍රශ්න සකසන්න →</button></div>
 
-<div class="card"><h3 class="font-bold">දැන් Unit එකේ පෙන්වන්නේ — <span class="text-emerald-600">Published Only</span></h3><p class="text-xs text-slate-500 mt-1">මෙය වෙනස් කිරීමට: ප්‍රශ්න සකස් කිරීම → අදාළ අංශය තෝරා Publish ON / OFF කරන්න.</p><div id="publishedBox" class="grid md:grid-cols-2 gap-3 mt-4"></div></div>
+<div class="card"><h3 class="font-bold">දැන් Unit එකේ පෙන්වන්නේ — <span class="text-emerald-600">Published Only</span></h3><div id="publishedBox" class="grid md:grid-cols-2 gap-3 mt-4"></div></div>
 
 <div class="card"><h3 class="font-bold">නවතම පිළිතුරු (Latest 8)</h3><div id="recentBox" class="mt-3 space-y-2"></div><button onclick="goNav('data')" class="btn btn-ghost mt-3 text-xs">සියලු දත්ත බලන්න →</button></div>
 </div>
@@ -513,7 +511,7 @@ async function sbSync(){
     var n=await sb.from('nodes').select('*').order('sort_order'); if(n.data&&n.data.length){nodes=n.data.map(function(x){return{id:x.id,main_type:x.main_type,level:x.level,parent_id:x.parent_id,title:x.title,subtitle:x.subtitle||'',is_published:x.is_published,sort_order:x.sort_order||0};});saveLocal(N_KEY,nodes);}
     var q=await sb.from('questions').select('*').order('order_index'); if(q.data&&q.data.length){questions=q.data.map(function(x){return{id:x.id,node_id:x.node_id,question_text:x.question_text,question_type:x.question_type,options:x.options||[],is_required:x.is_required,order_index:x.order_index};});saveLocal(Q_KEY,questions);}
     var r=await sb.from('responses').select('*').order('created_at',{ascending:false}).limit(500); if(r.data){responses=r.data.map(function(x){return{id:x.id,node_id:x.node_id,main_type:x.main_type,level1:x.level1,level2:x.level2,level3:x.level3,node_path:x.node_path,subOfficeId:x.sub_office_id,subOfficeName:x.sub_office_name,division:x.division,office:x.office,submittedBy:x.submitted_by_email,submittedName:x.submitted_by_name,answers:x.answers||{},created_at:x.created_at};});saveLocal(R_KEY,responses);}
-    document.getElementById('sbStatus').textContent='Supabase: Connected ✓';
+    document.getElementById('sbStatus').textContent='Data: Connected ✓';
   }catch(e){document.getElementById('sbStatus').textContent='Local Fallback';}
   renderDashboard(); renderData();
 }
