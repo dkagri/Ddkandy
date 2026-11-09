@@ -19,11 +19,26 @@
    const filterRow=$('fSearch')?.parentElement;
    if(filterRow){filterRow.classList.add('filter-extra');addFilter(filterRow,'fOffice','காரியாலயம்');addFilter(filterRow,'fL1','Season / Year');addFilter(filterRow,'fL2','Crop / Program');addFilter(filterRow,'fL3','Sub Program / Project');addFilter(filterRow,'fL4','Item / இறுதி பிரிவு');}
    const baseFill=window.fillDataFilters;
-   window.fillDataFilters=function(){if(baseFill)baseFill();const rs=window.responses||[];const hh=window.hierarchy||[];const offices=[];hh.forEach(h=>(h.divisions||[]).forEach(d=>(d.offices||[]).forEach(o=>offices.push(o))));options($('fOffice'),uniq(offices),'எல்லா காரியாலயம்');options($('fL1'),uniq(rs.map(r=>r.level1)),'எல்லா Season / Year');options($('fL2'),uniq(rs.map(r=>r.level2)),'எல்லா Crop / Program');options($('fL3'),uniq(rs.map(r=>r.level3)),'எல்லா Sub Program / Project');options($('fL4'),uniq(rs.map(r=>(r.node_path||'').split(' / ').slice(-1)[0])),'எல்லா Item');};
+   window.fillDataFilters=function(){
+     if(baseFill)baseFill();
+     const rs=window.responses||[];const hh=window.hierarchy||[];
+     const offices=[];hh.forEach(h=>(h.divisions||[]).forEach(d=>(d.offices||[]).forEach(o=>offices.push(o))));
+     options($('fOffice'),uniq(offices),'எல்லா காரியாலயம்');
+     options($('fL1'),uniq(rs.map(r=>r.level1)),'எல்லா Season / Year');
+     options($('fL2'),uniq(rs.map(r=>r.level2)),'எல்லா Crop / Program');
+     options($('fL3'),uniq(rs.map(r=>r.level3)),'எல்லா Sub Program / Project');
+     options($('fL4'),uniq(rs.map(r=>(r.node_path||'').split(' / ').slice(-1)[0])),'எல்லா Item');
+   };
    window.renderData=function(){
-     const val=id=>$(id)?.value||'';let list=(window.responses||[]).slice();const role=localStorage.getItem('role'),mySub=localStorage.getItem('user_subOfficeId');
+     const val=id=>$(id)?.value||'';
+     let list=(window.responses||[]).slice();
+     const role=localStorage.getItem('role'),mySub=localStorage.getItem('user_subOfficeId');
      if(role==='sub_admin')list=list.filter(r=>String(r.subOfficeId)===String(mySub));
-     [['fMain','main_type'],['fSub','subOfficeId'],['fDiv','division'],['fOffice','office'],['fL1','level1'],['fL2','level2'],['fL3','level3']].forEach(([id,k])=>{if(val(id))list=list.filter(r=>String(r[k]||'')===val(id));});
+     
+     const fSub = val('fSub');
+     if(fSub) list=list.filter(r=>String(r.subOfficeId)===fSub);
+     
+     [['fMain','main_type'],['fDiv','division'],['fOffice','office'],['fL1','level1'],['fL2','level2'],['fL3','level3']].forEach(([id,k])=>{if(val(id))list=list.filter(r=>String(r[k]||'')===val(id));});
      if(val('fL4'))list=list.filter(r=>(r.node_path||'').split(' / ').slice(-1)[0]===val('fL4'));
      const search=val('fSearch').toLowerCase();if(search)list=list.filter(r=>(JSON.stringify(r.answers||'')+' '+r.node_path+' '+r.division+' '+r.office+' '+r.subOfficeName).toLowerCase().includes(search));
      if($('dataScopeNote'))$('dataScopeNote').textContent=(role==='main_admin'?'Main Admin':'Sub Admin')+' • மொத்தம் '+(window.responses||[]).length+' • Filter முடிவுகள் '+list.length;

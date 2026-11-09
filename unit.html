@@ -31,18 +31,18 @@
 <h2 class="font-bold text-[20px]">Data Entry - පියවරෙන් පියවර තෝරන්න</h2>
 <div class="mt-4 space-y-4">
 <div><label class="text-xs font-semibold">1. Extension / Development තෝරන්න *</label><div class="grid grid-cols-2 gap-3 mt-1"><button type="button" onclick="uSelectMain('extension')" id="uExt" class="py-3 rounded-xl font-semibold bg-indigo-600 text-white">🌾 Extension</button><button type="button" onclick="uSelectMain('development')" id="uDev" class="py-3 rounded-xl font-semibold bg-slate-100">🏗️ Development</button></div></div>
-<div id="uL1Wrap"><label class="text-xs font-semibold" id="uL1Label">2. Season / Year තෝරන්න *</label><select id="uL1" onchange="uPickL1()"></select><div class="text-[11px] text-slate-400 mt-1">Admin Publish කළ ඒවා පමණයි පෙන්වන්නේ. උදා: Extension - 2026/27 Maha පමණයි, Development - 2026 පමණයි.</div></div>
+<div id="uL1Wrap"><label class="text-xs font-semibold" id="uL1Label">2. Season / Year තෝරන්න *</label><select id="uL1" onchange="uPickL1()"></select><div class="text-[11px] text-slate-400 mt-1">Admin Publish කළ ඒවා පමණයි පෙන්වන්නේ.</div></div>
 <div id="uL2Wrap"><label class="text-xs font-semibold" id="uL2Label">3. Cultivation / Program තෝරන්න *</label><select id="uL2" onchange="uPickL2()"></select></div>
-<div id="uL3Wrap" class="hidden"><label class="text-xs font-semibold">4. Sub Program තෝරන්න * (Development පමණි)</label><select id="uL3" onchange="uPickL3()"></select><div class="text-[11px] text-slate-400 mt-1">මුලින්ම Sub Program එක තෝරන්න - ඊට පස්සේ Item / Farmer විස්තර එනවා.</div></div>
-<div id="uSubWrap" class="hidden"><label class="text-xs font-semibold">4. உப பிரிவு / Sub-section தேர்வு செய்யுங்கள் * (Extension)</label><select id="uSub" onchange="uPickSub()"></select><div class="text-[11px] text-slate-400 mt-1">Cultivation-இன் பின் உப பிரிவு வரும். இல்லை என்றால் “— இல்லை —” தேர்வு செய்யுங்கள்.</div></div>
-<div id="uItemWrap" class="hidden"><label class="text-xs font-semibold">5. Item / Items Name — ஒன்று அல்லது பல தேர்வு செய்யலாம் * (Development)</label><div id="uItemList" class="mt-2 space-y-1"></div><div class="text-[11px] text-slate-400 mt-1">Item இல்லை என்றால் “Item இல்லை” தேர்வு செய்யுங்கள்.</div></div>
+<div id="uL3Wrap" class="hidden"><label class="text-xs font-semibold">4. Sub Program තෝරන්න * (Development පමණි)</label><select id="uL3" onchange="uPickL3()"></select></div>
+<div id="uSubWrap" class="hidden"><label class="text-xs font-semibold">4. உப பிரிவு / Sub-section தேர்வு செய்யுங்கள் * (Extension)</label><select id="uSub" onchange="uPickSub()"></select></div>
+<div id="uItemWrap" class="hidden"><label class="text-xs font-semibold">5. Item / Items Name — ஒன்று அல்லது பல தேர்வு செய்யலாம் * (Development)</label><div id="uItemList" class="mt-2 space-y-1"></div></div>
 </div>
 <div id="uFormWrap" class="mt-5"></div><div id="uEmpty" class="hidden rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm">මේ කොටසට Form / Questions නැහැ. Admin ගෙන් අහන්න.</div>
 </div>
 
 <div id="panel-mydata" class="card mt-5 hidden">
 <div class="flex flex-wrap justify-between gap-2"><h2 class="font-bold text-[20px]">My Data - මම Update කළ දත්ත</h2><button onclick="downloadMyCSV()" class="btn btn-success text-xs px-3 py-1.5">CSV Download</button></div>
-<div class="grid md:grid-cols-3 gap-3 mt-4"><select id="myFilterMain" onchange="renderMy()"><option value="">All - Extension + Development</option><option value="extension">Extension</option><option value="development">Development</option></select><select id="myFilterL1" onchange="renderMy()"><option value="">All Season / Year</option></select><input id="mySearch" placeholder="Search - Farmer / Item / Division..." oninput="renderMy()"></div>
+<div class="grid md:grid-cols-3 gap-3 mt-4"><select id="myFilterMain" onchange="renderMy()"><option value="">All - Extension + Development</option><option value="extension">Extension</option><option value="development">Development</option></select><select id="myFilterL1" onchange="renderMy()"><option value="">All Season / Year</option></select><input id="mySearch" placeholder="Search..." oninput="renderMy()"></div>
 <div class="table-wrap mt-4"><table><thead><tr><th>Path</th><th>Answers</th><th>Date</th><th>Action</th></tr></thead><tbody id="myTbody"></tbody></table></div>
 <div id="myEditBox" class="hidden mt-4 border rounded-xl p-4"><h4 class="font-bold">Edit - සංස්කරණය</h4><div id="myEditFields" class="mt-3 space-y-3"></div><div class="flex gap-2 mt-3"><button onclick="saveMyEdit()" class="btn btn-primary px-4">Save Edit</button><button onclick="closeMyEdit()" class="btn btn-ghost px-4">Cancel</button></div></div>
 </div>
@@ -57,14 +57,11 @@ function openModal(o){return new Promise(function(res){__mRes=res;document.getEl
 function closeModal(ok){document.getElementById('modalBack').classList.remove('show');if(__mRes){var r=__mRes;__mRes=null;r({ok:ok,value:document.getElementById('modalInput').value});}}
 function profConfirm(m,t){return openModal({title:t||'நிச்சயமா?',msg:m,icon:'⚠️',okText:'OK'}).then(function(r){return r.ok;});}
 
-// Login Guard (URL Hash Handoff உடன் - Admin Guard போல)
 (function(){ try{ var h=(location.hash||''); if(h.indexOf('#fw=')===0){ try{ var decoded=decodeURIComponent(escape(atob(h.slice(4)))); var hj=JSON.parse(decoded); if(hj&&hj.user&&hj.role){ localStorage.setItem('fw_session',decoded); localStorage.setItem('role',hj.role); localStorage.setItem('user',hj.user); } }catch(e2){} try{ history.replaceState(null,'',location.pathname); }catch(e3){} } }catch(e){} var s=localStorage.getItem('fw_session');var r=localStorage.getItem('role');var u=localStorage.getItem('user');if(!s||!r||!u){ setTimeout(function(){ window.location.href='index.html'; }, 1500); return;}try{var j=JSON.parse(s);if(j.exp&&Date.now()>j.exp){window.location.href='index.html';}}catch(e){}})();
 const SUPABASE_URL='https://ecpoyxjuednjixmaajux.supabase.co';
 const SUPABASE_KEY='sb_publishable_kbTMWrgN1_lRxClNYU-PQg_Qc9jpmSe';
 const sb = (typeof supabase!=='undefined') ? supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
-// SECURE: localStorage role-ஐ நம்பாதே — Supabase JWT + profiles-இல் உள்ள உண்மையான role-ஐ சரி பார்.
-// localStorage-இல் role=main_admin என்று Type செய்து Hack செய்வது இதனால் முடியாது.
 (async function verifySupabaseSession(){
   try{
     if(!sb) return;
@@ -74,10 +71,8 @@ const sb = (typeof supabase!=='undefined') ? supabase.createClient(SUPABASE_URL,
     var prof = await sb.from('profiles').select('role,status').eq('id', uid).single();
     if(!prof || !prof.data || prof.data.status!=='active'){ await sb.auth.signOut(); window.location.href='index.html'; return; }
     var realRole = prof.data.role;
-    
-    // localStorage-ஐ உண்மையான role-ஆல் Overwrite செய் — பழைய Hacked Value நிற்காது
     try{ localStorage.setItem('role', realRole); }catch(e){}
-  }catch(e){ /* Network தடங்கல் என்றால் localStorage Guard மட்டும் வேலை செய்யும் */ }
+  }catch(e){}
 })();
 const H_KEY='fw7_hier'; const N_KEY='fw7_nodes'; const Q_KEY='fw7_qs'; const U_KEY='fw7_users'; const R_KEY='fw7_resp';
 function defHier(){ return [{"id":"sub1","name":"ADA Kundasale","divisions":[{"name":"Dambagahapitiya","offices":["Dambagahapitiya - Pradhana Karyalaya"]},{"name":"Kalunthenna","offices":["Kalunthenna - Pradhana Karyalaya"]},{"name":"Nugethenna","offices":["Nugethenna - Pradhana Karyalaya"]},{"name":"Morayaya","offices":["Morayaya - Pradhana Karyalaya"]},{"name":"Ulpathagama","offices":["Ulpathagama - Pradhana Karyalaya"]},{"name":"Namadagala","offices":["Namadagala - Pradhana Karyalaya"]},{"name":"Theldeniya","offices":["Theldeniya - Pradhana Karyalaya"]},{"name":"Udispaththuwa","offices":["Udispaththuwa - Pradhana Karyalaya"]},{"name":"Wendaruwa","offices":["Wendaruwa - Pradhana Karyalaya"]},{"name":"Digana","offices":["Digana - Pradhana Karyalaya"]},{"name":"Gunnepana","offices":["Gunnepana - Pradhana Karyalaya"]},{"name":"Manikhinna","offices":["Manikhinna - Pradhana Karyalaya"]},{"name":"Wavinna","offices":["Wavinna - Pradhana Karyalaya"]},{"name":"Medamahanuwara","offices":["Medamahanuwara - Pradhana Karyalaya"]}]},{"id":"sub2","name":"ADA Kandy","divisions":[{"name":"Waththegama","offices":["Waththegama - Pradhana Karyalaya"]},{"name":"Huluganga","offices":["Huluganga - Pradhana Karyalaya"]},{"name":"Bowala","offices":["Bowala - Pradhana Karyalaya"]},{"name":"Ketawalaleula","offices":["Ketawalaleula - Pradhana Karyalaya"]},{"name":"Galaha","offices":["Galaha - Pradhana Karyalaya"]},{"name":"Marassana","offices":["Marassana - Pradhana Karyalaya"]},{"name":"Thalathuoya","offices":["Thalathuoya - Pradhana Karyalaya"]}]},{"id":"sub3","name":"ADA Udunuwara / Yatinuwara","divisions":[{"name":"Edaduwawe","offices":["Edaduwawe - Pradhana Karyalaya"]},{"name":"Giragama","offices":["Giragama - Pradhana Karyalaya"]},{"name":"Manikdiwella","offices":["Manikdiwella - Pradhana Karyalaya"]},{"name":"Alapalawala","offices":["Alapalawala - Pradhana Karyalaya"]},{"name":"Ambanwala","offices":["Ambanwala - Pradhana Karyalaya"]},{"name":"Imbuldeniya","offices":["Imbuldeniya - Pradhana Karyalaya"]},{"name":"Pethiyagoda","offices":["Pethiyagoda - Pradhana Karyalaya"]},{"name":"Thalawathura","offices":["Thalawathura - Pradhana Karyalaya"]},{"name":"Medapitiya","offices":["Medapitiya - Pradhana Karyalaya"]},{"name":"Mulgama","offices":["Mulgama - Pradhana Karyalaya"]},{"name":"Delpitiya","offices":["Delpitiya - Pradhana Karyalaya"]},{"name":"Gampola","offices":["Gampola - Pradhana Karyalaya"]},{"name":"Kuruduwaththa","offices":["Kuruduwaththa - Pradhana Karyalaya"]},{"name":"Rambukpitiya","offices":["Rambukpitiya - Pradhana Karyalaya"]}]},{"id":"sub4","name":"ADA Harispattuwa","divisions":[{"name":"Aludeniya","offices":["Aludeniya - Pradhana Karyalaya"]},{"name":"Galagedara","offices":["Galagedara - Pradhana Karyalaya"]},{"name":"Welivita","offices":["Welivita - Pradhana Karyalaya"]},{"name":"Ankumbura","offices":["Ankumbura - Pradhana Karyalaya"]},{"name":"Batugoda","offices":["Batugoda - Pradhana Karyalaya"]},{"name":"Wawala","offices":["Wawala - Pradhana Karyalaya"]},{"name":"Alawathugoda","offices":["Alawathugoda - Pradhana Karyalaya"]},{"name":"Medawala","offices":["Medawala - Pradhana Karyalaya"]},{"name":"Yatiwawala","offices":["Yatiwawala - Pradhana Karyalaya"]},{"name":"Hatharaliyadda","offices":["Hatharaliyadda - Pradhana Karyalaya"]}]}]; }
@@ -116,7 +111,6 @@ function defQs(){
     {id:'q6', node_id:'n_veg', question_text:'Extent (Acres)', question_type:'number', options:[], is_required:true, order_index:2},
     {id:'q7', node_id:'n_ofc', question_text:'OFC Crop / බෝගය', question_type:'dropdown', options:['Maize','Green Gram','Cowpea','Other'], is_required:true, order_index:1},
     {id:'q8', node_id:'n_ofc', question_text:'Extent (Acres)', question_type:'number', options:[], is_required:true, order_index:2},
-    // Development default fields - Farmer + Item
     {id:'qd1', node_id:'n_psdg_p1', question_text:'ගොවි මහතාගේ නම / Farmer Name', question_type:'short_text', options:[], is_required:true, order_index:1},
     {id:'qd2', node_id:'n_psdg_p1', question_text:'Address / ලිපිනය', question_type:'paragraph', options:[], is_required:true, order_index:2},
     {id:'qd3', node_id:'n_psdg_p1', question_text:'Telephone Number / දුරකථන', question_type:'short_text', options:[], is_required:true, order_index:3},
@@ -147,7 +141,6 @@ function publishedChildren(parentId, level){ return nodes.filter(function(n){ re
 function renderUSelects(){
   document.getElementById('uL1Label').textContent= curMain==='extension'?'2. Season தேர்வு செய்யுங்கள் * - 2026/27 Maha, 2027 Yala...':'2. Year தேர்வு செய்யுங்கள் * - 2026, 2027, 2028...';
   document.getElementById('uL2Label').textContent= curMain==='extension'?'3. Cultivation தேர்வு செய்யுங்கள் * - Paddy / Vegetable / OFC':'3. Program தேர்வு செய்யுங்கள் * - PSDG / KNUCKLES / CBG / FAO';
-  // FIX: Dropdown-ஐ மீண்டும் கட்டும் போது தேர்வு செய்த Value-ஐ திரும்ப வைக்க வேண்டும், இல்லையென்றால் 3வது/4வது படியில் நின்றுவிடும்
   var l1=publishedChildren(null,1); var h1='<option value="">-- තෝරන්න --</option>'; for(var i=0;i<l1.length;i++){ h1+='<option value="'+l1[i].id+'">'+l1[i].title+'</option>'; } document.getElementById('uL1').innerHTML=h1; if(l1.length===1){ document.getElementById('uL1').value=l1[0].id; curL1=l1[0].id; } else if(curL1){ document.getElementById('uL1').value=curL1; }
   var l2= curL1? publishedChildren(curL1,2):[]; var h2='<option value="">-- තෝරන්න --</option>'; for(var j=0;j<l2.length;j++){ h2+='<option value="'+l2[j].id+'">'+l2[j].title+'</option>'; } document.getElementById('uL2').innerHTML=h2; if(l2.length===1){ document.getElementById('uL2').value=l2[0].id; curL2=l2[0].id; } else if(curL2){ document.getElementById('uL2').value=curL2; }
   if(curMain==='extension'){
@@ -158,7 +151,7 @@ function renderUSelects(){
     else if(curSub){ document.getElementById('uSub').value=curSub; } else { document.getElementById('uSub').value=''; }
   }
   if(curMain==='development'){
-    var l3= curL2? publishedChildren(curL2,3):[]; var h3='<option value="">-- Sub Program தோරන්න --</option>'; for(var k=0;k<l3.length;k++){ h3+='<option value="'+l3[k].id+'">'+l3[k].title+'</option>'; } document.getElementById('uL3').innerHTML=h3; if(l3.length===1){ document.getElementById('uL3').value=l3[0].id; curL3=l3[0].id; } else if(curL3){ document.getElementById('uL3').value=curL3; }
+    var l3= curL2? publishedChildren(curL2,3):[]; var h3='<option value="">-- Sub Program තෝරන්න --</option>'; for(var k=0;k<l3.length;k++){ h3+='<option value="'+l3[k].id+'">'+l3[k].title+'</option>'; } document.getElementById('uL3').innerHTML=h3; if(l3.length===1){ document.getElementById('uL3').value=l3[0].id; curL3=l3[0].id; } else if(curL3){ document.getElementById('uL3').value=curL3; }
     renderUItems();
   }
   renderUForm();
@@ -177,11 +170,10 @@ function uPickL1(){ curL1=document.getElementById('uL1').value||null; curL2=null
 function uPickL2(){ curL2=document.getElementById('uL2').value||null; curL3=null; curSub=null; curItems=[]; renderUSelects(); }
 function uPickL3(){ curL3=document.getElementById('uL3').value||null; curItems=[]; renderUItems(); renderUForm(); }
 function leafIds(){
-  // Admin-இல் உருவாக்கிய வினாக்கள் எந்த Node-இல் உள்ளனவோ, அதே Node-களின் வினாக்கள் தான் Unit-இல் வரும்
   if(curMain==='development'){ if(curItems.length) return curItems.slice(); if(curL3) return [curL3]; return []; }
   if(curSub) return [curSub];
   var subs=nodes.filter(function(n){return n.main_type==='extension'&&n.level===3&&n.parent_id===curL2;});
-  if(subs.length) return []; // உப பிரிவு தேர்வு செய்ய வேண்டும்
+  if(subs.length) return [];
   if(curL2) return [curL2];
   return [];
 }
@@ -206,7 +198,7 @@ function renderUForm(){
   var wrap=document.getElementById('uFormWrap'); var empty=document.getElementById('uEmpty');
   var lids=leafIds();
   if(!lids.length){
-    if(curMain==='extension' && curL2){ wrap.innerHTML='<div class="rounded-xl bg-amber-50 border border-amber-200 p-3 text-sm text-amber-700">⚠️ இந்த Cultivation-இன் கீழ் உப பிரிவு உள்ளது — மேலே 4. உப பிரிவு-ஐ தேர்வு செய்யுங்கள். உப பிரிவு தேவை இல்லை என்றால் “— இல்லை —” என்பதை தேர்வு செய்யுங்கள்.</div>'; }
+    if(curMain==='extension' && curL2){ wrap.innerHTML='<div class="rounded-xl bg-amber-50 border border-amber-200 p-3 text-sm text-amber-700">⚠️ இந்த Cultivation-இன் கீழ் உப பிரிவு உள்ளது — மேலே 4. உப பிரிவு-ஐ தேர்வு செய்யுங்கள்.</div>'; }
     else { wrap.innerHTML=''; }
     empty.classList.add('hidden'); return;
   }
@@ -218,7 +210,7 @@ function renderUForm(){
     groups.push({lid:lid, title: node?node.title:'', qs:qs});
   }
   var totalQs=0; for(var tt=0;tt<groups.length;tt++) totalQs+=groups[tt].qs.length;
-  if(!totalQs){ wrap.innerHTML=''; empty.classList.remove('hidden'); empty.innerHTML='இந்த பிரிவுக்கு Admin இன்னும் வினா உருவாக்கவில்லை. Admin → வினா தயாரிப்பு → இதே பிரிவை தேர்வு செய்து வினா உருவாக்கவும்.'; return; }
+  if(!totalQs){ wrap.innerHTML=''; empty.classList.remove('hidden'); empty.innerHTML='இந்த பிரிவுக்கு Admin இன்னும் வினா உருவாக்கவில்லை.'; return; }
   empty.classList.add('hidden');
   var html='<div class="rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-[12px]">Auto Fill: <b>'+mySubName+' | '+myDiv+' | '+myOffice+' | '+nodePath()+' | '+myName+'</b><br><span class="text-emerald-700">Admin-இல் உருவாக்கிய வினாக்கள் ('+totalQs+') — '+(curMain==='extension'?'🌾 Extension':'🏗️ Development')+'</span></div>';
   html+='<form id="dynForm" class="mt-4 space-y-4" onsubmit="return submitUForm(event)">';
@@ -228,7 +220,7 @@ function renderUForm(){
     if(!groups[g].qs.length){ html+='<div class="text-xs text-slate-400 px-1">இந்த Item-க்கு வினா இல்லை</div>'; continue; }
     for(var i=0;i<groups[g].qs.length;i++){ var q=groups[g].qs[i]; qNum++; html+='<div class="rounded-xl border p-4 bg-white"><label class="text-[14px] font-semibold">'+qNum+'. '+q.question_text+' '+(q.is_required?'<span class="text-red-500">*</span>':'')+'</label><div class="mt-2">'+renderField(q)+'</div></div>'; }
   }
-  html+='<div id="okBox" class="hidden rounded-xl bg-green-50 border border-green-200 p-3 text-sm text-green-700">Save வுணா! අලුත් එකක් පුරවන්න Clear Button එක ඔබන්න.</div>';
+  html+='<div id="okBox" class="hidden rounded-xl bg-green-50 border border-green-200 p-3 text-sm text-green-700">Save වුණා! අලුත් එකක් පුරවන්න Clear Button එක ඔබන්න.</div>';
   html+='<div class="flex gap-2"><button class="btn btn-primary flex-1 py-3.5">Submit - Save</button><button type="button" onclick="clearUForm()" class="btn btn-ghost px-4">Clear - අලුත් Form</button></div></form>';
   wrap.innerHTML=html;
 }
@@ -251,7 +243,6 @@ function renderMy(){
   if(fMain) mine=mine.filter(function(r){return r.main_type===fMain;});
   if(fL1) mine=mine.filter(function(r){return r.level1===fL1;});
   if(s) mine=mine.filter(function(r){return (JSON.stringify(r.answers)+(r.node_path||'')).toLowerCase().indexOf(s)>-1;});
-  // Fill L1 filter
   var l1s=[]; responses.forEach(function(r){ if(r.level1 && l1s.indexOf(r.level1)===-1) l1s.push(r.level1); }); var sel=document.getElementById('myFilterL1'); var cur=sel.value; sel.innerHTML='<option value="">All Season / Year</option>'+l1s.map(function(x){return '<option>'+x+'</option>';}).join(''); sel.value=cur;
   var h=''; for(var i=0;i<mine.slice(0,100).length;i++){ var r=mine[i]; h+='<tr><td class="text-xs"><b>'+r.node_path+'</b></td><td class="text-xs">'+JSON.stringify(r.answers).substring(0,200)+'</td><td class="text-xs">'+new Date(r.created_at).toLocaleDateString()+'</td><td><button onclick="editMy(\''+r.id+'\')" class="btn btn-ghost px-2 py-1 text-xs">Edit</button><button onclick="delMy(\''+r.id+'\')" class="text-red-500 text-xs px-2">Delete</button></td></tr>'; }
   document.getElementById('myTbody').innerHTML=h||'<tr><td colspan=4 class="text-center py-6 text-slate-400">Data නැහැ</td></tr>';

@@ -12,91 +12,65 @@
 <h2 class="text-[28px] font-bold mt-6">DD Kandy - Login</h2><p class="text-sm text-slate-500">Admin wisin thandha Username / Password</p>
 <div id="loginStatus" class="text-[11px] text-slate-400 mt-2"></div><div id="err" class="hidden mt-4 rounded-xl bg-red-50 border border-red-200 p-3 text-sm text-red-700"></div>
 <form id="loginForm" class="mt-6 space-y-4"><div><label class="text-[13px] font-semibold">Username / Email *</label><input id="email" placeholder="எ.கா: ada.kundasale  /  dambagahapitiya" required class="mt-1.5" autocomplete="off" autocapitalize="none"></div>
-<div><label class="text-[13px] font-semibold">Password *</label><input type="password" id="password" required class="mt-1.5" autocomplete="new-password"></div>
+<div><label class="text-[13px] font-semibold">Password *</label>
+  <div class="relative mt-1.5">
+    <input type="password" id="password" required autocomplete="new-password" class="w-full pr-10">
+    <button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
+      <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+    </button>
+  </div>
+</div>
 <button class="btn btn-primary w-full py-3.5">Login</button></form>
 <div id="alreadyBox" class="hidden mt-4 rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-sm text-emerald-800"><b>✅ Already Logged In:</b> <span id="alreadyWho"></span><br><button type="button" onclick="continueLoggedIn()" class="btn btn-primary mt-2 px-4 py-2 text-xs">→ Continue — Admin / Unit-க்கு போ</button> <button type="button" onclick="doLogout()" class="btn btn-ghost mt-2 px-3 py-2 text-xs">Logout</button></div>
 <div class="mt-6 rounded-xl bg-emerald-50 p-3 text-[12px] text-emerald-900 border border-emerald-100"><b>🔒 Secure Login:</b><br>Supabase மூலம் மட்டும் Login. Demo Login இல்லை.<br>Main Admin: உண்மையான Email + Password.<br>Sub Admin / Unit: <b>Username + Password மட்டும்</b> — Email தேவையில்லை. எ.கா: <b>ada.kundasale</b> / <b>dambagahapitiya</b></div>
 </div></div></div>
 <script>
-const H_KEY='fw7_hier'; // FIX v12: admin/unit-உடன் ஒரே Key — முன்பு fieldwork_hierarchy_v5 என்று இருந்ததால் Admin-இல் மாற்றியது Login-இல் தெரியவில்லை
-const GF_KEY='fw7_gforms';
-const U_KEY='fw7_users'; // v12: admin/unit-உடன் ஒரே Key
-const N_KEY='fw7_nodes'; const Q_KEY='fw7_qs'; const R_KEY='fw7_resp'; const E_KEY='fw7_resp'; // v12: admin/unit-உடன் ஒரே Key
-
-// v12 MIGRATION: பழைய v5 Keys-இல் Data இருந்தால் fw7 Keys-க்கு ஒரே முறை Copy செய் — இல்லை என்றால் பழைய Data தெரியாது
-(function migrateV5(){ try{
-  var pairs=[['fieldwork_hierarchy_v5','fw7_hier'],['fieldwork_gforms_v5','fw7_gforms'],['fieldwork_entries_v5','fw7_resp']];
-  pairs.forEach(function(p){ var oldV=localStorage.getItem(p[0]); if(oldV && !localStorage.getItem(p[1])) localStorage.setItem(p[1], oldV); });
-}catch(e){} })();
-
+function togglePassword() {
+  var pw = document.getElementById('password');
+  var icon = document.getElementById('eyeIcon');
+  if (pw.type === 'password') {
+    pw.type = 'text';
+    icon.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+  } else {
+    pw.type = 'password';
+    icon.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+  }
+}
+const H_KEY='fw7_hier'; const GF_KEY='fw7_gforms'; const U_KEY='fw7_users'; const N_KEY='fw7_nodes'; const Q_KEY='fw7_qs'; const R_KEY='fw7_resp'; const E_KEY='fw7_resp';
+(function migrateV5(){ try{ var pairs=[['fieldwork_hierarchy_v5','fw7_hier'],['fieldwork_gforms_v5','fw7_gforms'],['fieldwork_entries_v5','fw7_resp']]; pairs.forEach(function(p){ var oldV=localStorage.getItem(p[0]); if(oldV && !localStorage.getItem(p[1])) localStorage.setItem(p[1], oldV); }); }catch(e){} })();
 function defaultHierarchy(){ return [{"id":"sub1","name":"ADA Kundasale","divisions":[{"name":"Dambagahapitiya","offices":["Dambagahapitiya - Pradhana Karyalaya"]},{"name":"Kalunthenna","offices":["Kalunthenna - Pradhana Karyalaya"]},{"name":"Nugethenna","offices":["Nugethenna - Pradhana Karyalaya"]},{"name":"Morayaya","offices":["Morayaya - Pradhana Karyalaya"]},{"name":"Ulpathagama","offices":["Ulpathagama - Pradhana Karyalaya"]},{"name":"Namadagala","offices":["Namadagala - Pradhana Karyalaya"]},{"name":"Theldeniya","offices":["Theldeniya - Pradhana Karyalaya"]},{"name":"Udispaththuwa","offices":["Udispaththuwa - Pradhana Karyalaya"]},{"name":"Wendaruwa","offices":["Wendaruwa - Pradhana Karyalaya"]},{"name":"Digana","offices":["Digana - Pradhana Karyalaya"]},{"name":"Gunnepana","offices":["Gunnepana - Pradhana Karyalaya"]},{"name":"Manikhinna","offices":["Manikhinna - Pradhana Karyalaya"]},{"name":"Wavinna","offices":["Wavinna - Pradhana Karyalaya"]},{"name":"Medamahanuwara","offices":["Medamahanuwara - Pradhana Karyalaya"]}]},{"id":"sub2","name":"ADA Kandy","divisions":[{"name":"Waththegama","offices":["Waththegama - Pradhana Karyalaya"]},{"name":"Huluganga","offices":["Huluganga - Pradhana Karyalaya"]},{"name":"Bowala","offices":["Bowala - Pradhana Karyalaya"]},{"name":"Ketawalaleula","offices":["Ketawalaleula - Pradhana Karyalaya"]},{"name":"Galaha","offices":["Galaha - Pradhana Karyalaya"]},{"name":"Marassana","offices":["Marassana - Pradhana Karyalaya"]},{"name":"Thalathuoya","offices":["Thalathuoya - Pradhana Karyalaya"]}]},{"id":"sub3","name":"ADA Udunuwara / Yatinuwara","divisions":[{"name":"Edaduwawe","offices":["Edaduwawe - Pradhana Karyalaya"]},{"name":"Giragama","offices":["Giragama - Pradhana Karyalaya"]},{"name":"Manikdiwella","offices":["Manikdiwella - Pradhana Karyalaya"]},{"name":"Alapalawala","offices":["Alapalawala - Pradhana Karyalaya"]},{"name":"Ambanwala","offices":["Ambanwala - Pradhana Karyalaya"]},{"name":"Imbuldeniya","offices":["Imbuldeniya - Pradhana Karyalaya"]},{"name":"Pethiyagoda","offices":["Pethiyagoda - Pradhana Karyalaya"]},{"name":"Thalawathura","offices":["Thalawathura - Pradhana Karyalaya"]},{"name":"Medapitiya","offices":["Medapitiya - Pradhana Karyalaya"]},{"name":"Mulgama","offices":["Mulgama - Pradhana Karyalaya"]},{"name":"Delpitiya","offices":["Delpitiya - Pradhana Karyalaya"]},{"name":"Gampola","offices":["Gampola - Pradhana Karyalaya"]},{"name":"Kuruduwaththa","offices":["Kuruduwaththa - Pradhana Karyalaya"]},{"name":"Rambukpitiya","offices":["Rambukpitiya - Pradhana Karyalaya"]}]},{"id":"sub4","name":"ADA Harispattuwa","divisions":[{"name":"Aludeniya","offices":["Aludeniya - Pradhana Karyalaya"]},{"name":"Galagedara","offices":["Galagedara - Pradhana Karyalaya"]},{"name":"Welivita","offices":["Welivita - Pradhana Karyalaya"]},{"name":"Ankumbura","offices":["Ankumbura - Pradhana Karyalaya"]},{"name":"Batugoda","offices":["Batugoda - Pradhana Karyalaya"]},{"name":"Wawala","offices":["Wawala - Pradhana Karyalaya"]},{"name":"Alawathugoda","offices":["Alawathugoda - Pradhana Karyalaya"]},{"name":"Medawala","offices":["Medawala - Pradhana Karyalaya"]},{"name":"Yatiwawala","offices":["Yatiwawala - Pradhana Karyalaya"]},{"name":"Hatharaliyadda","offices":["Hatharaliyadda - Pradhana Karyalaya"]}]}]; }
 function loadHierarchy(){ try{ var s=localStorage.getItem(H_KEY); if(s){ var a=JSON.parse(s); if(Array.isArray(a)&&a.length) return a; } }catch(e){} return defaultHierarchy(); }
 function saveHierarchy(h){ localStorage.setItem(H_KEY, JSON.stringify(h)); }
 function getDivisionsForSub(subId){ var h=null; for(var i=0;i<loadHierarchy().length;i++){ if(loadHierarchy()[i].id===subId) h=loadHierarchy()[i]; } return h?h.divisions:[]; }
 function getOfficesForDiv(divName){ var h=loadHierarchy(); for(var i=0;i<h.length;i++){ for(var j=0;j<h[i].divisions.length;j++){ if(h[i].divisions[j].name===divName) return h[i].divisions[j].offices; } } return []; }
 function defaultUsers(){ return [];}
-function loadUsers(){
-  // Old Key-இல் இருந்த User-களை புதிய Key-க்கு Migrate செய்
-  try{ var old=localStorage.getItem('fieldwork_users_v5'); if(old && !localStorage.getItem(U_KEY)){ localStorage.setItem(U_KEY, old); } }catch(e){}
-  try{ var s=localStorage.getItem(U_KEY); if(s){ var a=JSON.parse(s); if(Array.isArray(a)&&a.length) return a; } }catch(e){} return defaultUsers(); }
+function loadUsers(){ try{ var old=localStorage.getItem('fieldwork_users_v5'); if(old && !localStorage.getItem(U_KEY)){ localStorage.setItem(U_KEY, old); } }catch(e){} try{ var s=localStorage.getItem(U_KEY); if(s){ var a=JSON.parse(s); if(Array.isArray(a)&&a.length) return a; } }catch(e){} return defaultUsers(); }
 function saveUsers(u){ localStorage.setItem(U_KEY, JSON.stringify(u)); }
-function defaultGForms(){ return [
-{id:'gf1', title:'Extension - Yala 2026', category:'ext_yala', year:'2026', season:'Yala', subOfficeId:'ALL', division:'ALL', office:'ALL', url:'https://docs.google.com/forms/d/e/1FAIpQLS_XXXX/viewform?embedded=true', entrySub:'', entryDiv:'', entryOffice:'', entryYear:'', entrySeason:'', entryUser:''},
-{id:'gf2', title:'Extension - Maha 2026', category:'ext_maha', year:'2026', season:'Maha', subOfficeId:'ALL', division:'ALL', office:'ALL', url:'https://docs.google.com/forms/d/e/1FAIpQLS_XXXX2/viewform?embedded=true', entrySub:'', entryDiv:'', entryOffice:'', entryYear:'', entrySeason:'', entryUser:''},
-{id:'gf3', title:'Development - 2026', category:'development', year:'2026', season:'', subOfficeId:'ALL', division:'ALL', office:'ALL', url:'https://docs.google.com/forms/d/e/1FAIpQLS_XXXX3/viewform?embedded=true', entrySub:'', entryDiv:'', entryOffice:'', entryYear:'', entrySeason:'', entryUser:''}
-];}
+function defaultGForms(){ return [ {id:'gf1', title:'Extension - Yala 2026', category:'ext_yala', year:'2026', season:'Yala', subOfficeId:'ALL', division:'ALL', office:'ALL', url:'https://docs.google.com/forms/d/e/1FAIpQLS_XXXX/viewform?embedded=true', entrySub:'', entryDiv:'', entryOffice:'', entryYear:'', entrySeason:'', entryUser:''}, {id:'gf2', title:'Extension - Maha 2026', category:'ext_maha', year:'2026', season:'Maha', subOfficeId:'ALL', division:'ALL', office:'ALL', url:'https://docs.google.com/forms/d/e/1FAIpQLS_XXXX2/viewform?embedded=true', entrySub:'', entryDiv:'', entryOffice:'', entryYear:'', entrySeason:'', entryUser:''}, {id:'gf3', title:'Development - 2026', category:'development', year:'2026', season:'', subOfficeId:'ALL', division:'ALL', office:'ALL', url:'https://docs.google.com/forms/d/e/1FAIpQLS_XXXX3/viewform?embedded=true', entrySub:'', entryDiv:'', entryOffice:'', entryYear:'', entrySeason:'', entryUser:''} ];}
 function loadGForms(){ try{ var s=localStorage.getItem(GF_KEY); if(s){ var a=JSON.parse(s); if(Array.isArray(a)) return a; } }catch(e){} return defaultGForms(); }
 function saveGForms(g){ localStorage.setItem(GF_KEY, JSON.stringify(g)); }
 function loadEntries(){ try{ return JSON.parse(localStorage.getItem(E_KEY)||'[]'); }catch(e){ return []; } }
 function saveEntries(e){ localStorage.setItem(E_KEY, JSON.stringify(e)); }
 function toEmbedUrl(url){ if(!url) return ''; url=url.trim(); var m=url.match(/src="([^"]+)"/); if(m) url=m[1]; if(url.indexOf('viewform')===-1 && url.indexOf('/d/')>-1){ url=url.replace(/\/$/,'')+'/viewform'; } if(url.indexOf('embedded=true')===-1){ url+=(url.indexOf('?')===-1?'?':'&')+'embedded=true'; } return url; }
-function buildPrefilledUrl(g, ctx){
-  var baseUrl=toEmbedUrl(g.url);
-  var params=[];
-  function add(entryId, val){ if(entryId && val) params.push(encodeURIComponent(entryId)+'='+encodeURIComponent(val)); }
-  add(g.entrySub, ctx.subOfficeName);
-  add(g.entryDiv, ctx.division);
-  add(g.entryOffice, ctx.office);
-  add(g.entryYear, ctx.year);
-  add(g.entrySeason, ctx.season);
-  add(g.entryUser, ctx.userName + ' (' + ctx.userEmail + ')');
-  if(!params.length) return baseUrl;
-  var sep = baseUrl.indexOf('?')===-1 ? '?' : '&';
-  return baseUrl + sep + params.join('&');
-}
-
+function buildPrefilledUrl(g, ctx){ var baseUrl=toEmbedUrl(g.url); var params=[]; function add(entryId, val){ if(entryId && val) params.push(encodeURIComponent(entryId)+'='+encodeURIComponent(val)); } add(g.entrySub, ctx.subOfficeName); add(g.entryDiv, ctx.division); add(g.entryOffice, ctx.office); add(g.entryYear, ctx.year); add(g.entrySeason, ctx.season); add(g.entryUser, ctx.userName + ' (' + ctx.userEmail + ')'); if(!params.length) return baseUrl; var sep = baseUrl.indexOf('?')===-1 ? '?' : '&'; return baseUrl + sep + params.join('&'); }
 const SUPABASE_URL='https://ecpoyxjuednjixmaajux.supabase.co';
 const SUPABASE_KEY='sb_publishable_kbTMWrgN1_lRxClNYU-PQg_Qc9jpmSe';
 const supabaseClient = (typeof supabase!=='undefined') ? supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
-// FIX: Browser-இல் Save ஆன பழைய Autofill-ஐ அழித்துவிடு — பழைய Password-ஆல் Login முயற்சித்து Fail ஆகாமல் இருக்க
-(function clearOldAutofill(){ try{
-  var em=document.getElementById('email'), pw=document.getElementById('password');
-  if(em) em.value=''; if(pw) pw.value='';
-  setTimeout(function(){ if(em) em.value=''; if(pw) pw.value=''; }, 600);
-}catch(e){} })();
+(function clearOldAutofill(){ try{ var em=document.getElementById('email'), pw=document.getElementById('password'); if(em) em.value=''; if(pw) pw.value=''; setTimeout(function(){ if(em) em.value=''; if(pw) pw.value=''; }, 600); }catch(e){} })();
 document.getElementById('loginForm').addEventListener('submit', async function(e){
   e.preventDefault();
   var loginId=document.getElementById('email').value.trim().toLowerCase();
-  // USERNAME LOGIN: Sub/Unit-க்கு Email இல்லை — Username-ஐ உள்ளே மட்டும் Synthetic Email-ஆக மாற்று.
-  // User-க்கு காட்டப்படுவது Username மட்டும். Supabase-இல் இந்த Email-ஐ யாரும் பார்க்க முடியாது / Mail அனுப்ப முடியாது.
-  // '@' இருந்தால் உண்மையான Email (Main Admin). இல்லை என்றால் Username + '@agri.local'
   var email = loginId.indexOf('@')>-1 ? loginId : loginId.replace(/\s+/g,'.').replace(/[^a-z0-9._-]/g,'') + '@agri.local';
-  // Display-க்கு Username-ஐயே வைத்திரு
-  var displayName = loginId;
-  var pw=document.getElementById('password').value.trim();
+  var displayName = loginId; var pw=document.getElementById('password').value.trim();
   var err=document.getElementById('err'); err.classList.add('hidden');
   var statusEl=document.getElementById('loginStatus'); if(statusEl) statusEl.textContent='Checking...';
-  // SECURE: Local Demo Login நீக்கப்பட்டது — Supabase Auth மட்டும். Local-இல் Hardcoded Password இல்லை.
-  // STEP 2 - Supabase Auth மட்டும்
   if(supabaseClient){
     try{
       var sbRes = await supabaseClient.auth.signInWithPassword({email: email, password: pw});
       if(!sbRes.error && sbRes.data.user){
         var prof = await supabaseClient.from('profiles').select('*').eq('id', sbRes.data.user.id).single();
         var p = (prof && prof.data) ? prof.data : null;
-        if(!p){
-          err.textContent='Supabase Auth OK, ஆனால் profiles Table-இல் உங்கள் Row இல்லை / RLS Block. Supabase Dashboard-இல் profiles-இல் Row சேர்க்கவும்.'; err.classList.remove('hidden'); return;
-        }
+        if(!p){ err.textContent='Supabase Auth OK, ஆனால் profiles Table-இல் உங்கள் Row இல்லை / RLS Block. Supabase Dashboard-இல் profiles-இல் Row சேர்க்கவும்.'; err.classList.remove('hidden'); return; }
         if(p.status==='inactive'){ err.textContent='User Inactive.'; err.classList.remove('hidden'); return; }
         var h=loadHierarchy(); var so=null; for(var j=0;j<h.length;j++){ if(h[j].id===(p.sub_office_id||p.subOfficeId)) so=h[j]; }
         var role = p.role || 'unit';
@@ -111,7 +85,6 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
   }
   err.textContent='Username / Password தவறு. DD Kandy Admin-ஐ தொடர்பு கொள்ளவும்.'; err.classList.remove('hidden');
 });
-
 function sessionHandoff(){ try{ var s=localStorage.getItem('fw_session')||''; return btoa(unescape(encodeURIComponent(s))); }catch(e){ return ''; } }
 function continueLoggedIn(){ try{ var j=JSON.parse(localStorage.getItem('fw_session')||'{}'); var page=(j.role==='main_admin'||j.role==='sub_admin')?'admin.html':'unit.html'; location.href=page+'#fw='+sessionHandoff(); }catch(e){ location.href='admin.html'; } }
 async function doLogout(){ try{ if(typeof supabaseClient!=='undefined' && supabaseClient) await supabaseClient.auth.signOut(); }catch(e){} ['role','user','user_name','user_subOfficeId','user_subOfficeName','user_division','user_office','fw_session'].forEach(function(k){ try{localStorage.removeItem(k);}catch(e){} }); location.reload(); }

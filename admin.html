@@ -185,8 +185,6 @@ function profPrompt(msg,defVal,placeholder){return openModal({title:'பெய�
 
 const sb=(typeof supabase!=='undefined')?supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;
 
-// SECURE: localStorage role-ஐ நம்பாதே — Supabase JWT + profiles-இல் உள்ள உண்மையான role-ஐ சரி பார்.
-// localStorage-இல் role=main_admin என்று Type செய்து Hack செய்வது இதனால் முடியாது.
 (async function verifySupabaseSession(){
   try{
     if(!sb) return;
@@ -197,9 +195,8 @@ const sb=(typeof supabase!=='undefined')?supabase.createClient(SUPABASE_URL,SUPA
     if(!prof || !prof.data || prof.data.status!=='active'){ await sb.auth.signOut(); window.location.href='index.html'; return; }
     var realRole = prof.data.role;
     if(realRole!=='main_admin' && realRole!=='sub_admin'){ await sb.auth.signOut(); window.location.href='index.html'; return; }
-    // localStorage-ஐ உண்மையான role-ஆல் Overwrite செய் — பழைய Hacked Value நிற்காது
     try{ localStorage.setItem('role', realRole); }catch(e){}
-  }catch(e){ /* Network தடங்கல் என்றால் localStorage Guard மட்டும் வேலை செய்யும் */ }
+  }catch(e){}
 })();
 const H_KEY='fw7_hier', N_KEY='fw7_nodes', Q_KEY='fw7_qs', U_KEY='fw7_users', R_KEY='fw7_resp';
 function defHier(){return JSON.parse(document.getElementById('hier-data').textContent);}
@@ -245,9 +242,7 @@ function defUsers(){return [];}
 <script id="hier-data" type="application/json">[{"id":"sub1","name":"ADA Kundasale","divisions":[{"name":"Dambagahapitiya","offices":["Dambagahapitiya - Pradhana Karyalaya"]},{"name":"Kalunthenna","offices":["Kalunthenna - Pradhana Karyalaya"]},{"name":"Nugethenna","offices":["Nugethenna - Pradhana Karyalaya"]},{"name":"Morayaya","offices":["Morayaya - Pradhana Karyalaya"]},{"name":"Ulpathagama","offices":["Ulpathagama - Pradhana Karyalaya"]},{"name":"Namadagala","offices":["Namadagala - Pradhana Karyalaya"]},{"name":"Theldeniya","offices":["Theldeniya - Pradhana Karyalaya"]},{"name":"Udispaththuwa","offices":["Udispaththuwa - Pradhana Karyalaya"]},{"name":"Wendaruwa","offices":["Wendaruwa - Pradhana Karyalaya"]},{"name":"Digana","offices":["Digana - Pradhana Karyalaya"]},{"name":"Gunnepana","offices":["Gunnepana - Pradhana Karyalaya"]},{"name":"Manikhinna","offices":["Manikhinna - Pradhana Karyalaya"]},{"name":"Wavinna","offices":["Wavinna - Pradhana Karyalaya"]},{"name":"Medamahanuwara","offices":["Medamahanuwara - Pradhana Karyalaya"]}]},{"id":"sub2","name":"ADA Kandy","divisions":[{"name":"Waththegama","offices":["Waththegama - Pradhana Karyalaya"]},{"name":"Huluganga","offices":["Huluganga - Pradhana Karyalaya"]},{"name":"Bowala","offices":["Bowala - Pradhana Karyalaya"]},{"name":"Ketawalaleula","offices":["Ketawalaleula - Pradhana Karyalaya"]},{"name":"Galaha","offices":["Galaha - Pradhana Karyalaya"]},{"name":"Marassana","offices":["Marassana - Pradhana Karyalaya"]},{"name":"Thalathuoya","offices":["Thalathuoya - Pradhana Karyalaya"]}]},{"id":"sub3","name":"ADA Udunuwara / Yatinuwara","divisions":[{"name":"Edaduwawe","offices":["Edaduwawe - Pradhana Karyalaya"]},{"name":"Giragama","offices":["Giragama - Pradhana Karyalaya"]},{"name":"Manikdiwella","offices":["Manikdiwella - Pradhana Karyalaya"]},{"name":"Alapalawala","offices":["Alapalawala - Pradhana Karyalaya"]},{"name":"Ambanwala","offices":["Ambanwala - Pradhana Karyalaya"]},{"name":"Imbuldeniya","offices":["Imbuldeniya - Pradhana Karyalaya"]},{"name":"Pethiyagoda","offices":["Pethiyagoda - Pradhana Karyalaya"]},{"name":"Thalawathura","offices":["Thalawathura - Pradhana Karyalaya"]},{"name":"Medapitiya","offices":["Medapitiya - Pradhana Karyalaya"]},{"name":"Mulgama","offices":["Mulgama - Pradhana Karyalaya"]},{"name":"Delpitiya","offices":["Delpitiya - Pradhana Karyalaya"]},{"name":"Gampola","offices":["Gampola - Pradhana Karyalaya"]},{"name":"Kuruduwaththa","offices":["Kuruduwaththa - Pradhana Karyalaya"]},{"name":"Rambukpitiya","offices":["Rambukpitiya - Pradhana Karyalaya"]}]},{"id":"sub4","name":"ADA Harispattuwa","divisions":[{"name":"Aludeniya","offices":["Aludeniya - Pradhana Karyalaya"]},{"name":"Galagedara","offices":["Galagedara - Pradhana Karyalaya"]},{"name":"Welivita","offices":["Welivita - Pradhana Karyalaya"]},{"name":"Ankumbura","offices":["Ankumbura - Pradhana Karyalaya"]},{"name":"Batugoda","offices":["Batugoda - Pradhana Karyalaya"]},{"name":"Wawala","offices":["Wawala - Pradhana Karyalaya"]},{"name":"Alawathugoda","offices":["Alawathugoda - Pradhana Karyalaya"]},{"name":"Medawala","offices":["Medawala - Pradhana Karyalaya"]},{"name":"Yatiwawala","offices":["Yatiwawala - Pradhana Karyalaya"]},{"name":"Hatharaliyadda","offices":["Hatharaliyadda - Pradhana Karyalaya"]}]}]</script>
 <script>
 
-// --- Login Guard: login செய்யாமல் Admin-க்குள் நுழைய முடியாது ---
-// FIX: ஒவ்வொரு File-உம் வேறு localhost Port-இல் திறந்தால் localStorage பகிரப்படாது.
-// அதனால் Login பக்கம் Session-ஐ URL Hash (#fw=...) வழியாகவும் அனுப்பும் — Guard அதை படித்து localStorage-இல் Restore செய்யும்.
+// --- Login Guard ---
 (function(){
   try{
     var h = (location.hash||'');
@@ -295,19 +290,16 @@ function renderDashboard(){
   var recent=responses.slice(0,8); document.getElementById('recentBox').innerHTML=recent.map(function(r){return '<div class="flex justify-between gap-3 rounded-xl border p-3 text-[13px]"><div><b>'+(r.node_path||'')+'</b><div class="text-xs text-slate-500">'+(r.division||'')+' • '+(r.office||'')+'</div></div><div class="text-xs text-slate-400 shrink-0">'+new Date(r.created_at).toLocaleDateString()+'</div></div>';}).join('')||'<div class="text-xs text-slate-400">பதில்கள் இன்னும் இல்லை</div>';
 }
 /* ---------- Wizard ---------- */
-function resetWizard(){curMain=null;curL1=null;curL2=null;curL3=null;gotoStep(1);updateCrumb();}
+function resetWizard(){curMain=null;curL1=null;curL2=null;curL3=null;curSub=null;curItem=null;gotoStep(1);updateCrumb();}
 function updateCrumb(){
   var parts=[]; if(curMain)parts.push(curMain==='extension'?'🌾 Extension':'🏗️ Development'); if(curL1){var n=nodes.find(function(x){return x.id===curL1;});if(n)parts.push(n.title);} if(curL2){var n2=nodes.find(function(x){return x.id===curL2;});if(n2)parts.push(n2.title);} if(curL3){var n3=nodes.find(function(x){return x.id===curL3;});if(n3)parts.push(n3.title);} if(curSub){var ns=nodes.find(function(x){return x.id===curSub;});if(ns)parts.push(ns.title);} if(curItem){var ni=nodes.find(function(x){return x.id===curItem;});if(ni)parts.push(ni.title);} if(curStep===6)parts.push('வினாக்கள்'); else if(curStep===5 && curMain==='development')parts.push('Item / Items');
   document.getElementById('crumb').textContent=parts.length?parts.join('  →  '):'Extension / Development தேர்வு செய்யுங்கள்';
 }
 function gotoStep(s){
-  // FIX: Extension-இல் Step 5 என்பது வினாக்கள் (w6). Item Step (w5) Development-க்கு மட்டும்.
-  // யாராவது Extension-இல் gotoStep(5) என்று அழைத்தாலும் வினாக்கள் பக்கத்துக்கு போக வேண்டும், Item பக்கத்துக்கு அல்ல.
   var displayStep = s;
   if(curMain==='extension' && s===5){ s = 6; displayStep = 5; }
   if(curMain==='extension' && s===6){ displayStep = 5; }
   curStep=s; document.querySelectorAll('.wizard-step').forEach(function(x){x.classList.remove('active');}); var el=document.getElementById('w'+s); if(el) el.classList.add('active');
-  // Progress dots: Extension = 1,2,3,4,5(வினாக்கள்). Development = 1,2,3,4,5,6
   for(var i=1;i<=6;i++){var d=document.getElementById('dot'+i); if(!d)continue; var isNow = (curMain==='extension' ? (i===displayStep) : (i===s)); var isDone = (curMain==='extension' ? (i<displayStep) : (i<s)); d.className='step-dot'+(isNow?' now':isDone?' done':'');}
   var sw5=document.getElementById('step5Wrap'); var aw5=document.getElementById('arrow5');
   var sw6=document.getElementById('step6Wrap'); var aw4=document.getElementById('arrow4'); var sw4=document.getElementById('step4Wrap');
@@ -380,8 +372,6 @@ function addItem(){
   nodes.push(n); saveLocal(N_KEY,nodes); document.getElementById('newItem').value=''; curItem=n.id; sbSaveNode(n); renderItem(); showToast('Item Add ஆனது ✓',true);
 }
 
-async 
-/* ---------- Node Actions — FIX: முன்பு இந்த 4 Functions இல்லாமல் Rename/Copy/Delete/Publish Button-கள் Error கொடுத்தன ---------- */
 async function renameNode(id){
   var n=nodes.find(function(x){return x.id===id;}); if(!n) return;
   var v=await profPrompt('புதிய பெயர் / New Name', n.title, 'பெயரை Type செய்யுங்கள்');
@@ -398,7 +388,6 @@ async function copyNode(id){
   var nid='n'+Date.now();
   var nn={id:nid,main_type:n.main_type,level:n.level,parent_id:n.parent_id,title:n.title+' (Copy)',subtitle:n.subtitle||'',is_published:n.is_published,sort_order:childrenOf(n.parent_id,n.level).length+1};
   nodes.push(nn); saveLocal(N_KEY,nodes); sbSaveNode(nn);
-  // அதன் கீழ் உள்ள வினாக்களையும் Copy செய்
   var qs=questions.filter(function(x){return x.node_id===id;});
   for(var i=0;i<qs.length;i++){ var q=qs[i]; var nq={id:'q'+Date.now()+i,node_id:nid,question_text:q.question_text,question_type:q.question_type,options:(q.options||[]).slice(),is_required:q.is_required,order_index:q.order_index}; questions.push(nq); }
   saveLocal(Q_KEY,questions);
@@ -417,7 +406,6 @@ async function delNode(id){
   renderAllSteps(); updateKPI(); showToast('Node Delete ஆனது ✓',true);
 }
 
-
 function renderAllSteps(){ try{renderL1();}catch(e){} try{renderL2();}catch(e){} try{renderL3();}catch(e){} try{renderL4();}catch(e){} try{renderQuestions();}catch(e){} try{renderDashboard();}catch(e){} }
 
 async function copyQ(id){
@@ -431,11 +419,10 @@ async function copyQ(id){
 async function sbSaveNode(n){if(!sb)return;try{await sb.from('nodes').upsert({id:n.id,main_type:n.main_type,level:n.level,parent_id:n.parent_id,title:n.title,subtitle:n.subtitle||'',is_published:n.is_published,sort_order:n.sort_order});}catch(e){}}
 /* ---------- Questions ---------- */
 function leafId(){
-  // FIX: வினாக்கள் எப்போதும் இலை (Leaf) Node-இல் Save ஆக வேண்டும் — Cultivation / Sub Program-இல் அல்ல
   if(curMain==='development'){ if(curItem) return curItem; return curL3; }
   if(curSub) return curSub;
   var subs=nodes.filter(function(n){return n.main_type==='extension'&&n.level===3&&n.parent_id===curL2;});
-  if(subs.length) return null; // உப பிரிவு உள்ளது — முதலில் ஒன்றை தேர்வு செய்ய வேண்டும்
+  if(subs.length) return null;
   return curL2;
 }
 function onQType(){var t=document.getElementById('qType').value;document.getElementById('optWrap').classList.toggle('hidden',['multiple_choice','checkbox','dropdown'].indexOf(t)===-1);}
@@ -448,7 +435,6 @@ function renderQuestions(){
   document.getElementById('qCount').textContent=qs.length;
   var h=''; for(var i=0;i<qs.length;i++){var q=qs[i]; h+='<div class="rounded-xl border p-3 bg-white flex justify-between gap-3"><div><div class="font-semibold text-[14px]">'+(i+1)+'. '+q.question_text+' '+(q.is_required?'<span class="text-red-500">*</span>':'')+'</div><div class="text-xs text-slate-400 mt-1">'+q.question_type+(q.options&&q.options.length?' • '+q.options.join(' | '):'')+'</div></div><div class="flex flex-col gap-1 shrink-0"><div class="flex gap-1"><button onclick="moveQ(\''+q.id+'\',-1)" class="btn btn-ghost px-2 py-1 text-xs">↑</button><button onclick="moveQ(\''+q.id+'\',1)" class="btn btn-ghost px-2 py-1 text-xs">↓</button></div><button onclick="editQ(\''+q.id+'\')" class="btn btn-ghost px-2 py-1 text-xs">Edit</button><button onclick="copyQ(\''+q.id+'\')" class="btn btn-ghost px-2 py-1 text-xs">📋 Copy</button><button onclick="delQ(\''+q.id+'\')" class="btn text-xs px-2 py-1 bg-red-50 text-red-600">Delete</button></div></div>';}
   document.getElementById('qList').innerHTML=h||'<div class="text-sm text-slate-400">வினா இன்னும் இல்லை — இடது பக்கம் Type செய்து Add செய்யுங்கள்</div>';
-  // Preview
   var ph=''; for(var j=0;j<qs.length;j++){var qq=qs[j]; ph+='<div><label class="text-[13px]">'+(j+1)+'. '+qq.question_text+(qq.is_required?' *':'')+'</label><div class="mt-1 text-xs text-slate-400">['+qq.question_type+(qq.options&&qq.options.length?' — '+qq.options.join(', '):'')+'] — Unit இங்கே பதில் எழுதுவார்</div></div>';}
   document.getElementById('qPreview').innerHTML=ph||'<div class="text-xs text-slate-400">Preview இல்லை</div>';
   updateCrumb();
@@ -459,7 +445,7 @@ function editQ(id){var q=questions.find(function(x){return x.id===id;});if(!q)re
 async function delQ(id){if(!(await profConfirm('இந்த வினா நீக்கப்படும்.','வினாவை Delete செய்யவா?')))return;questions=questions.filter(function(x){return x.id!==id;});saveLocal(Q_KEY,questions);if(sb){try{sb.from('questions').delete().eq('id',id);}catch(e){}}renderQuestions();}
 function loadDevTemplate(){var lid=leafId();if(!lid)return showToast('முதலில் Development Project தேர்வு செய்யுங்கள்',false);var tmpl=[['விவசாயியின் பெயர் / Farmer Name','short_text',[]],['Address / முகவரி','paragraph',[]],['Telephone Number','short_text',[]],['ID Number','short_text',[]],['வழங்கப்பட்ட பொருள் / Item Given','dropdown',['Seeds','Fertilizer','Tools','Other']],['Quantity / அளவு','number',[]],['Unit / அலகு','dropdown',['kg','Litre','Nos','Packet','Bag']],['Subsidy — 50% or 25% or Free','dropdown',['50%','25%','Free','Full Price']],['Price (Rs.) / விலை','number',[]]];var base=questions.filter(function(q){return q.node_id===lid;}).length;for(var i=0;i<tmpl.length;i++){questions.push({id:'q'+Date.now()+i,node_id:lid,question_text:tmpl[i][0],question_type:tmpl[i][1],options:tmpl[i][2],is_required:true,order_index:base+i+1});}saveLocal(Q_KEY,questions);renderQuestions();showToast('Development Template Add ஆனது ✓',true);}
 function loadExtTemplate(){var lid=leafId();if(!lid)return showToast('முதலில் Cultivation தேர்வு செய்யுங்கள்',false);var tmpl=[['Extent (Acres) / பரப்பு','number',[]],['Variety / வகை','dropdown',['BG 352','BG 360','Other']],['Farmers Count / விவசாயிகள் எண்ணிக்கை','number',[]],['Remarks / குறிப்பு','paragraph',[]]];var base=questions.filter(function(q){return q.node_id===lid;}).length;for(var i=0;i<tmpl.length;i++){questions.push({id:'q'+Date.now()+i,node_id:lid,question_text:tmpl[i][0],question_type:tmpl[i][1],options:tmpl[i][2],is_required:true,order_index:base+i+1});}saveLocal(Q_KEY,questions);renderQuestions();showToast('Extension Template Add ஆனது ✓',true);}
-function finishWizard(){renderDashboard();goNav('dashboard');showToast('முடிந்தது ✓',true);}
+function finishWizard(){curMain=null;curL1=null;curL2=null;curL3=null;curSub=null;curItem=null;renderDashboard();goNav('dashboard');showToast('முடிந்தது ✓',true);}
 function updateKPI(){}
 /* ---------- Data ---------- */
 function fillDataFilters(){var opts='';for(var i=0;i<hierarchy.length;i++){opts+='<option value="'+hierarchy[i].id+'">'+hierarchy[i].name+'</option>';}document.getElementById('fSub').innerHTML='<option value="">எல்லா Sub Office</option>'+opts;var divs=[];hierarchy.forEach(function(h){h.divisions.forEach(function(d){divs.push(d.name);});});document.getElementById('fDiv').innerHTML='<option value="">எல்லா பிரிவு</option>'+divs.map(function(d){return '<option>'+d+'</option>';}).join('');}
@@ -514,27 +500,20 @@ async function sbSync(){
   renderDashboard(); renderData();
 }
 
-// --- Supabase User Update: Admin-இல் User / Password மாற்றம் ---
 async function saveUserToSupabase(p){
-  // 1) profiles table-இல் Name / Username / Role / Sub / Division / Office update
   if(sb){
     try{
       var prof = {username:p.username, name:p.name, role:p.role, sub_office_id:p.subOfficeId, division:p.division, office:p.office, status:p.status};
-      // id இருந்தால் அதே id-இல் upsert, இல்லையென்றால் username-இல் match செய்ய முயற்சி
       var res = await sb.from('profiles').upsert(prof, {onConflict:'username'});
       if(res.error) console.log('profiles upsert note:', res.error.message);
     }catch(e){ console.log('profiles save failed', e); }
   }
-  // 2) Password: Supabase Auth-இல் வேறு User-இன் Password-ஐ Browser-இல் இருந்து நேரடியாக மாற்ற முடியாது (Security).
-  //    - தன் Password என்றால்: Supabase Auth updateUser மூலம் உடனே மாறும்.
-  //    - வேறு User-இன் Password என்றால்: pending-ஆக Save செய்து, Admin-க்கு வழிமுறை காட்டுவோம்.
   var me = localStorage.getItem('user')||'';
   if(p.password){
     if(p.username===me && sb){
       try{ var up = await sb.auth.updateUser({password:p.password}); if(!up.error){ showToast('Password Supabase-இலும் மாற்றப்பட்டது ✓',true); return; } }catch(e){}
       showToast('Password Local-இல் Save ஆனது. Supabase Auth-இல் மாற்ற: Dashboard > Authentication > Users > அந்த User > Reset Password',false);
     } else {
-      // Pending password - Supabase Dashboard-இல் மாற்ற வேண்டும் என்று நினைவூட்டல்
       var pend = {}; try{ pend = JSON.parse(localStorage.getItem('fw_pending_pw')||'{}'); }catch(e){}
       pend[p.username]=p.password; localStorage.setItem('fw_pending_pw', JSON.stringify(pend));
       profAlert('User "'+p.username+'" இன் Password Local + profiles-இல் Save ஆனது.\n\nSupabase Auth-இல் மாற்ற:\n1) Supabase Dashboard → Authentication → Users\n2) அந்த User-ஐ தேர்வு → Reset Password / Change Password\n3) புதிய Password-ஐ அங்கே Type செய்யுங்கள்.\n\nஇது Supabase Security விதி — Browser-இல் இருந்து வேறு User-இன் Auth Password-ஐ மாற்ற முடியாது.', 'Password — Supabase-இல் மாற்ற வேண்டும்');
