@@ -1,7 +1,4 @@
-
-/* Kandy Data Collection – Supabase reliability layer
-   Loaded after the original v12 page scripts. Keeps the existing UI and adds
-   checked, awaited Supabase writes; the database is the source of truth. */
+/* Kandy Data Collection – Supabase reliability layer */
 (function () {
   'use strict';
   const isAdmin = location.pathname.toLowerCase().endsWith('admin.html');
@@ -11,7 +8,7 @@
   }[c]));
   const csvCell = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
   const downloadCSV = (rows, filename) => {
-    if (!rows.length) { if (window.showToast) showToast('தரவுகள் இல்லை', false); return; }
+    if (!rows.length) { if (window.showToast) showToast('දත්ත නැත', false); return; }
     const csv = '\uFEFF' + rows.map(row => row.map(csvCell).join(',')).join('\r\n');
     const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
     const url = URL.createObjectURL(blob);
@@ -24,7 +21,7 @@
   };
   const getProfile = async () => {
     const auth = await sb.auth.getUser();
-    if (auth.error || !auth.data.user) throw auth.error || new Error('Login session இல்லை');
+    if (auth.error || !auth.data.user) throw auth.error || new Error('Login session නැත');
     const p = await sb.from('profiles').select('*').eq('id', auth.data.user.id).single();
     return {user:auth.data.user, profile:must(p,'profile')};
   };
@@ -40,16 +37,25 @@
   if (isAdmin) {
     // Sub Admins retain scoped response management, while only Main Admin builds/publishes forms.
     if (localStorage.getItem('role') === 'sub_admin') {
-      document.querySelectorAll('[data-nav="builder"],[data-nav="users"]').forEach(el=>el.classList.add('hidden'));
+      document.querySelectorAll('[data-nav="builder"]').forEach(el=>el.classList.add('hidden'));
       document.querySelectorAll('button[onclick*="goNav(\'builder\')"]').forEach(el=>el.classList.add('hidden'));
+      
+      // Hide the user form for sub_admin
+      setTimeout(() => {
+          const uFormCard = document.getElementById('userFormCard');
+          if(uFormCard) uFormCard.classList.add('hidden');
+          const grid = document.querySelector('#page-users > .grid');
+          if(grid) grid.className = 'grid grid-cols-1 gap-5'; 
+      }, 500);
+
       const oldGoNav = window.goNav;
       if (typeof oldGoNav === 'function') window.goNav = function(page) {
-        if (page === 'builder' || page === 'users') page = 'data';
+        if (page === 'builder') page = 'data';
         return oldGoNav(page);
       };
     }
     window.sbSaveNode = async function(n) {
-      if (typeof sb === 'undefined' || !sb) throw new Error('Supabase client இல்லை');
+      if (typeof sb === 'undefined' || !sb) throw new Error('Supabase client නැත');
       const payload = {id:n.id,main_type:n.main_type,level:n.level,parent_id:n.parent_id,
         title:n.title,subtitle:n.subtitle||'',is_published:!!n.is_published,sort_order:n.sort_order||0};
       const res = await sb.from('nodes').upsert(payload,{onConflict:'id'});
@@ -61,18 +67,16 @@
       localStorage.setItem(H_KEY, JSON.stringify(h));
       if (typeof sb !== 'undefined' && sb) sb.from('office_hierarchy')
         .upsert({id:'default',hierarchy:h,updated_at:new Date().toISOString()},{onConflict:'id'})
-        .then(res=>{if(res.error)showToast('Office hierarchy Supabase-இல் சேமிக்கப்படவில்லை: '+res.error.message,false);});
+        .then(res=>{if(res.error)showToast('Office hierarchy Supabase වල Save වුනේ නැත: '+res.error.message,false);});
     };
 
     window.sbSync = async function() {
       const status = document.getElementById('sbStatus');
       try {
-        if (typeof sb === 'undefined' || !sb) throw new Error('Supabase client இல்லை');
+        if (typeof sb === 'undefined' || !sb) throw new Error('Supabase client නැත');
         if (status) status.textContent = 'Supabase: Loading…';
         let nr = await sb.from('nodes').select('*').order('sort_order');
         let remoteNodes = must(nr,'nodes read') || [];
-        // Seed the existing built-in model once, only from an authenticated admin,
-        // when the remote table is genuinely empty.
         if (!remoteNodes.length && (window.role === 'main_admin' || localStorage.getItem('role') === 'main_admin')) {
           const defaults = typeof defNodes === 'function' ? defNodes() : [];
           if (defaults.length) {
@@ -110,7 +114,6 @@
         const rr = await sb.from('responses').select('*').order('created_at',{ascending:false}).limit(2000);
         responses = (must(rr,'responses read')||[]).map(mapResponse);
         saveLocal(R_KEY,responses);
-        // Shared office hierarchy is stored in Supabase (not only this browser).
         const hr = await sb.from('office_hierarchy').select('hierarchy').eq('id','default').maybeSingle();
         if (hr.error) throw hr.error;
         if (hr.data && Array.isArray(hr.data.hierarchy)) {
@@ -124,9 +127,7 @@
           const hw = await sb.from('office_hierarchy').upsert({id:'default',hierarchy:h0,updated_at:new Date().toISOString()},{onConflict:'id'});
           must(hw,'initial hierarchy save');
         }
-        // Main Admin sees the shared profile directory. Auth accounts must be created
-        // in Supabase Auth (or by a protected Edge Function), never with a service key in JS.
-        if (localStorage.getItem('role')==='main_admin') {
+        if (localStorage.getItem('role')==='main_admin' || localStorage.getItem('role')==='sub_admin') {
           const pr = await sb.from('profiles').select('*').order('created_at',{ascending:false});
           const ps = must(pr,'profiles read') || [];
           users = ps.map(x=>({id:x.id,name:x.name||'',username:x.username||'',password:'',
@@ -141,17 +142,16 @@
         if (typeof renderAllSteps==='function') renderAllSteps();
       } catch (e) {
         if (status) status.textContent = 'Supabase Error';
-        if (window.showToast) showToast('Supabase பிழை: '+(e.message||e),false);
+        if (window.showToast) showToast('Supabase දෝෂයකි: '+(e.message||e),false);
         console.error('Kandy Supabase sync:',e);
       }
     };
 
-    // Replace the original question listener so an error can never be reported as a save.
     const qForm = document.getElementById('qForm');
     if (qForm) qForm.addEventListener('submit', async function(e) {
       e.preventDefault(); e.stopImmediatePropagation();
       const lid = typeof leafId==='function' ? leafId() : null;
-      if (!lid) return showToast('முதலில் பிரிவைத் தேர்வு செய்யுங்கள்',false);
+      if (!lid) return showToast('මුලින්ම අංශය තෝරන්න',false);
       const oldId = document.getElementById('qId').value;
       const old = (questions||[]).find(q=>q.id===oldId);
       const payload = {id:oldId||('q'+Date.now()+Math.random().toString(36).slice(2,7)),
@@ -159,9 +159,9 @@
         question_type:document.getElementById('qType').value,options:(window.curOptions||[]).slice(),
         is_required:document.getElementById('qReq').value==='1',
         order_index:old ? old.order_index : (questions||[]).filter(q=>q.node_id===lid).length+1};
-      if (!payload.question_text) return showToast('வினா உரையை உள்ளிடுங்கள்',false);
+      if (!payload.question_text) return showToast('ප්‍රශ්නය ඇතුළත් කරන්න',false);
       if (['dropdown','multiple_choice','checkbox'].includes(payload.question_type) && !payload.options.length)
-        return showToast('இந்த வினா வகைக்கு குறைந்தது ஒரு தெரிவு தேவை',false);
+        return showToast('මෙම ප්‍රශ්න වර්ගයට අවම වශයෙන් එක් විකල්පයක් අවශ්‍යයි',false);
       try {
         must(await sb.from('questions').upsert(payload,{onConflict:'id'}),'question save');
         if (oldId) { const i=questions.findIndex(q=>q.id===oldId); if(i>=0) questions[i]=payload; }
@@ -169,17 +169,17 @@
         saveLocal(Q_KEY,questions);
         if (typeof resetQ==='function') resetQ();
         if (typeof renderQuestions==='function') renderQuestions();
-        showToast('வினா Supabase-இல் சேமிக்கப்பட்டது ✓',true);
-      } catch(err) { showToast('வினா சேமிக்கப்படவில்லை: '+err.message,false); }
+        showToast('ප්‍රශ්නය Supabase වල Save විය ✓',true);
+      } catch(err) { showToast('ප්‍රශ්නය Save වුනේ නැත: '+err.message,false); }
     }, true);
 
     window.delQ = async function(id) {
-      if (!(await profConfirm('இந்த வினா நீக்கப்படும்.','வினாவை Delete செய்யவா?'))) return;
+      if (!(await profConfirm('මෙම ප්‍රශ්නය ඉවත් වේ.','Delete කරන්නද?'))) return;
       try {
         must(await sb.from('questions').delete().eq('id',id),'question delete');
         questions=questions.filter(q=>q.id!==id); saveLocal(Q_KEY,questions);
-        renderQuestions(); showToast('வினா நீக்கப்பட்டது ✓',true);
-      } catch(e) { showToast('Delete தோல்வி: '+e.message,false); }
+        renderQuestions(); showToast('ප්‍රශ්නය ඉවත් විය ✓',true);
+      } catch(e) { showToast('Delete අසාර්ථකයි: '+e.message,false); }
     };
     window.saveEdit = async function() {
       const r=responses.find(x=>String(x.id)===String(editingId)); if(!r)return;
@@ -187,16 +187,16 @@
       try {
         must(await sb.from('responses').update({answers,updated_at:new Date().toISOString()}).eq('id',r.id),'response update');
         r.answers=answers; r.updated_at=new Date().toISOString(); saveLocal(R_KEY,responses);
-        closeEdit(); renderData(); showToast('Edit சேமிக்கப்பட்டது ✓',true);
-      } catch(e) { showToast('Edit சேமிக்கப்படவில்லை: '+e.message,false); }
+        closeEdit(); renderData(); showToast('Edit Save විය ✓',true);
+      } catch(e) { showToast('Edit Save වුනේ නැත: '+e.message,false); }
     };
     window.delData = async function(id) {
-      if (!(await profConfirm('இந்த பதில் நீக்கப்படும்.','Delete செய்யவா?'))) return;
+      if (!(await profConfirm('මෙම පිළිතුර ඉවත් වේ.','Delete කරන්නද?'))) return;
       try {
         must(await sb.from('responses').delete().eq('id',id),'response delete');
         responses=responses.filter(x=>String(x.id)!==String(id)); saveLocal(R_KEY,responses);
-        renderData(); renderDashboard(); showToast('தரவு நீக்கப்பட்டது ✓',true);
-      } catch(e) { showToast('Delete தோல்வி: '+e.message,false); }
+        renderData(); renderDashboard(); showToast('දත්ත ඉවත් විය ✓',true);
+      } catch(e) { showToast('Delete අසාර්ථකයි: '+e.message,false); }
     };
     window.downloadCSV = function() {
       const rows=[['Date','Main','Path','Sub Office','Division','Office','User','Answers']];
@@ -207,7 +207,7 @@
     if (userForm) userForm.addEventListener('submit', async function(e) {
       e.preventDefault(); e.stopImmediatePropagation();
       const id=document.getElementById('uId').value;
-      if (!id) return showToast('புதிய Login User உருவாக்க Supabase Dashboard → Authentication → Add User பயன்படுத்துங்கள். பின்னர் இங்கே அந்த profile-ஐ update செய்யலாம்.',false);
+      if (!id) return showToast('අලුත් Login User සෑදීමට Supabase Dashboard → Authentication → Add User භාවිතා කරන්න.',false);
       const payload={username:document.getElementById('uUsername').value.trim(),
         name:document.getElementById('uName').value.trim(),role:document.getElementById('uRole').value,
         sub_office_id:document.getElementById('uSub').value,division:document.getElementById('uDiv').value,
@@ -218,11 +218,10 @@
         const ix=users.findIndex(x=>String(x.id)===String(id));
         if(ix>=0) users[ix]={...users[ix],name:payload.name,username:payload.username,role:payload.role,
           subOfficeId:payload.sub_office_id,division:payload.division,office:payload.office,status:payload.status};
-        saveLocal(U_KEY,users); renderUsers(); resetUser(); showToast('User Profile சேமிக்கப்பட்டது ✓',true);
-      } catch(err) { showToast('Profile சேமிக்கப்படவில்லை: '+err.message,false); }
+        saveLocal(U_KEY,users); renderUsers(); resetUser(); showToast('User Profile Save විය ✓',true);
+      } catch(err) { showToast('Profile Save වුනේ නැත: '+err.message,false); }
     }, true);
 
-    // Reload using the checked data layer after replacing the original function.
     window.sbSync();
   }
 
@@ -250,7 +249,7 @@
         if (typeof renderMy==='function') renderMy();
       } catch(e) {
         console.error('Unit Supabase load:',e);
-        if(window.showToast) showToast('Supabase தரவு ஏற்றப்படவில்லை: '+e.message,false);
+        if(window.showToast) showToast('Supabase දත්ත Load වුනේ නැත: '+e.message,false);
       }
     };
 
@@ -259,15 +258,17 @@
       const f=document.getElementById('dynForm');
       if(!f || !f.checkValidity()){ if(f)f.reportValidity(); return false; }
       const ans=collectAns(), lid=leafId();
-      if(!lid) return showToast('வினா உள்ள பிரிவைத் தேர்வு செய்யுங்கள்',false);
+      if(!lid) return showToast('ප්‍රශ්න ඇති අංශය තෝරන්න',false);
       try {
         const ctx=await getProfile();
         const payload={node_id:lid,main_type:curMain,
           level1:curL1?(nodes.find(x=>x.id===curL1)||{}).title:'',
           level2:curL2?(nodes.find(x=>x.id===curL2)||{}).title:'',
           level3:curL3?(nodes.find(x=>x.id===curL3)||{}).title:'',
-          node_path:nodePath(),sub_office_id:mySubId,sub_office_name:mySubName,
-          division:myDiv,office:myOffice,submitted_by:ctx.user.id,
+          node_path:nodePath(),sub_office_id:ctx.profile.sub_office_id||mySubId,
+          sub_office_name:ctx.profile.sub_office_name||mySubName,
+          division:ctx.profile.division||myDiv,office:ctx.profile.office||myOffice,
+          submitted_by:ctx.user.id,
           submitted_by_email:myUser,submitted_by_name:myName,
           answers:ans,selected_items:curItems.slice(),selected_sub:curSub||null};
         const saved=must(await sb.from('responses').insert(payload).select('*').single(),'response insert');
@@ -276,9 +277,9 @@
         f.querySelectorAll('[data-qid]').forEach(el=>{
           if(el.type==='checkbox'||el.type==='radio')el.checked=false;else el.value='';
         });
-        renderMy(); showToast('தரவு Supabase-இல் சேமிக்கப்பட்டது ✓',true);
+        renderMy(); showToast('දත්ත Supabase වල Save විය ✓',true);
       } catch(err) {
-        showToast('சேமிக்கப்படவில்லை: '+err.message,false);
+        showToast('Save වුනේ නැත: '+err.message,false);
         console.error('Response insert failed:',err);
       }
       return false;
@@ -289,16 +290,16 @@
       try {
         must(await sb.from('responses').update({answers,updated_at:new Date().toISOString()}).eq('id',r.id),'my response update');
         r.answers=answers; r.updated_at=new Date().toISOString(); saveLocal(R_KEY,responses);
-        closeMyEdit(); renderMy(); showToast('Edit சேமிக்கப்பட்டது ✓',true);
-      } catch(e) { showToast('Edit சேமிக்கப்படவில்லை: '+e.message,false); }
+        closeMyEdit(); renderMy(); showToast('Edit Save විය ✓',true);
+      } catch(e) { showToast('Edit Save වුනේ නැත: '+e.message,false); }
     };
     window.delMy = async function(id) {
-      if (!(await profConfirm('இந்த பதில் Delete ஆகும்.','Delete செய்யவா?'))) return;
+      if (!(await profConfirm('මෙම පිළිතුර ඉවත් වේ.','Delete කරන්නද?'))) return;
       try {
         must(await sb.from('responses').delete().eq('id',id),'my response delete');
         responses=responses.filter(x=>String(x.id)!==String(id)); saveLocal(R_KEY,responses);
-        renderMy(); showToast('தரவு நீக்கப்பட்டது ✓',true);
-      } catch(e) { showToast('Delete தோல்வி: '+e.message,false); }
+        renderMy(); showToast('දත්ත ඉවත් විය ✓',true);
+      } catch(e) { showToast('Delete අසාර්ථකයි: '+e.message,false); }
     };
     window.downloadMyCSV = function() {
       const mine=(responses||[]).filter(r=>r.division===myDiv && r.office===myOffice);

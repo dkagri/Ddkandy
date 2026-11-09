@@ -6,12 +6,12 @@
 <h1 class="mt-8 text-4xl font-bold leading-tight">Kshetra Datha<br>Kalamanakarana Paddhathiya</h1>
 <p class="mt-4 text-slate-300">Main Admin - 4 Sub Admin - 45 Upa Privu - Pala Karyalaya<br>Login 1 varak - Sub Office / Privu / Karyalaya / Varudam / Season Auto Fill agum.</p>
 <div class="mt-8 space-y-2 text-sm"><div class="rounded-xl bg-white/10 p-3">Extension - Yala / Maha - Varudam thorum marum Form</div><div class="rounded-xl bg-white/10 p-3">Development - Varudaththukku 1 murai marum Form</div><div class="rounded-xl bg-white/10 p-3">45 Privu - Pala Karyalaya - Thanithaniye Pathivu</div></div></div>
-<div class="grid grid-cols-3 gap-4"><div class="rounded-2xl bg-white/10 p-4"><div class="text-2xl font-bold">45</div><div class="text-xs">Upa Privu</div></div><div class="rounded-2xl bg-white/10 p-4"><div class="text-2xl font-bold">1x Login</div><div class="text-xs">Auto Fill</div></div><div class="rounded-2xl bg-white/10 p-4"><div class="text-2xl font-bold">Supabase Form Builder</div><div class="text-xs">Live Embed</div></div></div></div>
+<div class="grid grid-cols-3 gap-4"><div class="rounded-2xl bg-white/10 p-4"><div class="text-2xl font-bold">45</div><div class="text-xs">Upa Privu</div></div><div class="rounded-2xl bg-white/10 p-4"><div class="text-2xl font-bold">1x Login</div><div class="text-xs">Auto Fill</div></div><div class="rounded-2xl bg-white/10 p-4"><div class="text-2xl font-bold">Supabase</div><div class="text-xs">Live Data</div></div></div></div>
 <div class="flex-1 flex items-center justify-center p-4"><div class="w-full max-w-[440px]"><div class="card">
-<div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-indigo-600 grid place-items-center text-white font-bold">A</div><span class="font-bold">FieldWork OS</span><span class="ml-auto badge badge-blue">v12 FINAL • DD Kandy • Secure</span></div>
-<h2 class="text-[28px] font-bold mt-6">DD Kandy - Login</h2><p class="text-sm text-slate-500">Admin wisin thandha Username / Password</p>
+<div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-indigo-600 grid place-items-center text-white font-bold">A</div><span class="font-bold">FieldWork OS</span><span class="ml-auto badge badge-blue">v12 FINAL • Secure</span></div>
+<h2 class="text-[28px] font-bold mt-6">DD Kandy - Login</h2><p class="text-sm text-slate-500">පද්ධති පරිපාලක විසින් ලබා දුන් පරිශීලක නාමය / මුරපදය</p>
 <div id="loginStatus" class="text-[11px] text-slate-400 mt-2"></div><div id="err" class="hidden mt-4 rounded-xl bg-red-50 border border-red-200 p-3 text-sm text-red-700"></div>
-<form id="loginForm" class="mt-6 space-y-4"><div><label class="text-[13px] font-semibold">Username / Email *</label><input id="email" placeholder="எ.கா: ada.kundasale  /  dambagahapitiya" required class="mt-1.5" autocomplete="off" autocapitalize="none"></div>
+<form id="loginForm" class="mt-6 space-y-4"><div><label class="text-[13px] font-semibold">Username / Email *</label><input id="email" placeholder="උදා: ada.kundasale / dambagahapitiya" required class="mt-1.5" autocomplete="off" autocapitalize="none"></div>
 <div><label class="text-[13px] font-semibold">Password *</label>
   <div class="relative mt-1.5">
     <input type="password" id="password" required autocomplete="new-password" class="w-full pr-10">
@@ -20,9 +20,9 @@
     </button>
   </div>
 </div>
-<button class="btn btn-primary w-full py-3.5">Login</button></form>
-<div id="alreadyBox" class="hidden mt-4 rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-sm text-emerald-800"><b>✅ Already Logged In:</b> <span id="alreadyWho"></span><br><button type="button" onclick="continueLoggedIn()" class="btn btn-primary mt-2 px-4 py-2 text-xs">→ Continue — Admin / Unit-க்கு போ</button> <button type="button" onclick="doLogout()" class="btn btn-ghost mt-2 px-3 py-2 text-xs">Logout</button></div>
-<div class="mt-6 rounded-xl bg-emerald-50 p-3 text-[12px] text-emerald-900 border border-emerald-100"><b>🔒 Secure Login:</b><br>Supabase மூலம் மட்டும் Login. Demo Login இல்லை.<br>Main Admin: உண்மையான Email + Password.<br>Sub Admin / Unit: <b>Username + Password மட்டும்</b> — Email தேவையில்லை. எ.கா: <b>ada.kundasale</b> / <b>dambagahapitiya</b></div>
+<button class="btn btn-primary w-full py-3.5">ඇතුල් වන්න (Login)</button></form>
+<div id="alreadyBox" class="hidden mt-4 rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-sm text-emerald-800"><b>✅ Already Logged In:</b> <span id="alreadyWho"></span><br><button type="button" onclick="continueLoggedIn()" class="btn btn-primary mt-2 px-4 py-2 text-xs">→ Continue</button> <button type="button" onclick="doLogout()" class="btn btn-ghost mt-2 px-3 py-2 text-xs">Logout</button></div>
+<div class="mt-6 rounded-xl bg-emerald-50 p-3 text-[12px] text-emerald-900 border border-emerald-100"><b>🔒 Secure Login:</b><br>Supabase මගින් පමණක් Login වේ.<br>Main Admin: සැබෑ Email + Password.<br>Sub Admin / Unit: <b>Username + Password පමණි</b> — Email අවශ්‍ය නැත. උදා: <b>ada.kundasale</b> / <b>dambagahapitiya</b></div>
 </div></div></div>
 <script>
 function togglePassword() {
@@ -70,8 +70,8 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
       if(!sbRes.error && sbRes.data.user){
         var prof = await supabaseClient.from('profiles').select('*').eq('id', sbRes.data.user.id).single();
         var p = (prof && prof.data) ? prof.data : null;
-        if(!p){ err.textContent='Supabase Auth OK, ஆனால் profiles Table-இல் உங்கள் Row இல்லை / RLS Block. Supabase Dashboard-இல் profiles-இல் Row சேர்க்கவும்.'; err.classList.remove('hidden'); return; }
-        if(p.status==='inactive'){ err.textContent='User Inactive.'; err.classList.remove('hidden'); return; }
+        if(!p){ err.textContent='Supabase Auth OK, නමුත් profiles Table එකේ ඔබේ Row එක නැත / RLS Block. Supabase Dashboard එකේ profiles වල Row එකක් එකතු කරන්න.'; err.classList.remove('hidden'); return; }
+        if(p.status==='inactive'){ err.textContent='පරිශීලක අක්‍රීයයි (Inactive).'; err.classList.remove('hidden'); return; }
         var h=loadHierarchy(); var so=null; for(var j=0;j<h.length;j++){ if(h[j].id===(p.sub_office_id||p.subOfficeId)) so=h[j]; }
         var role = p.role || 'unit';
         localStorage.setItem('role', role); localStorage.setItem('user', displayName); localStorage.setItem('user_name', p.name||p.full_name||''); localStorage.setItem('user_subOfficeId', p.sub_office_id||p.subOfficeId||'ALL'); localStorage.setItem('user_subOfficeName', p.sub_office_name||(so?so.name:(p.sub_office_id||'ALL'))); localStorage.setItem('user_division', p.division||'ALL'); localStorage.setItem('user_office', p.office||''); localStorage.setItem('fw_session', JSON.stringify({user:displayName, role:role, exp: Date.now()+12*60*60*1000}));
@@ -79,11 +79,11 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
         return;
       } else {
         var msg = sbRes.error ? sbRes.error.message : 'Supabase Login Failed';
-        err.textContent='Username / Password தவறு. (' + msg + ') — DD Kandy Admin-ஐ தொடர்பு கொள்ளவும்.'; err.classList.remove('hidden'); return;
+        err.textContent='පරිශීලක නාමය හෝ මුරපදය වැරදිය. (' + msg + ')'; err.classList.remove('hidden'); return;
       }
-    }catch(e2){ console.log('SB login error', e2); err.textContent='Supabase-ஐ அணுக முடியவில்லை (' + (e2.message||'Network Error') + ') — Supabase Login-ஐ மீண்டும் முயற்சி செய்யுங்கள்.'; err.classList.remove('hidden'); return; }
+    }catch(e2){ console.log('SB login error', e2); err.textContent='Supabase වෙත සම්බන්ධ විය නොහැක (' + (e2.message||'Network Error') + ')'; err.classList.remove('hidden'); return; }
   }
-  err.textContent='Username / Password தவறு. DD Kandy Admin-ஐ தொடர்பு கொள்ளவும்.'; err.classList.remove('hidden');
+  err.textContent='පරිශීලක නාමය හෝ මුරපදය වැරදිය.'; err.classList.remove('hidden');
 });
 function sessionHandoff(){ try{ var s=localStorage.getItem('fw_session')||''; return btoa(unescape(encodeURIComponent(s))); }catch(e){ return ''; } }
 function continueLoggedIn(){ try{ var j=JSON.parse(localStorage.getItem('fw_session')||'{}'); var page=(j.role==='main_admin'||j.role==='sub_admin')?'admin.html':'unit.html'; location.href=page+'#fw='+sessionHandoff(); }catch(e){ location.href='admin.html'; } }

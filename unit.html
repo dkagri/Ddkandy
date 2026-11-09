@@ -34,8 +34,8 @@
 <div id="uL1Wrap"><label class="text-xs font-semibold" id="uL1Label">2. Season / Year තෝරන්න *</label><select id="uL1" onchange="uPickL1()"></select><div class="text-[11px] text-slate-400 mt-1">Admin Publish කළ ඒවා පමණයි පෙන්වන්නේ.</div></div>
 <div id="uL2Wrap"><label class="text-xs font-semibold" id="uL2Label">3. Cultivation / Program තෝරන්න *</label><select id="uL2" onchange="uPickL2()"></select></div>
 <div id="uL3Wrap" class="hidden"><label class="text-xs font-semibold">4. Sub Program තෝරන්න * (Development පමණි)</label><select id="uL3" onchange="uPickL3()"></select></div>
-<div id="uSubWrap" class="hidden"><label class="text-xs font-semibold">4. உப பிரிவு / Sub-section தேர்வு செய்யுங்கள் * (Extension)</label><select id="uSub" onchange="uPickSub()"></select></div>
-<div id="uItemWrap" class="hidden"><label class="text-xs font-semibold">5. Item / Items Name — ஒன்று அல்லது பல தேர்வு செய்யலாம் * (Development)</label><div id="uItemList" class="mt-2 space-y-1"></div></div>
+<div id="uSubWrap" class="hidden"><label class="text-xs font-semibold">4. උප අංශය තෝරන්න * (Extension)</label><select id="uSub" onchange="uPickSub()"></select></div>
+<div id="uItemWrap" class="hidden"><label class="text-xs font-semibold">5. Item / Items Name — එකක් හෝ කිහිපයක් තෝරන්න * (Development)</label><div id="uItemList" class="mt-2 space-y-1"></div></div>
 </div>
 <div id="uFormWrap" class="mt-5"></div><div id="uEmpty" class="hidden rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm">මේ කොටසට Form / Questions නැහැ. Admin ගෙන් අහන්න.</div>
 </div>
@@ -55,7 +55,7 @@ var __mRes=null;
 function showToast(m,ok){var t=document.getElementById('toast');t.textContent=m;t.className='toast show '+(ok===false?'err':ok===true?'ok':'');setTimeout(function(){t.className='toast';},2600);}
 function openModal(o){return new Promise(function(res){__mRes=res;document.getElementById('modalIcon').textContent=o.icon||'ℹ️';document.getElementById('modalTitle').textContent=o.title||'';document.getElementById('modalMsg').textContent=o.msg||'';document.getElementById('modalInputWrap').classList.toggle('hidden',!o.input);if(o.input){document.getElementById('modalInput').value=o.value||'';}document.getElementById('modalBack').classList.add('show');});}
 function closeModal(ok){document.getElementById('modalBack').classList.remove('show');if(__mRes){var r=__mRes;__mRes=null;r({ok:ok,value:document.getElementById('modalInput').value});}}
-function profConfirm(m,t){return openModal({title:t||'நிச்சயமா?',msg:m,icon:'⚠️',okText:'OK'}).then(function(r){return r.ok;});}
+function profConfirm(m,t){return openModal({title:t||'විශ්වාසද?',msg:m,icon:'⚠️',okText:'OK'}).then(function(r){return r.ok;});}
 
 (function(){ try{ var h=(location.hash||''); if(h.indexOf('#fw=')===0){ try{ var decoded=decodeURIComponent(escape(atob(h.slice(4)))); var hj=JSON.parse(decoded); if(hj&&hj.user&&hj.role){ localStorage.setItem('fw_session',decoded); localStorage.setItem('role',hj.role); localStorage.setItem('user',hj.user); } }catch(e2){} try{ history.replaceState(null,'',location.pathname); }catch(e3){} } }catch(e){} var s=localStorage.getItem('fw_session');var r=localStorage.getItem('role');var u=localStorage.getItem('user');if(!s||!r||!u){ setTimeout(function(){ window.location.href='index.html'; }, 1500); return;}try{var j=JSON.parse(s);if(j.exp&&Date.now()>j.exp){window.location.href='index.html';}}catch(e){}})();
 const SUPABASE_URL='https://ecpoyxjuednjixmaajux.supabase.co';
@@ -86,7 +86,7 @@ function defNodes(){
     {id:'n_ext_2627', main_type:'extension', level:1, parent_id:null, title:'2026/27 Maha', subtitle:'Maha Season', is_published:true, sort_order:1},
     {id:'n_ext_27y', main_type:'extension', level:1, parent_id:null, title:'2027 Yala', subtitle:'Yala Season', is_published:false, sort_order:2},
     {id:'n_ext_2728', main_type:'extension', level:1, parent_id:null, title:'2027/28 Maha', subtitle:'Maha Season', is_published:false, sort_order:3},
-    {id:'n_paddy', main_type:'extension', level:2, parent_id:'n_ext_2627', title:'Paddy Cultivation', subtitle:'වී වගාව / நெல்', is_published:true, sort_order:1},
+    {id:'n_paddy', main_type:'extension', level:2, parent_id:'n_ext_2627', title:'Paddy Cultivation', subtitle:'වී වගාව / නෙල්', is_published:true, sort_order:1},
     {id:'n_veg', main_type:'extension', level:2, parent_id:'n_ext_2627', title:'Vegetable Cultivation', subtitle:'එළවළු වගාව', is_published:true, sort_order:2},
     {id:'n_ofc', main_type:'extension', level:2, parent_id:'n_ext_2627', title:'OFC Cultivation', subtitle:'වෙනත් බෝග', is_published:true, sort_order:3},
     {id:'n_dev26', main_type:'development', level:1, parent_id:null, title:'2026', subtitle:'Year 2026', is_published:true, sort_order:1},
@@ -103,7 +103,7 @@ function defNodes(){
 }
 function defQs(){
   return [
-    {id:'q1', node_id:'n_paddy', question_text:'වගා කළ වී ප්‍රමාණය (Acres) / Cultivated Extent', question_type:'number', options:[], is_required:true, order_index:1},
+    {id:'q1', node_id:'n_paddy', question_text:'වගා කළ ප්‍රමාණය (Acres)', question_type:'number', options:[], is_required:true, order_index:1},
     {id:'q2', node_id:'n_paddy', question_text:'වී ප්‍රභේදය / Variety', question_type:'dropdown', options:['BG 352','BG 360','AT 362','Other'], is_required:true, order_index:2},
     {id:'q3', node_id:'n_paddy', question_text:'ගොවීන් සංඛ්‍යාව / No. of Farmers', question_type:'number', options:[], is_required:true, order_index:3},
     {id:'q4', node_id:'n_paddy', question_text:'සටහන් / Remarks', question_type:'paragraph', options:[], is_required:false, order_index:4},
@@ -139,13 +139,13 @@ function showSection(sec){ document.getElementById('panel-form').classList.toggl
 function uSelectMain(m){ curMain=m; curL1=null; curL2=null; curL3=null; curSub=null; curItems=[]; document.getElementById('uExt').className= m==='extension'?'py-3 rounded-xl font-semibold bg-indigo-600 text-white':'py-3 rounded-xl font-semibold bg-slate-100'; document.getElementById('uDev').className= m==='development'?'py-3 rounded-xl font-semibold bg-emerald-600 text-white':'py-3 rounded-xl font-semibold bg-slate-100'; document.getElementById('uL3Wrap').classList.toggle('hidden', m!=='development'); document.getElementById('uSubWrap').classList.toggle('hidden', m!=='extension'); document.getElementById('uItemWrap').classList.toggle('hidden', m!=='development'); renderUSelects(); }
 function publishedChildren(parentId, level){ return nodes.filter(function(n){ return n.main_type===curMain && n.level===level && (parentId? n.parent_id===parentId : !n.parent_id) && n.is_published; }).sort(function(a,b){return a.sort_order-b.sort_order;}); }
 function renderUSelects(){
-  document.getElementById('uL1Label').textContent= curMain==='extension'?'2. Season தேர்வு செய்யுங்கள் * - 2026/27 Maha, 2027 Yala...':'2. Year தேர்வு செய்யுங்கள் * - 2026, 2027, 2028...';
-  document.getElementById('uL2Label').textContent= curMain==='extension'?'3. Cultivation தேர்வு செய்யுங்கள் * - Paddy / Vegetable / OFC':'3. Program தேர்வு செய்யுங்கள் * - PSDG / KNUCKLES / CBG / FAO';
+  document.getElementById('uL1Label').textContent= curMain==='extension'?'2. Season තෝරන්න * - 2026/27 Maha, 2027 Yala...':'2. Year තෝරන්න * - 2026, 2027, 2028...';
+  document.getElementById('uL2Label').textContent= curMain==='extension'?'3. Cultivation තෝරන්න * - Paddy / Vegetable / OFC':'3. Program තෝරන්න * - PSDG / KNUCKLES / CBG / FAO';
   var l1=publishedChildren(null,1); var h1='<option value="">-- තෝරන්න --</option>'; for(var i=0;i<l1.length;i++){ h1+='<option value="'+l1[i].id+'">'+l1[i].title+'</option>'; } document.getElementById('uL1').innerHTML=h1; if(l1.length===1){ document.getElementById('uL1').value=l1[0].id; curL1=l1[0].id; } else if(curL1){ document.getElementById('uL1').value=curL1; }
   var l2= curL1? publishedChildren(curL1,2):[]; var h2='<option value="">-- තෝරන්න --</option>'; for(var j=0;j<l2.length;j++){ h2+='<option value="'+l2[j].id+'">'+l2[j].title+'</option>'; } document.getElementById('uL2').innerHTML=h2; if(l2.length===1){ document.getElementById('uL2').value=l2[0].id; curL2=l2[0].id; } else if(curL2){ document.getElementById('uL2').value=curL2; }
   if(curMain==='extension'){
     var subs= curL2? publishedChildren(curL2,3):[];
-    var hs='<option value="">— உப பிரிவு இல்லை —</option>'; for(var s=0;s<subs.length;s++){ hs+='<option value="'+subs[s].id+'">'+subs[s].title+'</option>'; }
+    var hs='<option value="">— උප අංශය නැත —</option>'; for(var s=0;s<subs.length;s++){ hs+='<option value="'+subs[s].id+'">'+subs[s].title+'</option>'; }
     document.getElementById('uSub').innerHTML=hs;
     if(subs.length===1){ document.getElementById('uSub').value=subs[0].id; curSub=subs[0].id; }
     else if(curSub){ document.getElementById('uSub').value=curSub; } else { document.getElementById('uSub').value=''; }
@@ -159,7 +159,7 @@ function renderUSelects(){
 function renderUItems(){
   var items = curL3 ? publishedChildren(curL3,4) : [];
   var wrap=document.getElementById('uItemList'); if(!wrap) return;
-  if(!items.length){ wrap.innerHTML='<label class="flex items-center gap-2 text-sm"><input type="checkbox" checked disabled> Item இல்லை — Sub Program நேரடியாக</label>'; curItems=[]; return; }
+  if(!items.length){ wrap.innerHTML='<label class="flex items-center gap-2 text-sm"><input type="checkbox" checked disabled> Item නැත — Sub Program සෘජුවම</label>'; curItems=[]; return; }
   var h=''; for(var i=0;i<items.length;i++){ var it=items[i]; var chk = curItems.indexOf(it.id)>-1?'checked':''; h+='<label class="flex items-center gap-2 text-sm border rounded-lg px-3 py-2 bg-white"><input type="checkbox" value="'+it.id+'" '+chk+' onchange="uToggleItem(this)"> '+it.title+'</label>'; }
   wrap.innerHTML=h;
 }
@@ -198,7 +198,7 @@ function renderUForm(){
   var wrap=document.getElementById('uFormWrap'); var empty=document.getElementById('uEmpty');
   var lids=leafIds();
   if(!lids.length){
-    if(curMain==='extension' && curL2){ wrap.innerHTML='<div class="rounded-xl bg-amber-50 border border-amber-200 p-3 text-sm text-amber-700">⚠️ இந்த Cultivation-இன் கீழ் உப பிரிவு உள்ளது — மேலே 4. உப பிரிவு-ஐ தேர்வு செய்யுங்கள்.</div>'; }
+    if(curMain==='extension' && curL2){ wrap.innerHTML='<div class="rounded-xl bg-amber-50 border border-amber-200 p-3 text-sm text-amber-700">⚠️ මෙම Cultivation යටතේ උප අංශ ඇත — ඉහත 4. උප අංශය තෝරන්න.</div>'; }
     else { wrap.innerHTML=''; }
     empty.classList.add('hidden'); return;
   }
@@ -210,17 +210,17 @@ function renderUForm(){
     groups.push({lid:lid, title: node?node.title:'', qs:qs});
   }
   var totalQs=0; for(var tt=0;tt<groups.length;tt++) totalQs+=groups[tt].qs.length;
-  if(!totalQs){ wrap.innerHTML=''; empty.classList.remove('hidden'); empty.innerHTML='இந்த பிரிவுக்கு Admin இன்னும் வினா உருவாக்கவில்லை.'; return; }
+  if(!totalQs){ wrap.innerHTML=''; empty.classList.remove('hidden'); empty.innerHTML='මෙම අංශයට Admin තවම ප්‍රශ්න සාදා නැත.'; return; }
   empty.classList.add('hidden');
-  var html='<div class="rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-[12px]">Auto Fill: <b>'+mySubName+' | '+myDiv+' | '+myOffice+' | '+nodePath()+' | '+myName+'</b><br><span class="text-emerald-700">Admin-இல் உருவாக்கிய வினாக்கள் ('+totalQs+') — '+(curMain==='extension'?'🌾 Extension':'🏗️ Development')+'</span></div>';
+  var html='<div class="rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-[12px]">Auto Fill: <b>'+mySubName+' | '+myDiv+' | '+myOffice+' | '+nodePath()+' | '+myName+'</b><br><span class="text-emerald-700">Admin විසින් සාදන ලද ප්‍රශ්න ('+totalQs+') — '+(curMain==='extension'?'🌾 Extension':'🏗️ Development')+'</span></div>';
   html+='<form id="dynForm" class="mt-4 space-y-4" onsubmit="return submitUForm(event)">';
   var qNum=0;
   for(var g=0; g<groups.length; g++){
-    if(groups.length>1){ html+='<div class="font-bold text-[15px] mt-2 px-1">📦 '+(groups[g].title||('Item '+(g+1)))+' — வினாக்கள்</div>'; }
-    if(!groups[g].qs.length){ html+='<div class="text-xs text-slate-400 px-1">இந்த Item-க்கு வினா இல்லை</div>'; continue; }
+    if(groups.length>1){ html+='<div class="font-bold text-[15px] mt-2 px-1">📦 '+(groups[g].title||('Item '+(g+1)))+' — ප්‍රශ්න</div>'; }
+    if(!groups[g].qs.length){ html+='<div class="text-xs text-slate-400 px-1">මෙම Item එකට ප්‍රශ්න නැත</div>'; continue; }
     for(var i=0;i<groups[g].qs.length;i++){ var q=groups[g].qs[i]; qNum++; html+='<div class="rounded-xl border p-4 bg-white"><label class="text-[14px] font-semibold">'+qNum+'. '+q.question_text+' '+(q.is_required?'<span class="text-red-500">*</span>':'')+'</label><div class="mt-2">'+renderField(q)+'</div></div>'; }
   }
-  html+='<div id="okBox" class="hidden rounded-xl bg-green-50 border border-green-200 p-3 text-sm text-green-700">Save වුණා! අලුත් එකක් පුරවන්න Clear Button එක ඔබන්න.</div>';
+  html+='<div id="okBox" class="hidden rounded-xl bg-green-50 border border-green-200 p-3 text-sm text-green-700">Save විය! අලුත් එකක් පුරවන්න Clear Button එක ඔබන්න.</div>';
   html+='<div class="flex gap-2"><button class="btn btn-primary flex-1 py-3.5">Submit - Save</button><button type="button" onclick="clearUForm()" class="btn btn-ghost px-4">Clear - අලුත් Form</button></div></form>';
   wrap.innerHTML=html;
 }
@@ -233,7 +233,7 @@ async function submitUForm(e){
   responses.unshift(payload); saveLocal(R_KEY, responses);
   document.getElementById('okBox').classList.remove('hidden');
   f.querySelectorAll('[data-qid]').forEach(function(el){ if(el.type==='checkbox'||el.type==='radio') el.checked=false; else el.value=''; });
-  renderMy(); showToast('Save වුණා! ✓',true);
+  renderMy(); showToast('Save විය! ✓',true);
   return false;
 }
 function clearUForm(){ renderUForm(); }
@@ -245,14 +245,14 @@ function renderMy(){
   if(s) mine=mine.filter(function(r){return (JSON.stringify(r.answers)+(r.node_path||'')).toLowerCase().indexOf(s)>-1;});
   var l1s=[]; responses.forEach(function(r){ if(r.level1 && l1s.indexOf(r.level1)===-1) l1s.push(r.level1); }); var sel=document.getElementById('myFilterL1'); var cur=sel.value; sel.innerHTML='<option value="">All Season / Year</option>'+l1s.map(function(x){return '<option>'+x+'</option>';}).join(''); sel.value=cur;
   var h=''; for(var i=0;i<mine.slice(0,100).length;i++){ var r=mine[i]; h+='<tr><td class="text-xs"><b>'+r.node_path+'</b></td><td class="text-xs">'+JSON.stringify(r.answers).substring(0,200)+'</td><td class="text-xs">'+new Date(r.created_at).toLocaleDateString()+'</td><td><button onclick="editMy(\''+r.id+'\')" class="btn btn-ghost px-2 py-1 text-xs">Edit</button><button onclick="delMy(\''+r.id+'\')" class="text-red-500 text-xs px-2">Delete</button></td></tr>'; }
-  document.getElementById('myTbody').innerHTML=h||'<tr><td colspan=4 class="text-center py-6 text-slate-400">Data නැහැ</td></tr>';
+  document.getElementById('myTbody').innerHTML=h||'<tr><td colspan=4 class="text-center py-6 text-slate-400">දත්ත නැත</td></tr>';
 }
-function editMy(id){ var r=responses.find(function(x){return x.id===id;}); if(!r) return; editingId=id; document.getElementById('myEditBox').classList.remove('hidden'); var qs=questions.filter(function(q){return q.node_id===r.node_id;}); var h=''; for(var i=0;i<qs.length;i++){ var q=qs[i]; h+='<div><label class="text-xs font-semibold">'+q.question_text+'</label><input data-my-qid="'+q.id+'" value="'+(r.answers[q.id]||'')+'"></div>'; } document.getElementById('myEditFields').innerHTML=h||'<div class="text-xs">Questions නැහැ</div>'; }
-function saveMyEdit(){ var r=responses.find(function(x){return x.id===editingId;}); if(!r) return; var na={}; document.querySelectorAll('[data-my-qid]').forEach(function(el){ na[el.dataset.myQid]=el.value; }); r.answers=na; r.updated_at=new Date().toISOString(); saveLocal(R_KEY, responses); if(sb){ try{ sb.from('responses').update({answers:na}).eq('id', r.id); }catch(e){} } closeMyEdit(); renderMy(); showToast('Edit Save වුණා! ✓',true); }
+function editMy(id){ var r=responses.find(function(x){return x.id===id;}); if(!r) return; editingId=id; document.getElementById('myEditBox').classList.remove('hidden'); var qs=questions.filter(function(q){return q.node_id===r.node_id;}); var h=''; for(var i=0;i<qs.length;i++){ var q=qs[i]; h+='<div><label class="text-xs font-semibold">'+q.question_text+'</label><input data-my-qid="'+q.id+'" value="'+(r.answers[q.id]||'')+'"></div>'; } document.getElementById('myEditFields').innerHTML=h||'<div class="text-xs">ප්‍රශ්න නැත</div>'; }
+function saveMyEdit(){ var r=responses.find(function(x){return x.id===editingId;}); if(!r) return; var na={}; document.querySelectorAll('[data-my-qid]').forEach(function(el){ na[el.dataset.myQid]=el.value; }); r.answers=na; r.updated_at=new Date().toISOString(); saveLocal(R_KEY, responses); if(sb){ try{ sb.from('responses').update({answers:na}).eq('id', r.id); }catch(e){} } closeMyEdit(); renderMy(); showToast('Edit Save විය! ✓',true); }
 function closeMyEdit(){ editingId=null; document.getElementById('myEditBox').classList.add('hidden'); }
-async function delMy(id){ if(!(await profConfirm('இந்த பதில் Delete ஆகும்.','Delete செய்யவா?'))) return; responses=responses.filter(function(x){return x.id!==id;}); saveLocal(R_KEY, responses); if(sb){ try{ sb.from('responses').delete().eq('id', id); }catch(e){} } renderMy(); }
+async function delMy(id){ if(!(await profConfirm('මෙම පිළිතුර ඉවත් වේ.','Delete කරන්නද?'))) return; responses=responses.filter(function(x){return x.id!==id;}); saveLocal(R_KEY, responses); if(sb){ try{ sb.from('responses').delete().eq('id', id); }catch(e){} } renderMy(); }
 function downloadMyCSV(){
-  var mine=responses.filter(function(r){ return r.division===myDiv && r.office===myOffice; }); if(!mine.length) return showToast('Data නැහැ',false);
+  var mine=responses.filter(function(r){ return r.division===myDiv && r.office===myOffice; }); if(!mine.length) return showToast('දත්ත නැත',false);
   var csv='data:text/csv;charset=utf-8,Date,Main,Path,SubOffice,Division,Office,User,Answers\n';
   for(var i=0;i<mine.length;i++){ var r=mine[i]; csv+='"'+r.created_at+'","'+r.main_type+'","'+r.node_path+'","'+r.subOfficeName+'","'+r.division+'","'+r.office+'","'+r.submittedName+'","'+JSON.stringify(r.answers).replace(/"/g,'""')+'"\n'; }
   var a=document.createElement('a'); a.href=encodeURI(csv); a.download='my_data.csv'; a.click();
