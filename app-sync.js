@@ -157,7 +157,7 @@
           const pr = await sb.from('profiles').select('*').order('created_at',{ascending:false});
           const ps = must(pr,'profiles read') || [];
           users = ps.map(x=>({id:x.id,name:x.name||'',username:x.username||'',password:'',
-            role:x.role||'unit',subOfficeId:x.sub_office_id||'ALL',division:x.division||'ALL',
+            role:x.role||'unit_user',subOfficeId:x.sub_office_id||'ALL',division:x.division||'ALL',
             office:x.office||'',officer_name:x.officer_name||'',status:x.status||'active'}));
           saveLocal(U_KEY,users);
           if (typeof renderUsers==='function') renderUsers();
@@ -225,7 +225,7 @@
       } catch(e) { showToast('Delete අසාර්ථකයි: '+e.message,false); }
     };
     
-    // Export filtered data if available
+    // EXPORT ADMIN DATA (Excel Friendly with Filters)
     window.downloadCSV = function() {
       let list = window.currentFilteredAdminData || (window.responses || []);
       if(!list.length) { if(window.showToast) showToast('දත්ත නැත', false); return; }
@@ -334,7 +334,7 @@
       } catch(e) { showToast('Delete අසාර්ථකයි: '+e.message,false); }
     };
     
-    // Export filtered data if available
+    // EXPORT UNIT DATA (Excel Friendly with Filters)
     window.downloadMyCSV = function() {
       let list = window.currentFilteredUnitData || (responses||[]).filter(r=>r.division===myDiv && r.office===myOffice);
       if(!list.length) { if(window.showToast) showToast('දත්ත නැත', false); return; }
