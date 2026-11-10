@@ -77,27 +77,32 @@
 <div class="card mt-5"><h3 class="font-bold">දැන් Unit එකේ පෙන්වන්නේ — <span class="text-emerald-600">Published Only</span></h3><div id="publishedBox" class="grid md:grid-cols-2 gap-3 mt-4"></div></div>
 <!-- CHARTS / SUMMARY REPORT -->
 <div class="card mt-5">
-    <h3 class="font-bold text-[18px]">📊 Summary Report - Data Distribution</h3>
-    <p class="text-xs text-slate-500 mt-1">மொத்த பதில்களின் அடிப்படையில் புள்ளிவிவரங்கள் (சதவீத வரைபடம்)</p>
-    <div class="grid md:grid-cols-2 gap-5 mt-4">
-        <div class="border p-4 rounded-2xl bg-white shadow-sm relative">
-            <h4 class="font-semibold text-center text-sm mb-3">AD Office Distribution (Overall)</h4>
-            <div class="relative h-64 w-full flex justify-center"><canvas id="chartAdOffice"></canvas></div>
-            <button onclick="downloadChart('chartAdOffice', 'AD_Office_Distribution')" class="btn btn-ghost mt-3 w-full text-xs">⬇ Download Chart</button>
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+        <div>
+            <h3 class="font-bold text-[18px]">📊 Summary Report - Data Distribution</h3>
+            <p class="text-xs text-slate-500 mt-1">மொத்த பதில்களின் அடிப்படையில் புள்ளிவிவரங்கள் (சதவீத வரைபடம்)</p>
         </div>
-        <div class="border p-4 rounded-2xl bg-white shadow-sm relative">
-            <div class="flex flex-col sm:flex-row justify-between items-center mb-3 gap-2">
+        <a href="summary.html" class="btn btn-primary px-4 py-2 text-sm w-full md:w-auto text-center">📈 Click for More Details →</a>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-5">
+        <div class="border p-4 rounded-2xl bg-white shadow-sm flex flex-col items-center">
+            <h4 class="font-semibold text-center text-sm mb-3">AD Office Distribution (Overall)</h4>
+            <div class="relative w-full max-w-[280px] h-[250px] flex justify-center"><canvas id="chartAdOffice"></canvas></div>
+            <button onclick="downloadChart('chartAdOffice', 'AD_Office_Distribution')" class="btn btn-ghost mt-4 w-full text-xs py-2">⬇ Download Chart</button>
+        </div>
+        <div class="border p-4 rounded-2xl bg-white shadow-sm flex flex-col items-center">
+            <div class="flex flex-col sm:flex-row justify-between items-center w-full mb-3 gap-2">
                 <h4 class="font-semibold text-sm">AI Office Distribution</h4>
-                <select id="chartAdSelect" class="!w-auto text-xs px-2 py-1" onchange="renderCharts()">
+                <select id="chartAdSelect" class="!w-full sm:!w-auto text-xs px-2 py-1" onchange="renderCharts()">
                     <option value="">All AD Offices</option>
                 </select>
             </div>
-            <div class="relative h-64 w-full flex justify-center"><canvas id="chartAiOffice"></canvas></div>
-            <button onclick="downloadChart('chartAiOffice', 'AI_Office_Distribution')" class="btn btn-ghost mt-3 w-full text-xs">⬇ Download Chart</button>
+            <div class="relative w-full max-w-[280px] h-[250px] flex justify-center"><canvas id="chartAiOffice"></canvas></div>
+            <button onclick="downloadChart('chartAiOffice', 'AI_Office_Distribution')" class="btn btn-ghost mt-4 w-full text-xs py-2">⬇ Download Chart</button>
         </div>
     </div>
 </div>
-
 <div class="card mt-5"><h3 class="font-bold">නවතම පිළිතුරු (Latest 8)</h3><div id="recentBox" class="mt-3 space-y-2"></div><button onclick="goNav('data')" class="btn btn-ghost mt-3 text-xs">සියලු දත්ත බලන්න →</button></div>
 </div>
 

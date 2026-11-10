@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Detailed Summary | FieldWork OS</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="styles.css">
+<style>
+    .chart-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,.03); display: flex; flex-direction: column; align-items: center; }
+    .chart-container { position: relative; width: 100%; max-width: 300px; height: 260px; margin-top: 10px; }
+    .tab-btn { padding: 12px 20px; font-weight: 600; border-bottom: 3px solid transparent; color: #64748b; }
+    .tab-btn.active { border-color: #4f46e5; color: #4f46e5; background: #eef2ff; border-radius: 12px 12px 0 0; }
+</style>
+</head>
+<body class="bg-[#f8fafc] min-h-screen">
+
+<!-- Top Bar -->
+<div class="bg-white border-b border-slate-200 sticky top-0 z-50">
+    <div class="max-w-[1100px] mx-auto px-4 py-3 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <a href="admin.html" class="btn btn-ghost px-3 py-2 text-sm font-bold">← Back to Admin</a>
+            <h1 class="font-bold text-lg hidden sm:block">📊 Detailed Summary Report</h1>
+        </div>
+        <div class="text-xs px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full font-bold">Admin Access</div>
+    </div>
+</div>
+
+<div class="max-w-[1100px] mx-auto p-4 md:p-6">
+    <!-- Tabs -->
+    <div class="flex gap-2 border-b border-slate-200 mb-6 overflow-x-auto">
+        <button id="tabExt" onclick="switchTab('extension')" class="tab-btn active whitespace-nowrap">🌾 Extension Data</button>
+        <button id="tabDev" onclick="switchTab('development')" class="tab-btn whitespace-nowrap">🏗️ Development Data</button>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loading" class="text-center py-10 text-slate-500">දත්ත Load වෙමින් පවතී...</div>
+
+    <!-- Extension Section -->
+    <div id="secExtension" class="hidden">
+        <h2 class="text-xl font-bold mb-4 text-indigo-700">Extension - விவரங்கள்</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="chart-card"><h4 class="font-semibold text-sm">Session / Year</h4><div class="chart-container"><canvas id="extL1"></canvas></div><button onclick="downloadChart('extL1', 'Ext_Session')" class="btn btn-ghost mt-3 w-full text-xs">⬇ Download</button></div>
+            <div class="chart-card"><h4 class="font-semibold text-sm">Cultivation (Work)</h4><div class="chart-container"><canvas id="extL2"></canvas></div><button onclick="downloadChart('extL2', 'Ext_Cultivation')" class="btn btn-ghost mt-3 w-full text-xs">⬇ Download</button></div>
+            <div class="chart-card"><h4 class="font-semibold text-sm">Sub Section</h4><div class="chart-container"><canvas id="extL3"></canvas></div><button onclick="downloadChart('extL3', 'Ext_SubSection')" class="btn btn-ghost mt-3 w-full text-xs">⬇ Download</button></div>
+            <div class="chart-card"><h4 class="font-semibold text-sm">AD Office</h4><div class="chart-container"><canvas id="extAD"></canvas></div><button onclick="downloadChart('extAD', 'Ext_AD_Office')" class="btn btn-ghost mt-3 w-full text-xs">⬇ Download</button></div>
+            <div class="chart-card"><h4 class="font-semibold text-sm">AI Office (Division)</h4><div class="chart-container"><canvas id="extAI"></canvas></div><button onclick="downloadChart('extAI', 'Ext_AI_Office')" class="btn btn-ghost mt-3 w-full text-xs">⬇ Download</button></div>
+        </div>
+    </div>
+
+    <!-- Development Section -->
+    <div id="secDevelopment" class="hidden">
+        <h2 class="text-xl font-bold mb-4 text-emerald-700">Development - விவரங்கள்</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="chart-card"><h4 class="font-semibold text-sm">Year</h4><div class="chart-container"><canvas id="devL1"></canvas></div><button onclick="downloadChart('devL1', 'Dev_Year')" class="btn btn-ghost mt-3 w-full text-xs">⬇ Download</button></div>
+            <div class="chart-card"><h4 class="font-semibold text-sm">Program (Work)</h4><div class="chart-container"><canvas id="devL2"></canvas></div><button onclick="downloadChart('devL2', 'Dev_Program')" class="btn btn-ghost mt-3 w-full text-xs">⬇ Download</button></div>
+            <div class="chart-card"><h4 class="font-semibold text-sm">Sub Program (Project)</h4><div class="chart-container"><canvas id="devL3"></canvas></div><button onclick="downloadChart('devL3', 'Dev_SubProgram')" class="btn btn-ghost mt-3 w-full text-xs">⬇ Download</button></div>
+            <div class="chart-card"><h4 class="font-semibold text-sm">Item Provided</h4><div class="chart-container"><canvas id="devL4"></canvas></div><button onclick="downloadChart('devL4', 'Dev_Item')" class="btn btn-ghost mt-3 w-full text-xs">⬇ Download</button></div>
+            <div class="chart-card"><h4 class="font-semibold text-sm">AD Office</h4><div class="chart-container"><canvas id="devAD"></canvas></div><button onclick="downloadChart('devAD', 'Dev_AD_Office')" class="btn btn-ghost mt-3 w-full text-xs">⬇ Download</button></div>
+            <div class="chart-card"><h4 class="font-semibold text-sm">AI Office (Division)</h4><div class="chart-container"><canvas id="devAI"></canvas></div><button onclick="downloadChart('devAI', 'Dev_AI_Office')" class="btn btn-ghost mt-3 w-full text-xs">⬇ Download</button></div>
+        </div>
+    </div>
+</div>
+
+<script>
+const SUPABASE_URL='https://ecpoyxjuednjixmaajux.supabase.co';
+const SUPABASE_KEY='sb_publishable_kbTMWrgN1_lRxClNYU-PQg_Qc9jpmSe';
+const sb = (typeof supabase!=='undefined') ? supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
+
+// --- Auth Guard ---
+(async function checkAuth(){
+    if(!sb) return;
+    var sess = await sb.auth.getSession();
+    if(!sess || !sess.data || !sess.data.session){ window.location.href='index.html'; return; }
+    var uid = sess.data.session.user.id;
+    var prof = await sb.from('profiles').select('role,status').eq('id', uid).single();
+    if(!prof || !prof.data || prof.data.status!=='active' || (prof.data.role!=='main_admin' && prof.data.role!=='sub_admin')) {
+        await sb.auth.signOut(); window.location.href='index.html'; return;
+    }
+})();
+
+let allResponses = [];
+const colorPalette = ['#4f46e5', '#059669', '#d97706', '#dc2626', '#0891b2', '#7c3aed', '#db2777', '#ea580c', '#16a34a', '#2563eb'];
+
+function getChartData(data, keyFn) {
+    let counts = {};
+    data.forEach(r => {
+        let key = keyFn(r) || 'Unknown';
+        if(Array.isArray(key)) {
+            key.forEach(k => { if(k) counts[k] = (counts[k]||0)+1; });
+        } else {
+            counts[key] = (counts[key]||0)+1;
+        }
+    });
+    return { labels: Object.keys(counts), data: Object.values(counts) };
+}
+
+function renderPie(canvasId, labels, data) {
+    const ctx = document.getElementById(canvasId);
+    if(!ctx) return;
+    if(!labels.length) {
+        ctx.parentElement.innerHTML = '<div class="flex items-center justify-center h-full text-slate-400 text-sm">දත්ත නැත</div>';
+        return;
+    }
+    new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: labels,
+            datasets: [{ data: data, backgroundColor: colorPalette }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { boxWidth: 12, font: {size: 11} } }
+            }
+        }
+    });
+}
+
+function downloadChart(canvasId, filename) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const url = canvas.toDataURL('image/png');
+    const a = document.createElement('a');
+    a.href = url; a.download = filename + '.png'; a.click();
+}
+
+function switchTab(type) {
+    document.getElementById('secExtension').classList.add('hidden');
+    document.getElementById('secDevelopment').classList.add('hidden');
+    document.getElementById('tabExt').classList.remove('active');
+    document.getElementById('tabDev').classList.remove('active');
+    
+    if(type === 'extension') {
+        document.getElementById('secExtension').classList.remove('hidden');
+        document.getElementById('tabExt').classList.add('active');
+    } else {
+        document.getElementById('secDevelopment').classList.remove('hidden');
+        document.getElementById('tabDev').classList.add('active');
+    }
+}
+
+async function loadData() {
+    if(!sb) {
+        document.getElementById('loading').textContent = 'Supabase client not loaded.';
+        return;
+    }
+    try {
+        const { data, error } = await sb.from('responses').select('*').order('created_at', {ascending: false});
+        if(error) throw error;
+        allResponses = data || [];
+        
+        // Split Data
+        const extData = allResponses.filter(r => r.main_type === 'extension');
+        const devData = allResponses.filter(r => r.main_type === 'development');
+
+        // Render Extension
+        let extL1 = getChartData(extData, r => r.level1);
+        renderPie('extL1', extL1.labels, extL1.data);
+
+        let extL2 = getChartData(extData, r => r.level2);
+        renderPie('extL2', extL2.labels, extL2.data);
+
+        let extL3 = getChartData(extData, r => r.level3);
+        renderPie('extL3', extL3.labels, extL3.data);
+
+        let extAD = getChartData(extData, r => r.sub_office_name || r.sub_office_id);
+        renderPie('extAD', extAD.labels, extAD.data);
+
+        let extAI = getChartData(extData, r => r.division);
+        renderPie('extAI', extAI.labels, extAI.data);
+
+        // Render Development
+        let devL1 = getChartData(devData, r => r.level1);
+        renderPie('devL1', devL1.labels, devL1.data);
+
+        let devL2 = getChartData(devData, r => r.level2);
+        renderPie('devL2', devL2.labels, devL2.data);
+
+        let devL3 = getChartData(devData, r => r.level3);
+        renderPie('devL3', devL3.labels, devL3.data);
+
+        // Extract Item from node_path (Last part after >) or selected_items
+        let devL4 = getChartData(devData, r => {
+            if(r.selected_items && r.selected_items.length) return r.selected_items;
+            if(r.node_path) {
+                let parts = r.node_path.split(' > ');
+                let last = parts[parts.length - 1];
+                return last.replace('Item: ', ''); // Clean up if needed
+            }
+            return 'Unknown';
+        });
+        renderPie('devL4', devL4.labels, devL4.data);
+
+        let devAD = getChartData(devData, r => r.sub_office_name || r.sub_office_id);
+        renderPie('devAD', devAD.labels, devAD.data);
+
+        let devAI = getChartData(devData, r => r.division);
+        renderPie('devAI', devAI.labels, devAI.data);
+
+        document.getElementById('loading').classList.add('hidden');
+        switchTab('extension'); // Default view
+        
+    } catch (e) {
+        console.error(e);
+        document.getElementById('loading').textContent = 'දත්ත Load செய்வதில் தோல்வி: ' + e.message;
+    }
+}
+
+loadData();
+</script>
+</body>
+</html>
