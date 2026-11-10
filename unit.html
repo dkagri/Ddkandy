@@ -213,6 +213,16 @@ function renderUForm(){
     groups.push({lid:lid, title: node?node.title:'', qs:qs});
   }
   var totalQs=0; for(var tt=0;tt<groups.length;tt++) totalQs+=groups[tt].qs.length;
+  
+  // Fallback: If no questions found in items, check if questions exist in the Sub Program
+  if(totalQs === 0 && curMain === 'development' && curItems.length > 0 && curL3) {
+     var l3Qs = questions.filter(function(q){return q.node_id===curL3;}).sort(function(a,b){return a.order_index-b.order_index;});
+     if(l3Qs.length > 0) {
+         groups = [{lid: curL3, title: 'Sub Program Questions', qs: l3Qs}];
+         totalQs = l3Qs.length;
+     }
+  }
+
   if(!totalQs){ wrap.innerHTML=''; empty.classList.remove('hidden'); empty.innerHTML='මෙම අංශයට Admin තවම ප්‍රශ්න සාදා නැත.'; return; }
   empty.classList.add('hidden');
   var html='<div class="rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-[12px]">Auto Fill: <b>'+mySubName+' | '+myDiv+' | '+myOffice+' | '+nodePath()+' | '+myOfficer+'</b><br><span class="text-emerald-700">Admin විසින් සාදන ලද ප්‍රශ්න ('+totalQs+') — '+(curMain==='extension'?'🌾 Extension':'🏗️ Development')+'</span></div>';

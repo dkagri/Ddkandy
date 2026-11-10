@@ -528,14 +528,15 @@ async function copyNode(id){
   async function deepCopy(node, newParentId, newTitle) {
     var nid = 'n' + Date.now() + Math.floor(Math.random()*1000);
     var nn = {id:nid, main_type:node.main_type, level:node.level, parent_id:newParentId, title:newTitle, subtitle:node.subtitle||'', is_published:node.is_published, sort_order:node.sort_order||0};
-    nodes.push(nn); saveLocal(N_KEY,nodes); sbSaveNode(nn);
+    nodes.push(nn); saveLocal(N_KEY,nodes); 
+    await sbSaveNode(nn); // Await added to ensure Supabase save completes
     
     var qs = questions.filter(x=>x.node_id===node.id);
     for(var i=0;i<qs.length;i++){ 
       var q=qs[i]; 
-      var nq={id:'q'+Date.now()+Math.floor(Math.random()*1000), node_id:nid, question_text:q.question_text, question_type:q.question_type, options:(q.options||[]).slice(), is_required:q.is_required, order_index:q.order_index}; 
+      var nq={id:'q'+Date.now()+Math.floor(Math.random()*1000)+'_'+i, node_id:nid, question_text:q.question_text, question_type:q.question_type, options:(q.options||[]).slice(), is_required:q.is_required, order_index:q.order_index}; 
       questions.push(nq); 
-      if(sb) sb.from('questions').upsert(nq);
+      if(sb) await sb.from('questions').upsert(nq); // Await added to ensure Supabase save completes
     }
     saveLocal(Q_KEY,questions);
     

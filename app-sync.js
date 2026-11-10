@@ -289,22 +289,53 @@
       e.preventDefault();
       const f=document.getElementById('dynForm');
       if(!f || !f.checkValidity()){ if(f)f.reportValidity(); return false; }
-      const ans=collectAns(), lid=leafId();
-      if(!lid) return showToast('ප්‍රශ්න ඇති අංශය තෝරන්න',false);
+      const ans=collectAns();
+      const lids = typeof leafIds === 'function' ? leafIds() : [];
+      if(!lids.length) return showToast('ප්‍රශ්න ඇති අංශය තෝරන්න',false);
+      
       try {
         const ctx=await getProfile();
-        const payload={node_id:lid,main_type:curMain,
-          level1:curL1?(nodes.find(x=>x.id===curL1)||{}).title:'',
-          level2:curL2?(nodes.find(x=>x.id===curL2)||{}).title:'',
-          level3:curL3?(nodes.find(x=>x.id===curL3)||{}).title:'',
-          node_path:nodePath(),sub_office_id:ctx.profile.sub_office_id,
-          sub_office_name:ctx.profile.sub_office_name,
-          division:ctx.profile.division,office:ctx.profile.office,
-          submitted_by:ctx.user.id,
-          submitted_by_email:myUser,submitted_by_name:myName,
-          answers:ans,selected_items:curItems.slice(),selected_sub:curSub||null};
-        const saved=must(await sb.from('responses').insert(payload).select('*').single(),'response insert');
-        responses.unshift(mapResponse(saved)); saveLocal(R_KEY,responses);
+        
+        // Determine which lids actually have questions to save
+        let lidsToSave = lids.filter(lid => (window.questions||[]).some(q => String(q.node_id) === String(lid)));
+        // Fallback to curL3 if no items have questions
+        if (lidsToSave.length === 0 && window.curMain === 'development' && window.curItems && window.curItems.length > 0 && window.curL3) {
+            if ((window.questions||[]).some(q => String(q.node_id) === String(window.curL3))) {
+                lidsToSave = [window.curL3];
+            }
+        }
+
+        for(let i=0; i<lidsToSave.length; i++) {
+          let lid = lidsToSave[i];
+          let lidQs = (window.questions||[]).filter(q => String(q.node_id) === String(lid)).map(q => q.id);
+          let itemAns = {};
+          lidQs.forEach(qid => { if(ans[qid] !== undefined) itemAns[qid] = ans[qid]; });
+          
+          if(Object.keys(itemAns).length === 0) continue;
+
+          const payload={
+            node_id:lid,
+            main_type:window.curMain,
+            level1:window.curL1?(nodes.find(x=>x.id===window.curL1)||{}).title:'',
+            level2:window.curL2?(nodes.find(x=>x.id===window.curL2)||{}).title:'',
+            level3:window.curL3?(nodes.find(x=>x.id===window.curL3)||{}).title:'',
+            node_path:typeof nodePath === 'function' ? nodePath() : '',
+            sub_office_id:ctx.profile.sub_office_id,
+            sub_office_name:ctx.profile.sub_office_name,
+            division:ctx.profile.division,
+            office:ctx.profile.office,
+            submitted_by:ctx.user.id,
+            submitted_by_email:window.myUser || localStorage.getItem('user'),
+            submitted_by_name:window.myName || localStorage.getItem('user_name'),
+            answers:itemAns,
+            selected_items:[lid],
+            selected_sub:window.curSub||null
+          };
+          const saved=must(await sb.from('responses').insert(payload).select('*').single(),'response insert');
+          responses.unshift(mapResponse(saved)); 
+        }
+        
+        saveLocal(R_KEY,responses);
         document.getElementById('okBox').classList.remove('hidden');
         f.querySelectorAll('[data-qid]').forEach(el=>{
           if(el.type==='checkbox'||el.type==='radio')el.checked=false;else el.value='';
