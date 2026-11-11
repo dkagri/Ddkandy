@@ -26,11 +26,11 @@
          <div><label class="text-xs font-semibold text-slate-600 mb-1 block">Main Type</label><select id="fMain" onchange="renderData()"><option value="">All</option><option value="extension">Extension</option><option value="development">Development</option></select></div>
          <div><label class="text-xs font-semibold text-slate-600 mb-1 block">AD Office</label><select id="fSub" onchange="renderData()"><option value="">All AD Offices</option></select></div>
          <div><label class="text-xs font-semibold text-slate-600 mb-1 block">AI Office</label><select id="fDiv" onchange="renderData()"><option value="">All AI Offices</option></select></div>
-         <div><label class="text-xs font-semibold text-slate-600 mb-1 block">Season / Year</label><select id="fL1"><option value="">All</option></select></div>
-         <div><label class="text-xs font-semibold text-slate-600 mb-1 block">Program / Crop</label><select id="fL2"><option value="">All</option></select></div>
-         <div><label class="text-xs font-semibold text-slate-600 mb-1 block">Sub Program</label><select id="fL3"><option value="">All</option></select></div>
-         <div><label class="text-xs font-semibold text-slate-600 mb-1 block">Project / Item</label><select id="fL4"><option value="">All</option></select></div>
-         <div><label class="text-xs font-semibold text-slate-600 mb-1 block">Search</label><input id="fSearch" placeholder="Search..." /></div>
+         <div><label class="text-xs font-semibold text-slate-600 mb-1 block">Season / Year</label><select id="fL1" onchange="renderData()"><option value="">All</option></select></div>
+         <div><label class="text-xs font-semibold text-slate-600 mb-1 block">Program / Crop</label><select id="fL2" onchange="renderData()"><option value="">All</option></select></div>
+         <div><label class="text-xs font-semibold text-slate-600 mb-1 block">Sub Program</label><select id="fL3" onchange="renderData()"><option value="">All</option></select></div>
+         <div><label class="text-xs font-semibold text-slate-600 mb-1 block">Project / Item</label><select id="fL4" onchange="renderData()"><option value="">All</option></select></div>
+         <div><label class="text-xs font-semibold text-slate-600 mb-1 block">Search</label><input id="fSearch" placeholder="Search..." oninput="renderData()" /></div>
          <div class="hidden"><select id="fOffice"></select></div>
        `;
    }
@@ -38,9 +38,15 @@
    const fMainEl = $('fMain');
    const fSubEl = $('fSub');
    const fDivEl = $('fDiv');
+   const role = localStorage.getItem('role');
+   const mySub = localStorage.getItem('user_subOfficeId');
 
    function updateDivAndOfficeOptions() {
-       const subId = fSubEl?.value || '';
+       let subId = fSubEl?.value || '';
+       
+       // For Sub Admin, force the filter to use their assigned sub office
+       if(role === 'sub_admin') subId = mySub;
+
        const hh = window.hierarchy || [];
        let divs = [];
        if (subId) {
@@ -58,13 +64,21 @@
    const baseFill=window.fillDataFilters;
    window.fillDataFilters=function(){
      if(baseFill)baseFill();
+     
+     // Sub Admin setup: Disable AD Office filter and populate it only with their office
+     if(role === 'sub_admin') {
+         if(fSubEl) {
+             fSubEl.innerHTML = `<option value="${mySub}">${localStorage.getItem('user_subOfficeName')||mySub}</option>`;
+             fSubEl.disabled = true;
+         }
+     }
+     
      updateDivAndOfficeOptions();
    };
 
    window.renderData=function(){
      const val=id=>$(id)?.value||'';
      let list=(window.responses||[]).slice();
-     const role=localStorage.getItem('role'),mySub=localStorage.getItem('user_subOfficeId');
      
      // Scope restriction for Sub Admin
      if(role==='sub_admin') list=list.filter(r=>String(r.subOfficeId)===String(mySub));
@@ -83,15 +97,6 @@
      if(role === 'main_admin'){
         const fSub = val('fSub');
         if(fSub) list=list.filter(r=>String(r.subOfficeId)===fSub);
-     } else {
-         // If sub_admin, ensure AD Office filter is populated but disabled/hidden
-         const fSubEl = $('fSub');
-         if(fSubEl) {
-             if(fSubEl.options.length <= 1) {
-                 fSubEl.innerHTML = `<option value="${mySub}">${localStorage.getItem('user_subOfficeName')||mySub}</option>`;
-             }
-             fSubEl.disabled = true;
-         }
      }
      
      [['fDiv','division'],['fL1','level1'],['fL2','level2'],['fL3','level3']].forEach(([id,k])=>{if(val(id))list=list.filter(r=>String(r[k]||'')===val(id));});
