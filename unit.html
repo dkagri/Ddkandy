@@ -1,8 +1,8 @@
-<!-- ========================================== -->
-<!-- FILE: unit.html                            -->
-<!-- ========================================== -->
 <!DOCTYPE html>
 <html lang="si"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Unit - Data Entry | FieldWork DD Kandy</title><script src="https://cdn.tailwindcss.com"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><link rel="stylesheet" href="styles.css">
 <style>
 .modal-back{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:100;display:none;align-items:flex-end;justify-content:center;padding:12px}
@@ -63,7 +63,7 @@ input[type="radio"]:checked + div {
   <select id="myFilterMain" onchange="renderMy()"><option value="">Main Type</option><option value="extension">Extension</option><option value="development">Development</option></select>
   <select id="myFilterL1" onchange="renderMy()"><option value="">Season / Year</option></select>
   <select id="myFilterL2" onchange="renderMy()"><option value="">Program</option></select>
-  <select id="myFilterL3" onchange="renderMy()"><option value="">Sub Program / Project</option></select>
+  <select id="myFilterL3" onchange="renderMy()"><option value="">Sub Program</option></select>
   <select id="myFilterItem" onchange="renderMy()"><option value="">Item</option></select>
   <input id="mySearch" placeholder="Search..." oninput="renderMy()" class="md:col-span-2">
 </div>
@@ -80,6 +80,15 @@ function showToast(m,ok){var t=document.getElementById('toast');t.textContent=m;
 function openModal(o){return new Promise(function(res){__mRes=res;document.getElementById('modalIcon').textContent=o.icon||'ℹ️';document.getElementById('modalTitle').textContent=o.title||'';document.getElementById('modalMsg').textContent=o.msg||'';document.getElementById('modalInputWrap').classList.toggle('hidden',!o.input);if(o.input){document.getElementById('modalInput').value=o.value||'';}document.getElementById('modalBack').classList.add('show');});}
 function closeModal(ok){document.getElementById('modalBack').classList.remove('show');if(__mRes){var r=__mRes;__mRes=null;r({ok:ok,value:document.getElementById('modalInput').value});}}
 function profConfirm(m,t){return openModal({title:t||'විශ්වාසද?',msg:m,icon:'⚠️',okText:'OK'}).then(function(r){return r.ok;});}
+
+// Check session on page show (to fix back button access)
+window.addEventListener('pageshow', function(event) {
+    if (event.persisted || (typeof performance !== 'undefined' && performance.navigation.type === 2)) {
+        if (!localStorage.getItem('fw_session')) {
+            window.location.href = 'index.html';
+        }
+    }
+});
 
 (function(){ try{ var h=(location.hash||''); if(h.indexOf('#fw=')===0){ try{ var decoded=decodeURIComponent(escape(atob(h.slice(4)))); var hj=JSON.parse(decoded); if(hj&&hj.user&&hj.role){ localStorage.setItem('fw_session',decoded); localStorage.setItem('role',hj.role); localStorage.setItem('user',hj.user); } }catch(e2){} try{ history.replaceState(null,'',location.pathname); }catch(e3){} } }catch(e){} var s=localStorage.getItem('fw_session');var r=localStorage.getItem('role');var u=localStorage.getItem('user');if(!s||!r||!u){ setTimeout(function(){ window.location.href='index.html'; }, 1500); return;}try{var j=JSON.parse(s);if(j.exp&&Date.now()>j.exp){window.location.href='index.html';}}catch(e){}})();
 const SUPABASE_URL='https://ecpoyxjuednjixmaajux.supabase.co';
@@ -345,6 +354,7 @@ function renderMy(){
   if(s) mine=mine.filter(function(r){return (JSON.stringify(r.answers)+(r.node_path||'')).toLowerCase().indexOf(s)>-1;});
 
   // Chart Render
+  var chartLabel = fL2 || fL1 || 'All Data';
   var counts={};
   mine.forEach(function(r){ var k=r.level2||r.level1||'Unknown'; counts[k]=(counts[k]||0)+1; });
   var ctx=document.getElementById('myChart');
@@ -356,15 +366,43 @@ function renderMy(){
       });
   }
 
-  var h=''; for(var i=0;i<mine.length;i++){ var r=mine[i]; h+='<tr><td class="text-xs"><b>'+r.node_path+'</b></td><td class="text-xs">'+JSON.stringify(r.answers).substring(0,150)+'...</td><td class="text-xs">'+new Date(r.created_at).toLocaleDateString()+'</td><td><button onclick="editMy(\''+r.id+'\')" class="btn btn-ghost px-2 py-1 text-xs">Edit</button><button onclick="delMy(\''+r.id+'\')" class="text-red-500 text-xs px-2">Delete</button></td></tr>'; }
+  var h=''; 
+  for(var i=0;i<mine.length;i++){ 
+      var r=mine[i]; 
+      // Generate Readable Answer HTML instead of JSON
+      var qs=questions.filter(function(q){return String(q.node_id)===String(r.node_id);}).sort(function(a,b){return a.order_index-b.order_index;});
+      var ansHtml='';
+      if(qs.length > 0) {
+          ansHtml = qs.map(function(q){
+              var v = r.answers[q.id];
+              if(v === undefined || v === null || v === '') return '';
+              return '<div class="text-[12px]"><b>'+q.question_text+':</b> '+v+'</div>';
+          }).join('');
+      } else {
+          ansHtml = JSON.stringify(r.answers).substring(0,100)+'...';
+      }
+      
+      h+='<tr><td class="text-xs"><b>'+r.node_path+'</b></td><td class="text-xs">'+ansHtml+'</td><td class="text-xs">'+new Date(r.created_at).toLocaleDateString()+'</td><td><button onclick="editMy(\''+r.id+'\')" class="btn btn-ghost px-2 py-1 text-xs">Edit</button><button onclick="delMy(\''+r.id+'\')" class="text-red-500 text-xs px-2">Delete</button></td></tr>'; 
+  }
   document.getElementById('myTbody').innerHTML=h||'<tr><td colspan=4 class="text-center py-6 text-slate-400">දත්ත නැත</td></tr>';
 }
 
 function downloadMyChart() {
     var canvas = document.getElementById('myChart');
     if(!canvas) return;
-    var a = document.createElement('a'); a.href = canvas.toDataURL('image/png'); a.download = 'my_chart.png'; a.click();
-}function editMy(id){ var r=responses.find(function(x){return x.id===id;}); if(!r) return; editingId=id; document.getElementById('myEditBox').classList.remove('hidden'); var qs=questions.filter(function(q){return q.node_id===r.node_id;}); var h=''; for(var i=0;i<qs.length;i++){ var q=qs[i]; h+='<div><label class="text-xs font-semibold">'+q.question_text+'</label><input data-my-qid="'+q.id+'" value="'+(r.answers[q.id]||'')+'"></div>'; } document.getElementById('myEditFields').innerHTML=h||'<div class="text-xs">ප්‍රශ්න නැත</div>'; }
+    
+    var fMain=document.getElementById('myFilterMain').value;
+    var fL1=document.getElementById('myFilterL1').value;
+    var fL2=document.getElementById('myFilterL2').value;
+    var title = 'MyChart';
+    if(fMain) title += '_' + fMain;
+    if(fL1) title += '_' + fL1;
+    if(fL2) title += '_' + fL2;
+    
+    var a = document.createElement('a'); a.href = canvas.toDataURL('image/png'); a.download = title + '.png'; a.click();
+}
+
+function editMy(id){ var r=responses.find(function(x){return x.id===id;}); if(!r) return; editingId=id; document.getElementById('myEditBox').classList.remove('hidden'); var qs=questions.filter(function(q){return q.node_id===r.node_id;}); var h=''; for(var i=0;i<qs.length;i++){ var q=qs[i]; h+='<div><label class="text-xs font-semibold">'+q.question_text+'</label><input data-my-qid="'+q.id+'" value="'+(r.answers[q.id]||'')+'"></div>'; } document.getElementById('myEditFields').innerHTML=h||'<div class="text-xs">ප්‍රශ්න නැත</div>'; }
 function saveMyEdit(){ var r=responses.find(function(x){return x.id===editingId;}); if(!r) return; var na={}; document.querySelectorAll('[data-my-qid]').forEach(function(el){ na[el.dataset.myQid]=el.value; }); r.answers=na; r.updated_at=new Date().toISOString(); saveLocal(R_KEY, responses); if(sb){ try{ sb.from('responses').update({answers:na}).eq('id', r.id); }catch(e){} } closeMyEdit(); renderMy(); showToast('Edit Save විය! ✓',true); }
 function closeMyEdit(){ editingId=null; document.getElementById('myEditBox').classList.add('hidden'); }
 async function delMy(id){ if(!(await profConfirm('මෙම පිළිතුර ඉවත් වේ.','Delete කරන්නද?'))) return; responses=responses.filter(function(x){return x.id!==id;}); saveLocal(R_KEY, responses); if(sb){ try{ sb.from('responses').delete().eq('id', id); }catch(e){} } renderMy(); }

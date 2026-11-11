@@ -87,12 +87,27 @@ function profConfirm(msg,title){return openModal({title:title||'විශ්ව�
 
 const sb=(typeof supabase!=='undefined')?supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;
 const H_KEY='fw7_hier', N_KEY='fw7_nodes', Q_KEY='fw7_qs', R_KEY='fw7_resp';
-var role='sub_admin', mySub=localStorage.getItem('user_subOfficeId')||'ALL';
+var role='sub_admin';
+var mySub=localStorage.getItem('user_subOfficeId')||'ALL';
+var mySubName=localStorage.getItem('user_subOfficeName')||mySub;
+
+if(mySub === 'ALL') {
+    // If a sub_admin somehow has ALL, force them to be filtered out or treat as invalid
+    // But normally sub_admin should have a specific subOfficeId
+}
+
 var hierarchy=JSON.parse(localStorage.getItem(H_KEY)||'[]');
 var nodes=[]; var questions=[]; var responses=[]; var editingId=null;
 var chartInstance=null;
 
-window.addEventListener('pageshow', function(event) { if(event.persisted || (typeof performance!=='undefined' && performance.navigation.type===2)){ if(!localStorage.getItem('fw_session')) window.location.href='index.html'; } });
+// Security check on page show
+window.addEventListener('pageshow', function(event) {
+    if (event.persisted || (typeof performance !== 'undefined' && performance.navigation.type === 2)) {
+        if (!localStorage.getItem('fw_session')) {
+            window.location.href = 'index.html';
+        }
+    }
+});
 
 (function verify(){
   try{
@@ -103,14 +118,15 @@ window.addEventListener('pageshow', function(event) { if(event.persisted || (typ
 })();
 
 document.getElementById('userLabel').textContent=localStorage.getItem('user')||'';
-document.getElementById('kScope').textContent=localStorage.getItem('user_subOfficeName')||mySub;
+document.getElementById('kScope').textContent=mySubName;
 function openSidebar(){var sb=document.getElementById('sidebar');sb.style.transform='translateX(0)';sb.style.left='0';sb.style.display='flex';document.getElementById('sidebarOverlay').classList.remove('hidden');}
 function closeSidebar(){var sb=document.getElementById('sidebar');if(window.innerWidth<1024){sb.style.transform='translateX(-110%)';}document.getElementById('sidebarOverlay').classList.add('hidden');}
 function goNav(p){closeSidebar();document.querySelectorAll('.page').forEach(function(x){x.classList.add('hidden');});document.getElementById('page-'+p).classList.remove('hidden');document.querySelectorAll('.nav-btn').forEach(function(b){b.className='nav-btn w-full text-left px-4 py-3 rounded-xl text-slate-300 hover:bg-white/10';});var btn=document.querySelector('[data-nav="'+p+'"]');if(btn)btn.className='nav-btn w-full text-left px-4 py-3 rounded-xl bg-white text-slate-900 font-semibold';document.getElementById('pageTitle').textContent=p==='dashboard'?'Dashboard':'දත්ත';if(p==='dashboard')renderDashboard();if(p==='data')renderData();}
 async function logout(){ try{ if(sb) await sb.auth.signOut(); }catch(e){} ['role','user','user_name','user_subOfficeId','user_subOfficeName','user_division','user_office','user_officer_name','fw_session'].forEach(function(k){localStorage.removeItem(k);});location.href='index.html';}
 
 function renderDashboard(){
-  var myResponses=responses.filter(r=>r.subOfficeId===mySub);
+  // Enforce strict filtering for Sub Admin
+  var myResponses=responses.filter(r=>String(r.subOfficeId)===String(mySub));
   document.getElementById('kR').textContent=myResponses.length;
   
   var aiCounts = {};
@@ -132,7 +148,7 @@ function renderDashboard(){
 function downloadChart() {
     var canvas = document.getElementById('chartData');
     if (!canvas) return;
-    var a = document.createElement('a'); a.href = canvas.toDataURL('image/png'); a.download = 'subadmin_chart.png'; a.click();
+    var a = document.createElement('a'); a.href = canvas.toDataURL('image/png'); a.download = 'subadmin_chart_'+mySubName+'.png'; a.click();
 }
 
 async function sbSync(){
@@ -140,15 +156,24 @@ async function sbSync(){
   try{
     var n=await sb.from('nodes').select('*'); if(n.data) nodes=n.data;
     var q=await sb.from('questions').select('*'); if(q.data) questions=q.data;
-    var r=await sb.from('responses').select('*').order('created_at',{ascending:false}).limit(1000);
-    if(r.data){ responses=r.data.map(function(x){return{id:x.id,node_id:x.node_id,main_type:x.main_type,level1:x.level1,level2:x.level2,level3:x.level3,node_path:x.node_path,subOfficeId:x.sub_office_id,subOfficeName:x.sub_office_name,division:x.division,office:x.office,submittedName:x.submitted_by_name,answers:x.answers||{},created_at:x.created_at};}); }
+    
+    // STRICT FILTER: Only fetch responses belonging to this sub-admin's office
+    var r=await sb.from('responses').select('*').eq('sub_office_id', mySub).order('created_at',{ascending:false}).limit(1000);
+    
+    if(r.data){ 
+        responses=r.data.map(function(x){
+            return {id:x.id, node_id:x.node_id, main_type:x.main_type, level1:x.level1, level2:x.level2, level3:x.level3, node_path:x.node_path, subOfficeId:x.sub_office_id, subOfficeName:x.sub_office_name, division:x.division, office:x.office, submittedName:x.submitted_by_name, answers:x.answers||{}, created_at:x.created_at};
+        }); 
+    }
     document.getElementById('sbStatus').textContent='Connected ✓';
-  }catch(e){ document.getElementById('sbStatus').textContent='Error'; }
+  }catch(e){ document.getElementById('sbStatus').textContent='Error'; console.error(e); }
   renderDashboard(); renderData();
 }
 
 function renderData(){
-  var list=responses.filter(function(r){return r.subOfficeId===mySub;});
+  // Read from global responses (already filtered by sbSync query)
+  var list=responses.slice();
+  
   var fMain=document.getElementById('fMain')?.value||'';
   var fDiv=document.getElementById('fDiv')?.value||'';
   var fSearch=document.getElementById('fSearch')?.value||'';
@@ -157,8 +182,12 @@ function renderData(){
   if(fDiv) list=list.filter(function(r){return r.division===fDiv;});
   if(fSearch) list=list.filter(function(r){return (JSON.stringify(r.answers)+(r.node_path||'')).toLowerCase().includes(fSearch.toLowerCase());});
 
-  document.getElementById('dataScopeNote').textContent='Sub Admin • මුළු '+responses.filter(r=>r.subOfficeId===mySub).length+' • Filter කළ: '+list.length;
-  var h='';for(var i=0;i<list.length;i++){var r=list[i];h+='<tr><td class="text-xs"><b>'+(r.node_path||'')+'</b><br><span class="text-slate-400">'+r.main_type+'</span></td><td class="text-xs"><b>'+r.division+'</b><br>'+r.office+'</td><td class="text-xs">'+JSON.stringify(r.answers).substring(0,200)+'</td><td class="text-xs">'+(r.submittedName||'')+'<br>'+new Date(r.created_at).toLocaleDateString()+'</td><td><button onclick="editData(\''+r.id+'\')" class="btn btn-ghost px-2 py-1 text-xs">Edit</button><button onclick="delData(\''+r.id+'\')" class="text-red-500 text-xs px-2 font-semibold">Delete</button></td></tr>';}
+  document.getElementById('dataScopeNote').textContent='Sub Admin ('+mySubName+') • මුළු '+responses.length+' • Filter කළ: '+list.length;
+  var h='';
+  for(var i=0;i<list.length;i++){
+      var r=list[i];
+      h+='<tr><td class="text-xs"><b>'+(r.node_path||'')+'</b><br><span class="text-slate-400">'+r.main_type+'</span></td><td class="text-xs"><b>'+r.division+'</b><br>'+r.office+'</td><td class="text-xs">'+JSON.stringify(r.answers).substring(0,200)+'</td><td class="text-xs">'+(r.submittedName||'')+'<br>'+new Date(r.created_at).toLocaleDateString()+'</td><td><button onclick="editData(\''+r.id+'\')" class="btn btn-ghost px-2 py-1 text-xs">Edit</button><button onclick="delData(\''+r.id+'\')" class="text-red-500 text-xs px-2 font-semibold">Delete</button></td></tr>';
+  }
   document.getElementById('dataTbody').innerHTML=h||'<tr><td colspan=5 class="text-center py-6 text-slate-400">දත්ත නැත</td></tr>';
 }
 
@@ -172,11 +201,11 @@ function closeEdit(){editingId=null;document.getElementById('editBox').classList
 async function delData(id){if(!(await profConfirm('මෙම දත්ත ඉවත් වේ?','Delete?')))return;try{await sb.from('responses').delete().eq('id',id);responses=responses.filter(x=>x.id!==id);renderData();renderDashboard();showToast('Deleted ✓',true);}catch(e){}}
 
 function downloadCSV(){
-  var list=responses.filter(function(r){return r.subOfficeId===mySub;});
+  var list=responses.slice();
   if(!list.length) return showToast('දත්ත නැත',false);
   var csv='Date,Main,Path,Division,Office,User,Answers\n';
   for(var i=0;i<list.length;i++){ var r=list[i]; csv+='"'+r.created_at+'","'+r.main_type+'","'+r.node_path+'","'+r.division+'","'+r.office+'","'+r.submittedName+'","'+JSON.stringify(r.answers).replace(/"/g,'""')+'"\n'; }
-  var blob=new Blob([csv],{type:'text/csv;charset=utf-8'}); var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='subadmin_data.csv'; a.click();
+  var blob=new Blob([csv],{type:'text/csv;charset=utf-8'}); var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='subadmin_data_'+mySubName+'.csv'; a.click();
 }
 
 sbSync();

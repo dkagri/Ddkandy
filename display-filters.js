@@ -80,10 +80,18 @@
      options($('fL3'),uniq(filteredByMain.map(r=>r.level3)),'All');
      options($('fL4'),uniq(filteredByMain.map(r=>(r.node_path||'').split(' > ').slice(-1)[0])),'All');
      
-     // AD Office filter
      if(role === 'main_admin'){
         const fSub = val('fSub');
         if(fSub) list=list.filter(r=>String(r.subOfficeId)===fSub);
+     } else {
+         // If sub_admin, ensure AD Office filter is populated but disabled/hidden
+         const fSubEl = $('fSub');
+         if(fSubEl) {
+             if(fSubEl.options.length <= 1) {
+                 fSubEl.innerHTML = `<option value="${mySub}">${localStorage.getItem('user_subOfficeName')||mySub}</option>`;
+             }
+             fSubEl.disabled = true;
+         }
      }
      
      [['fDiv','division'],['fL1','level1'],['fL2','level2'],['fL3','level3']].forEach(([id,k])=>{if(val(id))list=list.filter(r=>String(r[k]||'')===val(id));});
