@@ -21,16 +21,6 @@ input[type="radio"]:checked + div {
 .option-label {
     transition: all 0.15s ease;
 }
-  /* Active state for Yes/No, Radio, and Option Labels */
-input[type="radio"]:checked + span {
-    background-color: #4f46e5 !important;
-    color: white !important;
-    border-color: #4f46e5 !important;
-}
-.option-label {
-    transition: all 0.15s ease;
-    cursor: pointer;
-}
 .option-label:has(input[type="radio"]:checked) {
     background-color: #4f46e5;
     color: white;
@@ -44,8 +34,8 @@ input[type="radio"]:checked + span {
 <div class="flex justify-between items-center mb-4"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-indigo-600 grid place-items-center text-white font-bold">AI</div><div><div class="font-bold">ක්ෂේත්‍ර ඒකකය - Data Entry <span class="text-[10px] px-2 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold whitespace-nowrap">DD Kandy</span></div><div class="text-xs text-slate-500">Login - Auto Fill</div></div></div><div class="flex gap-2"><button onclick="setLang('si')" class="btn btn-ghost px-2 text-xs">AI USER</button><button onclick="logout()" class="btn btn-ghost">Logout</button></div></div>
 
 <div class="rounded-2xl bg-[#0f172a] text-white p-5"><div class="text-[11px] text-slate-400">LOCKED - Login - Auto Set </div><div class="grid md:grid-cols-3 gap-4 mt-3">
-<div class="rounded-xl bg-white/10 p-3"><div class="text-[11px] text-slate-400">AD Office </div><div class="font-bold text-sm mt-1" id="lockSub">-</div></div>
-<div class="rounded-xl bg-white/10 p-3"><div class="text-[11px] text-slate-400">AI Office </div><div class="font-bold text-sm mt-1" id="lockDiv">-</div></div>
+<div class="rounded-xl bg-white/10 p-3"><div class="text-[11px] text-slate-400">1. AD Office </div><div class="font-bold text-sm mt-1" id="lockSub">-</div></div>
+<div class="rounded-xl bg-white/10 p-3"><div class="text-[11px] text-slate-400">2. AI Office </div><div class="font-bold text-sm mt-1" id="lockDiv">-</div></div>
 <div class="rounded-xl bg-white/10 p-3"><div class="text-[11px] text-slate-400">Officer</div><div class="font-bold text-sm mt-1" id="lockUser">-</div></div>
 </div></div>
 
@@ -57,12 +47,12 @@ input[type="radio"]:checked + span {
 <div id="panel-form" class="card mt-5">
 <h2 class="font-bold text-[20px]">Data Entry - පියවරෙන් පියවර තෝරන්න</h2>
 <div class="mt-4 space-y-4">
-<div><label class="text-xs font-semibold">1. Extension / Development තෝරන්න *</label><div class="grid grid-cols-2 gap-3 mt-1"><button type="button" onclick="uSelectMain('extension')" id="uExt" class="py-3 rounded-xl font-semibold bg-indigo-600 text-white">🌾 Extension</button><button type="button" onclick="uSelectMain('development')" id="uDev" class="py-3 rounded-xl font-semibold bg-slate-100">🏗️ Development</button></div></div>
-<div id="uL1Wrap"><label class="text-xs font-semibold" id="uL1Label">2. Season / Year තෝරන්න *</label><select id="uL1" onchange="uPickL1()"></select></div>
-<div id="uL2Wrap"><label class="text-xs font-semibold" id="uL2Label">3. Cultivation / Program තෝරන්න *</label><select id="uL2" onchange="uPickL2()"></select></div>
-<div id="uL3Wrap" class="hidden"><label class="text-xs font-semibold">4. Sub Program තෝරන්න * (Development පමණි)</label><select id="uL3" onchange="uPickL3()"></select></div>
-<div id="uSubWrap" class="hidden"><label class="text-xs font-semibold">4. සීමාකාරී සාධකය අවම කිරීමට සඳහා ගනු ලබන ක්‍රියාමාර්ග</label><select id="uSub" onchange="uPickSub()"></select></div>
-<div id="uItemWrap" class="hidden"><label class="text-xs font-semibold">5. Item / Items Name — එකක් හෝ කිහිපයක් තෝරන්න * (Development)</label><div id="uItemList" class="mt-2 space-y-1"></div></div>
+<div><label class="text-xs font-semibold">Select Type: Extension / Development තෝරන්න *</label><div class="grid grid-cols-2 gap-3 mt-1"><button type="button" onclick="uSelectMain('extension')" id="uExt" class="py-3 rounded-xl font-semibold bg-indigo-600 text-white">🌾 Extension</button><button type="button" onclick="uSelectMain('development')" id="uDev" class="py-3 rounded-xl font-semibold bg-slate-100">🏗️ Development</button></div></div>
+<div id="uL1Wrap"><label class="text-xs font-semibold" id="uL1Label">3. Season / Year තෝරන්න *</label><select id="uL1" onchange="uPickL1()"></select></div>
+<div id="uL2Wrap"><label class="text-xs font-semibold" id="uL2Label">4. Program / Cultivation තෝරන්න *</label><select id="uL2" onchange="uPickL2()"></select></div>
+<div id="uL3Wrap" class="hidden"><label class="text-xs font-semibold">5. Project / Sub Program තෝරන්න *</label><select id="uL3" onchange="uPickL3()"></select></div>
+<div id="uSubWrap" class="hidden"><label class="text-xs font-semibold">5. Sub Program තෝරන්න</label><select id="uSub" onchange="uPickSub()"></select></div>
+<div id="uItemWrap" class="hidden"><label class="text-xs font-semibold">6. Item / Items Name තෝරන්න *</label><div id="uItemList" class="mt-2 space-y-1"></div></div>
 </div>
 <div id="uFormWrap" class="mt-5"></div><div id="uEmpty" class="hidden rounded-xl bg-amber-50 border border-amber-200 p-4 text-sm">මේ කොටසට Form / Questions නැහැ. Admin ගෙන් අහන්න.</div>
 </div>
@@ -167,8 +157,8 @@ function showSection(sec){ document.getElementById('panel-form').classList.toggl
 function uSelectMain(m){ curMain=m; curL1=null; curL2=null; curL3=null; curSub=null; curItems=[]; document.getElementById('uExt').className= m==='extension'?'py-3 rounded-xl font-semibold bg-indigo-600 text-white':'py-3 rounded-xl font-semibold bg-slate-100'; document.getElementById('uDev').className= m==='development'?'py-3 rounded-xl font-semibold bg-emerald-600 text-white':'py-3 rounded-xl font-semibold bg-slate-100'; document.getElementById('uL3Wrap').classList.toggle('hidden', m!=='development'); document.getElementById('uSubWrap').classList.toggle('hidden', m!=='extension'); document.getElementById('uItemWrap').classList.toggle('hidden', m!=='development'); renderUSelects(); }
 function publishedChildren(parentId, level){ return nodes.filter(function(n){ return n.main_type===curMain && n.level===level && (parentId? n.parent_id===parentId : !n.parent_id) && n.is_published; }).sort(function(a,b){return a.sort_order-b.sort_order;}); }
 function renderUSelects(){
-  document.getElementById('uL1Label').textContent= curMain==='extension'?'2. Season තෝරන්න * - 2026/27 Maha, 2027 Yala...':'2. Year තෝරන්න * - 2026, 2027, 2028...';
-  document.getElementById('uL2Label').textContent= curMain==='extension'?'3. ක්‍රියාකාරකම - බෝගය / වැඩසටහන':'3. Program තෝරන්න * - PSDG / KNUCKLES / CBG / FAO';
+  document.getElementById('uL1Label').textContent= curMain==='extension'?'3. Season තෝරන්න * - 2026/27 Maha, 2027 Yala...':'3. Year තෝරන්න * - 2026, 2027, 2028...';
+  document.getElementById('uL2Label').textContent= curMain==='extension'?'4. Program / Cultivation තෝරන්න *':'4. Program තෝරන්න * - PSDG / KNUCKLES / CBG / FAO';
   var l1=publishedChildren(null,1); var h1='<option value="">-- තෝරන්න --</option>'; for(var i=0;i<l1.length;i++){ h1+='<option value="'+l1[i].id+'">'+l1[i].title+'</option>'; } document.getElementById('uL1').innerHTML=h1; if(l1.length===1){ document.getElementById('uL1').value=l1[0].id; curL1=l1[0].id; } else if(curL1){ document.getElementById('uL1').value=curL1; }
   var l2= curL1? publishedChildren(curL1,2):[]; var h2='<option value="">-- තෝරන්න --</option>'; for(var j=0;j<l2.length;j++){ h2+='<option value="'+l2[j].id+'">'+l2[j].title+'</option>'; } document.getElementById('uL2').innerHTML=h2; if(l2.length===1){ document.getElementById('uL2').value=l2[0].id; curL2=l2[0].id; } else if(curL2){ document.getElementById('uL2').value=curL2; }
   if(curMain==='extension'){
@@ -215,18 +205,18 @@ function renderField(q){
   if(q.question_type==='paragraph') return '<textarea data-qid="'+q.id+'" rows="3" '+req+' placeholder="Type කරන්න..."></textarea>';
   if(q.question_type==='number') return '<input type="number" data-qid="'+q.id+'" '+req+' placeholder="0">';
   if(q.question_type==='date') return '<input type="date" data-qid="'+q.id+'" '+req+'>';
-  if(q.question_type==='yes_no') return '<div class="flex gap-2"><label class="flex-1 text-center rounded-xl border py-2 text-sm option-label"><input type="radio" name="q_'+q.id+'" value="Yes" data-qid="'+q.id+'" '+(q.is_required?'required':'')+' class="hidden"><span class="block w-full h-full">Yes</span></label><label class="flex-1 text-center rounded-xl border py-2 text-sm option-label"><input type="radio" name="q_'+q.id+'" value="No" data-qid="'+q.id+'" '+(q.is_required?'required':'')+' class="hidden"><span class="block w-full h-full">No</span></label></div>';
+  if(q.question_type==='yes_no') return '<div class="flex gap-2"><label class="flex-1 text-center rounded-xl border py-2 text-sm option-label"><input type="radio" name="q_'+q.id+'" value="Yes" data-qid="'+q.id+'" '+(q.is_required?'required':'')+' class="hidden"><span class="block w-full h-full p-2">Yes</span></label><label class="flex-1 text-center rounded-xl border py-2 text-sm option-label"><input type="radio" name="q_'+q.id+'" value="No" data-qid="'+q.id+'" '+(q.is_required?'required':'')+' class="hidden"><span class="block w-full h-full p-2">No</span></label></div>';
   if(q.question_type==='multiple_choice'){ var h=''; for(var a=0;a<q.options.length;a++){ h+='<label class="flex gap-2 items-center text-sm py-1 option-label rounded-lg px-2"><input type="radio" name="q_'+q.id+'" value="'+q.options[a]+'" data-qid="'+q.id+'" '+(q.is_required?'required':'')+' class="!w-auto mr-2"><span>'+q.options[a]+'</span></label>'; } return h; }
   if(q.question_type==='checkbox'){ var h2=''; for(var b=0;b<q.options.length;b++){ h2+='<label class="flex gap-2 items-center text-sm py-1 option-label rounded-lg px-2"><input type="checkbox" value="'+q.options[b]+'" data-qid="'+q.id+'" data-multi="1" class="!w-auto mr-2"><span>'+q.options[b]+'</span></label>'; } return h2; }
   if(q.question_type==='dropdown'){ var h3='<select data-qid="'+q.id+'" '+(q.is_required?'required':'')+'><option value="">-- තෝරන්න --</option>'; for(var c=0;c<q.options.length;c++){ h3+='<option>'+q.options[c]+'</option>'; } h3+='</select>'; return h3; }
-  if(q.question_type==='scale'){ var h4='<div class="flex gap-2">'; for(var d=1;d<=5;d++){ h4+='<label class="flex-1 text-center rounded-xl border py-2 text-sm option-label"><input type="radio" name="q_'+q.id+'" value="'+d+'" data-qid="'+q.id+'" '+(q.is_required?'required':'')+' class="hidden"><span class="block w-full h-full">'+d+'</span></label>'; } h4+='</div>'; return h4; }
+  if(q.question_type==='scale'){ var h4='<div class="flex gap-2">'; for(var d=1;d<=5;d++){ h4+='<label class="flex-1 text-center rounded-xl border py-2 text-sm option-label"><input type="radio" name="q_'+q.id+'" value="'+d+'" data-qid="'+q.id+'" '+(q.is_required?'required':'')+' class="hidden"><span class="block w-full h-full p-2">'+d+'</span></label>'; } h4+='</div>'; return h4; }
   return '<input data-qid="'+q.id+'" '+req+'>';
 }
 function renderUForm(){
   var wrap=document.getElementById('uFormWrap'); var empty=document.getElementById('uEmpty');
   var lids=leafIds();
   if(!lids.length){
-    if(curMain==='extension' && curL2){ wrap.innerHTML='<div class="rounded-xl bg-amber-50 border border-amber-200 p-3 text-sm text-amber-700">⚠️ මෙම Cultivation යටතේ උප අංශ ඇත — ඉහත 4. උප අංශය තෝරන්න.</div>'; }
+    if(curMain==='extension' && curL2){ wrap.innerHTML='<div class="rounded-xl bg-amber-50 border border-amber-200 p-3 text-sm text-amber-700">⚠️ මෙම Cultivation යටතේ උප අංශ ඇත — ඉහත 5. උප අංශය තෝරන්න.</div>'; }
     else { wrap.innerHTML=''; }
     empty.classList.add('hidden'); return;
   }
@@ -239,7 +229,6 @@ function renderUForm(){
   }
   var totalQs=0; for(var tt=0;tt<groups.length;tt++) totalQs+=groups[tt].qs.length;
   
-  // Fallback: If no questions found in items, check if questions exist in the Sub Program
   if(totalQs === 0 && curMain === 'development' && curItems.length > 0 && curL3) {
      var l3Qs = questions.filter(function(q){return q.node_id===curL3;}).sort(function(a,b){return a.order_index-b.order_index;});
      if(l3Qs.length > 0) {

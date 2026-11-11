@@ -16,25 +16,12 @@
  };
 
  const options=(el,values,placeholder,keep=true)=>{if(!el)return;const old=keep?el.value:'';el.innerHTML='<option value="">'+esc(placeholder)+'</option>'+values.map(v=>'<option value="'+esc(v)+'">'+esc(v)+'</option>').join('');if(values.includes(old))el.value=old;};
- 
- // Function to reorder DOM elements
- const reorderFilters = (parentId, orderIds) => {
-    const parent = $(parentId);
-    if(!parent) return;
-    orderIds.forEach(id => {
-        const el = $(id);
-        if(el && el.parentElement) {
-            parent.appendChild(el.parentElement); // Append label wrapper
-        }
-    });
- };
 
  if(location.pathname.toLowerCase().endsWith('admin.html')){
    const filterRow=$('fSearch')?.parentElement;
    if(filterRow){
-       filterRow.className = 'grid md:grid-cols-4 gap-3 mt-4'; // Reset class
+       filterRow.className = 'grid md:grid-cols-4 gap-3 mt-4';
        
-       // Create wrappers with proper labels
        filterRow.innerHTML = `
          <div><label class="text-xs font-semibold text-slate-600 mb-1 block">AD Office</label><select id="fSub" onchange="renderData()"><option value="">All AD Offices</option></select></div>
          <div><label class="text-xs font-semibold text-slate-600 mb-1 block">AI Office</label><select id="fDiv" onchange="renderData()"><option value="">All AI Offices</option></select></div>
