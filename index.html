@@ -2,6 +2,7 @@
 <html lang="si"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Login | FieldWork DD Kandy</title><script src="https://cdn.tailwindcss.com"></script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><link rel="stylesheet" href="styles.css"></head>
 <body class="min-h-screen bg-[#f8fafc] flex">
+<div class="flex-1 flex items-center justify-center p-4"><div class="w-full max-w-[440px]"><div class="card">
 <div class="flex items-center gap-3"><div class="w-10 h-10 rounded-xl bg-indigo-600 grid place-items-center text-white font-bold">A</div><span class="font-bold">FieldWork</span><span class="ml-auto badge badge-blue">FINAL</span></div>
 <h2 class="text-[28px] font-bold mt-6">DD Kandy - Login</h2>
 <div id="loginStatus" class="text-[11px] text-slate-400 mt-2"></div><div id="err" class="hidden mt-4 rounded-xl bg-red-50 border border-red-200 p-3 text-sm text-red-700"></div>
@@ -14,7 +15,7 @@
     </button>
   </div>
 </div>
-<button class="btn btn-primary w-full py-3.5">Login</button></form>
+<button class="btn btn-primary w-full py-3.5">ඇතුල් වන්න (Login)</button></form>
 <div id="alreadyBox" class="hidden mt-4 rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-sm text-emerald-800"><b>✅ Already Logged In:</b> <span id="alreadyWho"></span><br><button type="button" onclick="continueLoggedIn()" class="btn btn-primary mt-2 px-4 py-2 text-xs">→ Continue</button> <button type="button" onclick="doLogout()" class="btn btn-ghost mt-2 px-3 py-2 text-xs">Logout</button></div>
 <div class="mt-6 rounded-xl bg-emerald-50 p-3 text-[12px] text-emerald-900 border border-emerald-100"><b>🔒 Secure Login:</b><br>Email + Password.<br><b>Username + Password</b> </div>
 </div></div></div>
