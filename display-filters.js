@@ -16,19 +16,37 @@
  };
 
  const options=(el,values,placeholder,keep=true)=>{if(!el)return;const old=keep?el.value:'';el.innerHTML='<option value="">'+esc(placeholder)+'</option>'+values.map(v=>'<option value="'+esc(v)+'">'+esc(v)+'</option>').join('');if(values.includes(old))el.value=old;};
- const addFilter=(parent,id,label)=>{if($(id))return $(id);const wrap=document.createElement('label');wrap.className='text-xs font-semibold text-slate-600';wrap.innerHTML=esc(label)+'<select id="'+id+'" class="mt-1"><option value="">அனைத்தும்</option></select>';parent.appendChild(wrap);return $(id);};
  
- const style=document.createElement('style');
- style.textContent=`
- .filter-extra{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:10px}
- .filter-extra select{width:100%;border:1px solid #cbd5e1;border-radius:9px;padding:9px;background:white}
- @media(max-width:640px){.answer-grid{grid-template-columns:1fr 1fr}.answer-value{font-size:11px}}
- `;
- document.head.appendChild(style);
+ // Function to reorder DOM elements
+ const reorderFilters = (parentId, orderIds) => {
+    const parent = $(parentId);
+    if(!parent) return;
+    orderIds.forEach(id => {
+        const el = $(id);
+        if(el && el.parentElement) {
+            parent.appendChild(el.parentElement); // Append label wrapper
+        }
+    });
+ };
 
  if(location.pathname.toLowerCase().endsWith('admin.html')){
    const filterRow=$('fSearch')?.parentElement;
-   if(filterRow){filterRow.classList.add('filter-extra');addFilter(filterRow,'fOffice','காரியாலயம்');addFilter(filterRow,'fL1','Season / Year');addFilter(filterRow,'fL2','Crop / Program');addFilter(filterRow,'fL3','Sub Program / Project');addFilter(filterRow,'fL4','Item / இறுதி பிரிவு');}
+   if(filterRow){
+       filterRow.className = 'grid md:grid-cols-4 gap-3 mt-4'; // Reset class
+       
+       // Create wrappers with proper labels
+       filterRow.innerHTML = `
+         <div><label class="text-xs font-semibold text-slate-600 mb-1 block">AD Office</label><select id="fSub" onchange="renderData()"><option value="">All AD Offices</option></select></div>
+         <div><label class="text-xs font-semibold text-slate-600 mb-1 block">AI Office</label><select id="fDiv" onchange="renderData()"><option value="">All AI Offices</option></select></div>
+         <div><label class="text-xs font-semibold text-slate-600 mb-1 block">Season / Year</label><select id="fL1"><option value="">All</option></select></div>
+         <div><label class="text-xs font-semibold text-slate-600 mb-1 block">Program / Crop</label><select id="fL2"><option value="">All</option></select></div>
+         <div id="wrapL3"><label class="text-xs font-semibold text-slate-600 mb-1 block">Sub Program</label><select id="fL3"><option value="">All</option></select></div>
+         <div id="wrapL4"><label class="text-xs font-semibold text-slate-600 mb-1 block">Project / Item</label><select id="fL4"><option value="">All</option></select></div>
+         <div><label class="text-xs font-semibold text-slate-600 mb-1 block">Main Type</label><select id="fMain"><option value="">All</option><option value="extension">Extension</option><option value="development">Development</option></select></div>
+         <div><label class="text-xs font-semibold text-slate-600 mb-1 block">Search</label><input id="fSearch" placeholder="Search..." /></div>
+         <div><label class="text-xs font-semibold text-slate-600 mb-1 block">Office</label><select id="fOffice"><option value="">All Offices</option></select></div>
+       `;
+   }
    
    const fMainEl = $('fMain');
    const fSubEl = $('fSub');
@@ -55,7 +73,7 @@
                offices.push(...d.offices);
            }));
        }
-       options(fDivEl, uniq(divs), 'சියලුම அංශ');
+       options(fDivEl, uniq(divs), 'All AI Offices');
        updateOfficeOptions();
    }
 
@@ -77,7 +95,7 @@
                hh.forEach(h => h.divisions.forEach(d => offices.push(...d.offices)));
            }
        }
-       options(fOfficeEl, uniq(offices), 'சියලුම කාර්යාල');
+       options(fOfficeEl, uniq(offices), 'All Offices');
    }
 
    if(fSubEl) fSubEl.addEventListener('change', () => { updateDivAndOfficeOptions(); window.renderData(); });
@@ -102,10 +120,10 @@
      // Cascading filters based on Main Type
      const filteredByMain = (window.responses||[]).filter(r => !fMain || r.main_type === fMain);
      
-     options($('fL1'),uniq(filteredByMain.map(r=>r.level1)),'සියලුම වාර / වර්ෂ');
-     options($('fL2'),uniq(filteredByMain.map(r=>r.level2)),'සියලුම බෝග / වැඩසටහන්');
-     options($('fL3'),uniq(filteredByMain.map(r=>r.level3)),'සියලුම උප වැඩසටහන්');
-     options($('fL4'),uniq(filteredByMain.map(r=>(r.node_path||'').split(' > ').slice(-1)[0])),'සියලුම අයිතම');
+     options($('fL1'),uniq(filteredByMain.map(r=>r.level1)),'All Seasons/Years');
+     options($('fL2'),uniq(filteredByMain.map(r=>r.level2)),'All Programs/Crops');
+     options($('fL3'),uniq(filteredByMain.map(r=>r.level3)),'All Sub Programs');
+     options($('fL4'),uniq(filteredByMain.map(r=>(r.node_path||'').split(' > ').slice(-1)[0])),'All Projects/Items');
      
      const fSub = val('fSub');
      if(fSub) list=list.filter(r=>String(r.subOfficeId)===fSub);
@@ -120,8 +138,6 @@
      const body=$('dataTbody');if(!body)return;
      body.innerHTML=list.slice(0,300).map(r=>'<tr><td class="text-xs"><b>'+esc(r.node_path||'')+'</b><br><span class="text-slate-400">'+esc(r.main_type||'')+'</span></td><td class="text-xs">'+esc(r.subOfficeName||r.subOfficeId||'')+'<br><b>'+esc(r.division||'')+'</b><br>'+esc(r.office||'')+'</td><td>'+answerHtml(r)+'</td><td class="text-xs">'+esc(r.submittedName||r.submittedBy||'')+'<br>'+esc(r.created_at?new Date(r.created_at).toLocaleString():'')+'</td><td><button onclick="editData(\''+esc(r.id)+'\')" class="btn btn-ghost px-2 py-1 text-xs">Edit</button> <button onclick="delData(\''+esc(r.id)+'\')" class="text-red-500 text-xs px-2 font-semibold">Delete</button></td></tr>').join('')||'<tr><td colspan="5" class="text-center py-6 text-slate-400">தரவு இல்லை</td></tr>';
    };
-   
-   // Remove the custom download function that was conflicting
    
    document.addEventListener('change',e=>{if(/^f(Main|Sub|Div|Office|L[1-4])$/.test(e.target.id))window.renderData();});
    setTimeout(()=>{window.fillDataFilters();window.renderData();},0);
@@ -142,10 +158,10 @@
      // Cascading filters based on Main Type
      const filteredByMain = (window.responses||[]).filter(r=>r.division===window.myDiv&&r.office===window.myOffice).filter(r => !fMain || r.main_type === fMain);
 
-     options($('myFilterL1'),uniq(filteredByMain.map(r=>r.level1)),'සියලුම වාර / වර්ෂ');
-     options($('myFilterL2'),uniq(filteredByMain.map(r=>r.level2)),'සියලුම බෝග / වැඩසටහන්');
-     options($('myFilterL3'),uniq(filteredByMain.map(r=>r.level3)),'සියලුම උප වැඩසටහන්');
-     options($('myFilterItem'),uniq(filteredByMain.map(r=>(r.node_path||'').split(' > ').slice(-1)[0])),'සියලුම අයිතම');
+     options($('myFilterL1'),uniq(filteredByMain.map(r=>r.level1)),'All Seasons/Years');
+     options($('myFilterL2'),uniq(filteredByMain.map(r=>r.level2)),'All Programs/Crops');
+     options($('myFilterL3'),uniq(filteredByMain.map(r=>r.level3)),'All Sub Programs');
+     options($('myFilterItem'),uniq(filteredByMain.map(r=>(r.node_path||'').split(' > ').slice(-1)[0])),'All Items');
 
      if(v('myFilterL1'))mine=mine.filter(r=>r.level1===v('myFilterL1'));
      if(v('myFilterL2'))mine=mine.filter(r=>r.level2===v('myFilterL2'));
@@ -159,8 +175,6 @@
      const tb=$('myTbody');if(!tb)return;
      tb.innerHTML=mine.slice(0,300).map(r=>'<tr><td class="text-xs"><b>'+esc(r.node_path||'')+'</b><br><span class="text-slate-500">'+esc(r.main_type||'')+'</span></td><td>'+answerHtml(r)+'</td><td class="text-xs">'+esc(r.created_at?new Date(r.created_at).toLocaleString():'')+'</td><td><button onclick="editMy(\''+esc(r.id)+'\')" class="btn btn-ghost px-2 py-1 text-xs">Edit</button> <button onclick="delMy(\''+esc(r.id)+'\')" class="text-red-500 text-xs">Delete</button></td></tr>').join('')||'<tr><td colspan="4" class="text-center py-6 text-slate-400">දත්ත නැත</td></tr>';
    };
-   
-   // Remove the custom download function that was conflicting
    
    document.addEventListener('change',e=>{if(/^myFilter/.test(e.target.id))window.renderMy();});setTimeout(()=>window.renderMy(),0);
  }
