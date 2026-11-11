@@ -594,21 +594,41 @@ function renderQuestions(){
   document.getElementById('qPreview').innerHTML=ph||'<div class="text-xs text-slate-400">Preview නැත</div>';
   updateCrumb();
 }
-async function moveQ(id,dir){
-  var lid=leafId();var qs=questions.filter(function(q){return q.node_id===lid;}).sort(function(a,b){return a.order_index-b.order_index;});
-  var idx=qs.findIndex(function(q){return q.id===id;});var nIdx=idx+dir;if(nIdx<0||nIdx>=qs.length)return;
-  var tmp=qs[idx].order_index;qs[idx].order_index=qs[nIdx].order_index;qs[nIdx].order_index=tmp;
-  saveLocal(Q_KEY,questions);
-  // Save changes to Supabase
-  if(sb){
-    try{
-      await sb.from('questions').update({order_index:qs[idx].order_index}).eq('id',qs[idx].id);
-      await sb.from('questions').update({order_index:qs[nIdx].order_index}).eq('id',qs[nIdx].id);
-    }catch(e){}
+async function moveQ(id, dir) {
+  var lid = leafId();
+  var qs = questions.filter(function(q){ return q.node_id === lid; }).sort(function(a,b){ return a.order_index - b.order_index; });
+  var idx = qs.findIndex(function(q){ return q.id === id; });
+  var nIdx = idx + dir;
+  if (nIdx < 0 || nIdx >= qs.length) return;
+
+  // Swap order indexes locally
+  var tmp = qs[idx].order_index;
+  qs[idx].order_index = qs[nIdx].order_index;
+  qs[nIdx].order_index = tmp;
+  
+  // Update main array
+  var q1 = questions.find(q => q.id === qs[idx].id);
+  var q2 = questions.find(q => q.id === qs[nIdx].id);
+  if(q1) q1.order_index = qs[idx].order_index;
+  if(q2) q2.order_index = qs[nIdx].order_index;
+
+  saveLocal(Q_KEY, questions);
+
+  // Save to Supabase and wait for completion
+  if (sb) {
+    try {
+      await sb.from('questions').update({ order_index: q1.order_index }).eq('id', q1.id);
+      await sb.from('questions').update({ order_index: q2.order_index }).eq('id', q2.id);
+    } catch (e) {
+      console.error("Order update failed:", e);
+      showToast('Order Save වුනේ නැත', false);
+      return; // Stop if DB fails
+    }
   }
+  
   renderQuestions();
-}
-document.getElementById('qForm').addEventListener('submit',async function(e){e.preventDefault();var lid=leafId();if(!lid)return showToast('මුලින්ම අංශය තෝරන්න',false);var id=document.getElementById('qId').value;var payload={id:id||'q'+Date.now(),node_id:lid,question_text:document.getElementById('qText').value.trim(),question_type:document.getElementById('qType').value,options:curOptions.slice(),is_required:document.getElementById('qReq').value==='1',order_index:id?(questions.find(function(q){return q.id===id;})||{}).order_index||0:questions.filter(function(q){return q.node_id===lid;}).length+1};if(id){var idx=questions.findIndex(function(q){return q.id===id;});if(idx>-1)questions[idx]=payload;}else questions.push(payload);saveLocal(Q_KEY,questions);if(sb){try{await sb.from('questions').upsert({id:payload.id,node_id:payload.node_id,question_text:payload.question_text,question_type:payload.question_type,options:payload.options,is_required:payload.is_required,order_index:payload.order_index});}catch(err){}}resetQ();renderQuestions();showToast('ප්‍රශ්නය Save විය ✓',true);});
+  showToast('Order මාරු විය ✓', true);
+}document.getElementById('qForm').addEventListener('submit',async function(e){e.preventDefault();var lid=leafId();if(!lid)return showToast('මුලින්ම අංශය තෝරන්න',false);var id=document.getElementById('qId').value;var payload={id:id||'q'+Date.now(),node_id:lid,question_text:document.getElementById('qText').value.trim(),question_type:document.getElementById('qType').value,options:curOptions.slice(),is_required:document.getElementById('qReq').value==='1',order_index:id?(questions.find(function(q){return q.id===id;})||{}).order_index||0:questions.filter(function(q){return q.node_id===lid;}).length+1};if(id){var idx=questions.findIndex(function(q){return q.id===id;});if(idx>-1)questions[idx]=payload;}else questions.push(payload);saveLocal(Q_KEY,questions);if(sb){try{await sb.from('questions').upsert({id:payload.id,node_id:payload.node_id,question_text:payload.question_text,question_type:payload.question_type,options:payload.options,is_required:payload.is_required,order_index:payload.order_index});}catch(err){}}resetQ();renderQuestions();showToast('ප්‍රශ්නය Save විය ✓',true);});
 function editQ(id){var q=questions.find(function(x){return x.id===id;});if(!q)return;document.getElementById('qId').value=q.id;document.getElementById('qText').value=q.question_text;document.getElementById('qType').value=q.question_type;document.getElementById('qReq').value=q.is_required?'1':'0';curOptions=(q.options||[]).slice();renderOpts();onQType();window.scrollTo({top:document.getElementById('qForm').offsetTop-80,behavior:'smooth'});}
 async function delQ(id){if(!(await profConfirm('මෙම ප්‍රශ්නය ඉවත් වේ.','Delete කරන්නද?')))return;questions=questions.filter(function(x){return x.id!==id;});saveLocal(Q_KEY,questions);if(sb){try{sb.from('questions').delete().eq('id',id);}catch(e){}}renderQuestions();}
 function loadDevTemplate(){var lid=leafId();if(!lid)return showToast('මුලින්ම Development Project තෝරන්න',false);var tmpl=[['ගොවි මහතාගේ නම / Farmer Name','short_text',[]],['ලිපිනය / Address','paragraph',[]],['දුරකථන අංකය / Telephone','short_text',[]],['හැඳුනුම්පත් අංකය / ID Number','short_text',[]],['ලබා දුන් භාණ්ඩය / Item Given','dropdown',['Seeds','Fertilizer','Tools','Other']],['ප්‍රමාණය / Quantity','number',[]],['ඒකකය / Unit','dropdown',['kg','Litre','Nos','Packet','Bag']],['Subsidy — 50% / 25% / Free','dropdown',['50%','25%','Free','Full Price']],['මිල (Rs.) / Price','number',[]]];var base=questions.filter(function(q){return q.node_id===lid;}).length;for(var i=0;i<tmpl.length;i++){questions.push({id:'q'+Date.now()+i,node_id:lid,question_text:tmpl[i][0],question_type:tmpl[i][1],options:tmpl[i][2],is_required:true,order_index:base+i+1});}saveLocal(Q_KEY,questions);renderQuestions();showToast('Development Template Add විය ✓',true);}

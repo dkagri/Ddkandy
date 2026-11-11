@@ -11,6 +11,31 @@
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(80px);background:#0f172a;color:#fff;padding:12px 18px;border-radius:999px;font-size:13px;font-weight:600;z-index:120;transition:.25s;max-width:92vw;text-align:center}
 .toast.show{transform:translateX(-50%) translateY(0)} .toast.ok{background:#059669}.toast.err{background:#dc2626}
 @media(min-width:640px){.modal-back{align-items:center}.modal-card{border-radius:20px}}
+/* Active state for Yes/No and Radio buttons */
+input[type="radio"]:checked + span, 
+input[type="radio"]:checked + div {
+    background-color: #4f46e5;
+    color: white;
+    border-color: #4f46e5;
+}
+.option-label {
+    transition: all 0.15s ease;
+}
+  /* Active state for Yes/No, Radio, and Option Labels */
+input[type="radio"]:checked + span {
+    background-color: #4f46e5 !important;
+    color: white !important;
+    border-color: #4f46e5 !important;
+}
+.option-label {
+    transition: all 0.15s ease;
+    cursor: pointer;
+}
+.option-label:has(input[type="radio"]:checked) {
+    background-color: #4f46e5;
+    color: white;
+    border-color: #4f46e5;
+}
 </style>
 </head>
 
@@ -190,11 +215,11 @@ function renderField(q){
   if(q.question_type==='paragraph') return '<textarea data-qid="'+q.id+'" rows="3" '+req+' placeholder="Type කරන්න..."></textarea>';
   if(q.question_type==='number') return '<input type="number" data-qid="'+q.id+'" '+req+' placeholder="0">';
   if(q.question_type==='date') return '<input type="date" data-qid="'+q.id+'" '+req+'>';
-  if(q.question_type==='yes_no') return '<div class="flex gap-2"><label class="flex-1 text-center rounded-xl border py-2 text-sm"><input type="radio" name="q_'+q.id+'" value="Yes" data-qid="'+q.id+'" class="hidden"> Yes</label><label class="flex-1 text-center rounded-xl border py-2 text-sm"><input type="radio" name="q_'+q.id+'" value="No" data-qid="'+q.id+'" class="hidden"> No</label></div>';
-  if(q.question_type==='multiple_choice'){ var h=''; for(var a=0;a<q.options.length;a++){ h+='<label class="flex gap-2 items-center text-sm py-1"><input type="radio" name="q_'+q.id+'" value="'+q.options[a]+'" data-qid="'+q.id+'" '+(q.is_required?'required':'')+' class="!w-auto"> '+q.options[a]+'</label>'; } return h; }
-  if(q.question_type==='checkbox'){ var h2=''; for(var b=0;b<q.options.length;b++){ h2+='<label class="flex gap-2 items-center text-sm py-1"><input type="checkbox" value="'+q.options[b]+'" data-qid="'+q.id+'" data-multi="1" class="!w-auto"> '+q.options[b]+'</label>'; } return h2; }
+  if(q.question_type==='yes_no') return '<div class="flex gap-2"><label class="flex-1 text-center rounded-xl border py-2 text-sm option-label"><input type="radio" name="q_'+q.id+'" value="Yes" data-qid="'+q.id+'" '+(q.is_required?'required':'')+' class="hidden"><span class="block w-full h-full">Yes</span></label><label class="flex-1 text-center rounded-xl border py-2 text-sm option-label"><input type="radio" name="q_'+q.id+'" value="No" data-qid="'+q.id+'" '+(q.is_required?'required':'')+' class="hidden"><span class="block w-full h-full">No</span></label></div>';
+  if(q.question_type==='multiple_choice'){ var h=''; for(var a=0;a<q.options.length;a++){ h+='<label class="flex gap-2 items-center text-sm py-1 option-label rounded-lg px-2"><input type="radio" name="q_'+q.id+'" value="'+q.options[a]+'" data-qid="'+q.id+'" '+(q.is_required?'required':'')+' class="!w-auto mr-2"><span>'+q.options[a]+'</span></label>'; } return h; }
+  if(q.question_type==='checkbox'){ var h2=''; for(var b=0;b<q.options.length;b++){ h2+='<label class="flex gap-2 items-center text-sm py-1 option-label rounded-lg px-2"><input type="checkbox" value="'+q.options[b]+'" data-qid="'+q.id+'" data-multi="1" class="!w-auto mr-2"><span>'+q.options[b]+'</span></label>'; } return h2; }
   if(q.question_type==='dropdown'){ var h3='<select data-qid="'+q.id+'" '+(q.is_required?'required':'')+'><option value="">-- තෝරන්න --</option>'; for(var c=0;c<q.options.length;c++){ h3+='<option>'+q.options[c]+'</option>'; } h3+='</select>'; return h3; }
-  if(q.question_type==='scale'){ var h4='<div class="flex gap-2">'; for(var d=1;d<=5;d++){ h4+='<label class="flex-1 text-center rounded-xl border py-2 text-sm"><input type="radio" name="q_'+q.id+'" value="'+d+'" data-qid="'+q.id+'" class="hidden"> '+d+'</label>'; } h4+='</div>'; return h4; }
+  if(q.question_type==='scale'){ var h4='<div class="flex gap-2">'; for(var d=1;d<=5;d++){ h4+='<label class="flex-1 text-center rounded-xl border py-2 text-sm option-label"><input type="radio" name="q_'+q.id+'" value="'+d+'" data-qid="'+q.id+'" '+(q.is_required?'required':'')+' class="hidden"><span class="block w-full h-full">'+d+'</span></label>'; } h4+='</div>'; return h4; }
   return '<input data-qid="'+q.id+'" '+req+'>';
 }
 function renderUForm(){
