@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="si"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Sub Admin Dashboard | FieldWork OS</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="styles.css">
+<style>
+.modal-back{position:fixed;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(2px);z-index:100;display:none;align-items:flex-end;justify-content:center;padding:12px}
+.modal-back.show{display:flex}
+.modal-card{background:#fff;border-radius:22px 22px 16px 16px;width:100%;max-width:460px;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:slideUp .22s ease}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(80px);background:#0f172a;color:#fff;padding:12px 18px;border-radius:999px;font-size:13px;font-weight:600;z-index:120;transition:.25s;max-width:92vw;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.ok{background:#059669}.toast.err{background:#dc2626}
+@media(min-width:640px){.modal-back{align-items:center;padding:20px}.modal-card{border-radius:20px}}
+</style>
+</head>
+<body class="bg-[#f8fafc]">
+<div id="modalBack" class="modal-back" onclick="if(event.target===this) closeModal(false)"><div class="modal-card">
+<div id="modalIcon" class="text-3xl">ℹ️</div><h3 id="modalTitle" class="font-bold text-[18px] mt-2">Title</h3><p id="modalMsg" class="text-sm text-slate-500 mt-1"></p>
+<div id="modalInputWrap" class="hidden mt-3"><input id="modalInput" placeholder=""></div>
+<div class="flex gap-2 mt-5"><button id="modalCancel" onclick="closeModal(false)" class="btn btn-ghost flex-1">Cancel</button><button id="modalOk" onclick="closeModal(true)" class="btn btn-primary flex-1">OK</button></div>
+</div></div>
+<div id="toast" class="toast"></div>
+
+<div id="sidebarOverlay" onclick="closeSidebar()" class="fixed inset-0 bg-black/50 z-[35] hidden lg:hidden"></div>
+<aside id="sidebar" class="sidebar p-5 flex flex-col">
+<div class="flex items-center gap-3"><div class="w-11 h-11 rounded-xl bg-white text-slate-900 grid place-items-center font-bold text-lg shrink-0">SA</div><div class="min-w-0 flex-1"><div class="font-bold leading-tight">FieldWork OS</div><div class="text-[11px] text-slate-400" id="scopeLabel">Sub Admin</div></div><button onclick="closeSidebar()" aria-label="Close Menu" class="lg:hidden shrink-0 w-10 h-10 rounded-full bg-white/20 hover:bg-white/30 text-white text-[20px] font-bold grid place-items-center leading-none">✕</button></div>
+<nav class="mt-7 space-y-1 text-[14px]">
+<button data-nav="dashboard" onclick="goNav('dashboard')" class="nav-btn w-full text-left px-4 py-3 rounded-xl bg-white text-slate-900 font-semibold">🏠 Dashboard</button>
+<button data-nav="data" onclick="goNav('data')" class="nav-btn w-full text-left px-4 py-3 rounded-xl text-slate-300 hover:bg-white/10">📊 දත්ත (Data)<br><span class="text-[11px] font-normal opacity-80">View / Edit / Delete</span></button>
+</nav>
+<div class="mt-auto rounded-2xl bg-white/10 p-4"><div class="text-sm font-semibold">Sub Admin</div><div class="text-xs text-slate-300" id="userLabel"></div>
+<button onclick="logout()" class="mt-3 w-full rounded-xl bg-red-500 py-2 text-sm font-semibold">ඉවත් වන්න (Logout)</button></div>
+</aside>
+
+<div class="main">
+<div class="topbar"><div class="flex items-center gap-3"><button onclick="openSidebar()" class="lg:hidden btn btn-ghost px-3">☰ Menu</button><h1 class="font-bold text-[17px] md:text-[19px]" id="pageTitle">Dashboard</h1><span class="text-[10px] px-2 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold whitespace-nowrap">DD Kandy</span></div><div class="flex items-center gap-2"><span id="sbStatus" class="text-[11px] px-2 py-1 rounded bg-slate-100">Supabase...</span></div></div>
+
+<div class="p-4 md:p-6 max-w-[1100px] mx-auto space-y-5">
+<div id="page-dashboard" class="page">
+<div class="grid grid-cols-2 gap-3">
+<div class="card !p-4"><div class="text-xs text-slate-500">මුළු පිළිතුරු</div><div class="text-2xl font-bold mt-1" id="kR">0</div></div>
+<div class="card !p-4"><div class="text-xs text-slate-500">මගේ අංශය</div><div class="text-xl font-bold mt-1 text-emerald-600" id="kScope">-</div></div>
+</div>
+
+<div class="card mt-5">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+        <div>
+            <h3 class="font-bold text-[18px]">📊 Summary Report - Data Distribution</h3>
+        </div>
+        <button onclick="downloadChart()" class="btn btn-primary px-4 py-2 text-sm w-full md:w-auto">⬇ Download Chart</button>
+    </div>
+    
+    <div class="mt-5 flex flex-col items-center">
+        <div class="relative w-full max-w-[350px] h-[300px] flex justify-center"><canvas id="chartData"></canvas></div>
+    </div>
+</div>
+
+<div class="card mt-5"><h3 class="font-bold">නවතම පිළිතුරු (Latest 10)</h3><div id="recentBox" class="mt-3 space-y-2"></div><button onclick="goNav('data')" class="btn btn-ghost mt-3 text-xs">සියලු දත්ත බලන්න →</button></div>
+</div>
+
+<div id="page-data" class="page hidden">
+<div class="card"><div class="flex flex-wrap justify-between gap-2"><h2 class="font-bold text-[19px]">දත්ත — බලන්න / Edit / Delete / Download</h2><button onclick="downloadCSV()" class="btn btn-success text-xs px-4">⬇ CSV Download</button></div>
+<p class="text-xs text-slate-500 mt-1" id="dataScopeNote">Sub Admin: තමන්ට අදාළ දත්ත පමණි.</p>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-3 mt-4" id="filterContainer">
+    <!-- Filters will be injected here by display-filters.js -->
+    <input type="hidden" id="fSearch" placeholder="Search..." />
+</div>
+<div class="table-wrap mt-4"><table><thead><tr><th>අංශය — Path</th><th>Sub / අංශය / කාර්යාලය</th><th>පිළිතුරු</th><th>User / දිනය</th><th>Action</th></tr></thead><tbody id="dataTbody"></tbody></table></div>
+<div id="editBox" class="hidden mt-4 border-2 border-indigo-200 rounded-2xl p-4 bg-indigo-50/50"><h4 class="font-bold">✏️ Edit Response</h4><div id="editFields" class="mt-3 space-y-3"></div><div class="flex gap-2 mt-3"><button onclick="saveEdit()" class="btn btn-primary px-4">Save Edit</button><button onclick="closeEdit()" class="btn btn-ghost px-4">Cancel</button></div></div>
+</div>
+</div>
+</div>
+<script>
+const SUPABASE_URL='https://ecpoyxjuednjixmaajux.supabase.co';
+const SUPABASE_KEY='sb_publishable_kbTMWrgN1_lRxClNYU-PQg_Qc9jpmSe';
+var __modalResolve=null;
+function showToast(msg,ok){var t=document.getElementById('toast');t.textContent=msg;t.className='toast show '+(ok===false?'err':ok===true?'ok':'');setTimeout(function(){t.className='toast';},2600);}
+function openModal(opt){return new Promise(function(res){__modalResolve=res;document.getElementById('modalIcon').textContent=opt.icon||'ℹ️';document.getElementById('modalTitle').textContent=opt.title||'';document.getElementById('modalMsg').textContent=opt.msg||'';document.getElementById('modalCancel').style.display=opt.hideCancel?'none':'';document.getElementById('modalOk').textContent=opt.okText||'OK';document.getElementById('modalBack').classList.add('show');});}
+function closeModal(ok){document.getElementById('modalBack').classList.remove('show');if(__modalResolve){var r=__modalResolve;__modalResolve=null;r({ok:ok});}}
+function profConfirm(msg,title){return openModal({title:title||'විශ්වාසද?',msg:msg,icon:'⚠️',okText:'ඔව්, කරන්න'}).then(function(r){return r.ok;});}
+
+const sb=(typeof supabase!=='undefined')?supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;
+const H_KEY='fw7_hier', N_KEY='fw7_nodes', Q_KEY='fw7_qs', R_KEY='fw7_resp';
+var role='sub_admin', mySub=localStorage.getItem('user_subOfficeId')||'ALL';
+var hierarchy=JSON.parse(localStorage.getItem(H_KEY)||'[]');
+var nodes=[]; var questions=[]; var responses=[]; var editingId=null;
+var chartInstance=null;
+
+window.addEventListener('pageshow', function(event) { if(event.persisted || (typeof performance!=='undefined' && performance.navigation.type===2)){ if(!localStorage.getItem('fw_session')) window.location.href='index.html'; } });
+
+(function verify(){
+  try{
+    var sess=localStorage.getItem('fw_session'); var r=localStorage.getItem('role');
+    if(!sess || r!=='sub_admin'){ window.location.href='index.html'; return; }
+    var s=JSON.parse(sess); if(s.exp && Date.now()>s.exp){ localStorage.removeItem('fw_session'); window.location.href='index.html'; return; }
+  }catch(e){ window.location.href='index.html'; }
+})();
+
+document.getElementById('userLabel').textContent=localStorage.getItem('user')||'';
+document.getElementById('kScope').textContent=localStorage.getItem('user_subOfficeName')||mySub;
+function openSidebar(){var sb=document.getElementById('sidebar');sb.style.transform='translateX(0)';sb.style.left='0';sb.style.display='flex';document.getElementById('sidebarOverlay').classList.remove('hidden');}
+function closeSidebar(){var sb=document.getElementById('sidebar');if(window.innerWidth<1024){sb.style.transform='translateX(-110%)';}document.getElementById('sidebarOverlay').classList.add('hidden');}
+function goNav(p){closeSidebar();document.querySelectorAll('.page').forEach(function(x){x.classList.add('hidden');});document.getElementById('page-'+p).classList.remove('hidden');document.querySelectorAll('.nav-btn').forEach(function(b){b.className='nav-btn w-full text-left px-4 py-3 rounded-xl text-slate-300 hover:bg-white/10';});var btn=document.querySelector('[data-nav="'+p+'"]');if(btn)btn.className='nav-btn w-full text-left px-4 py-3 rounded-xl bg-white text-slate-900 font-semibold';document.getElementById('pageTitle').textContent=p==='dashboard'?'Dashboard':'දත්ත';if(p==='dashboard')renderDashboard();if(p==='data')renderData();}
+async function logout(){ try{ if(sb) await sb.auth.signOut(); }catch(e){} ['role','user','user_name','user_subOfficeId','user_subOfficeName','user_division','user_office','user_officer_name','fw_session'].forEach(function(k){localStorage.removeItem(k);});location.href='index.html';}
+
+function renderDashboard(){
+  var myResponses=responses.filter(r=>r.subOfficeId===mySub);
+  document.getElementById('kR').textContent=myResponses.length;
+  
+  var aiCounts = {};
+  myResponses.forEach(function(r) { var ai = r.division || 'Unknown'; aiCounts[ai] = (aiCounts[ai] || 0) + 1; });
+  
+  var ctx = document.getElementById('chartData');
+  if(chartInstance) chartInstance.destroy();
+  if(ctx && typeof Chart!=='undefined'){
+    chartInstance = new Chart(ctx, {
+      type: 'pie',
+      data: { labels: Object.keys(aiCounts), datasets: [{ data: Object.values(aiCounts), backgroundColor: ['#4f46e5', '#059669', '#d97706', '#dc2626', '#0891b2', '#7c3aed'] }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+    });
+  }
+
+  var recent=myResponses.slice(0,10); document.getElementById('recentBox').innerHTML=recent.map(function(r){return '<div class="flex justify-between gap-3 rounded-xl border p-3 text-[13px]"><div><b>'+(r.node_path||'')+'</b><div class="text-xs text-slate-500">'+(r.division||'')+' • '+(r.office||'')+'</div></div><div class="text-xs text-slate-400 shrink-0">'+new Date(r.created_at).toLocaleDateString()+'</div></div>';}).join('')||'<div class="text-xs text-slate-400">පිළිතුරු තවම නැත</div>';
+}
+
+function downloadChart() {
+    var canvas = document.getElementById('chartData');
+    if (!canvas) return;
+    var a = document.createElement('a'); a.href = canvas.toDataURL('image/png'); a.download = 'subadmin_chart.png'; a.click();
+}
+
+async function sbSync(){
+  if(!sb){document.getElementById('sbStatus').textContent='Offline';return;}
+  try{
+    var n=await sb.from('nodes').select('*'); if(n.data) nodes=n.data;
+    var q=await sb.from('questions').select('*'); if(q.data) questions=q.data;
+    var r=await sb.from('responses').select('*').order('created_at',{ascending:false}).limit(1000);
+    if(r.data){ responses=r.data.map(function(x){return{id:x.id,node_id:x.node_id,main_type:x.main_type,level1:x.level1,level2:x.level2,level3:x.level3,node_path:x.node_path,subOfficeId:x.sub_office_id,subOfficeName:x.sub_office_name,division:x.division,office:x.office,submittedName:x.submitted_by_name,answers:x.answers||{},created_at:x.created_at};}); }
+    document.getElementById('sbStatus').textContent='Connected ✓';
+  }catch(e){ document.getElementById('sbStatus').textContent='Error'; }
+  renderDashboard(); renderData();
+}
+
+function renderData(){
+  var list=responses.filter(function(r){return r.subOfficeId===mySub;});
+  var fMain=document.getElementById('fMain')?.value||'';
+  var fDiv=document.getElementById('fDiv')?.value||'';
+  var fSearch=document.getElementById('fSearch')?.value||'';
+  
+  if(fMain) list=list.filter(function(r){return r.main_type===fMain;});
+  if(fDiv) list=list.filter(function(r){return r.division===fDiv;});
+  if(fSearch) list=list.filter(function(r){return (JSON.stringify(r.answers)+(r.node_path||'')).toLowerCase().includes(fSearch.toLowerCase());});
+
+  document.getElementById('dataScopeNote').textContent='Sub Admin • මුළු '+responses.filter(r=>r.subOfficeId===mySub).length+' • Filter කළ: '+list.length;
+  var h='';for(var i=0;i<list.length;i++){var r=list[i];h+='<tr><td class="text-xs"><b>'+(r.node_path||'')+'</b><br><span class="text-slate-400">'+r.main_type+'</span></td><td class="text-xs"><b>'+r.division+'</b><br>'+r.office+'</td><td class="text-xs">'+JSON.stringify(r.answers).substring(0,200)+'</td><td class="text-xs">'+(r.submittedName||'')+'<br>'+new Date(r.created_at).toLocaleDateString()+'</td><td><button onclick="editData(\''+r.id+'\')" class="btn btn-ghost px-2 py-1 text-xs">Edit</button><button onclick="delData(\''+r.id+'\')" class="text-red-500 text-xs px-2 font-semibold">Delete</button></td></tr>';}
+  document.getElementById('dataTbody').innerHTML=h||'<tr><td colspan=5 class="text-center py-6 text-slate-400">දත්ත නැත</td></tr>';
+}
+
+function editData(id){var r=responses.find(function(x){return x.id===id;});if(!r)return;editingId=id;document.getElementById('editBox').classList.remove('hidden');var qs=questions.filter(function(q){return q.node_id===r.node_id;});var f='';for(var i=0;i<qs.length;i++){var q=qs[i];f+='<div><label class="text-xs font-semibold">'+q.question_text+'</label><input data-edit-qid="'+q.id+'" value="'+((r.answers||{})[q.id]||'')+'"></div>';}document.getElementById('editFields').innerHTML=f||'<div class="text-xs">ප්‍රශ්න නැත</div>';}
+async function saveEdit(){
+  var r=responses.find(function(x){return x.id===editingId;});if(!r)return;var na={};document.querySelectorAll('[data-edit-qid]').forEach(function(el){na[el.dataset.editQid]=el.value;});
+  try{ await sb.from('responses').update({answers:na}).eq('id',r.id); r.answers=na; showToast('Saved ✓',true); }catch(e){ showToast('Error',false); }
+  document.getElementById('editBox').classList.add('hidden'); renderData();
+}
+function closeEdit(){editingId=null;document.getElementById('editBox').classList.add('hidden');}
+async function delData(id){if(!(await profConfirm('මෙම දත්ත ඉවත් වේ?','Delete?')))return;try{await sb.from('responses').delete().eq('id',id);responses=responses.filter(x=>x.id!==id);renderData();renderDashboard();showToast('Deleted ✓',true);}catch(e){}}
+
+function downloadCSV(){
+  var list=responses.filter(function(r){return r.subOfficeId===mySub;});
+  if(!list.length) return showToast('දත්ත නැත',false);
+  var csv='Date,Main,Path,Division,Office,User,Answers\n';
+  for(var i=0;i<list.length;i++){ var r=list[i]; csv+='"'+r.created_at+'","'+r.main_type+'","'+r.node_path+'","'+r.division+'","'+r.office+'","'+r.submittedName+'","'+JSON.stringify(r.answers).replace(/"/g,'""')+'"\n'; }
+  var blob=new Blob([csv],{type:'text/csv;charset=utf-8'}); var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='subadmin_data.csv'; a.click();
+}
+
+sbSync();
+</script>
+<script src="display-filters.js"></script>
+</body></html>

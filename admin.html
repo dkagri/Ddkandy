@@ -452,8 +452,8 @@ function pickMain(m){curMain=m;curL1=null;curL2=null;curL3=null;document.getElem
 function childrenOf(pid,level){return nodes.filter(function(n){return n.main_type===curMain&&n.level===level&&(pid?n.parent_id===pid:!n.parent_id);}).sort(function(a,b){return a.sort_order-b.sort_order;});}
 
 function nodeCard(n,sel,clickFn){
-  return '<div class="node-card '+(sel?'sel':'')+' '+(!n.is_published?'off':'')+'" onclick="'+clickFn+'(\''+n.id+'\')"><div class="flex justify-between gap-3"><div><div class="font-semibold">'+n.title+'</div><div class="text-xs text-slate-500">'+(n.subtitle||'')+'</div><div class="mt-1"><span class="badge '+(n.is_published?'badge-green':'badge-red')+'">'+(n.is_published?'✓ Unit එකේ පෙන්වයි — Published':'✕ Unit එකේ නොපෙන්වයි — Hidden')+'</span> <span class="text-[11px] text-slate-400">ප්‍රශ්න: '+questions.filter(function(q){return q.node_id===n.id;}).length+'</span></div></div><div class="flex flex-col items-end gap-2 shrink-0" onclick="event.stopPropagation()"><div class="flex items-center gap-2"><span class="text-[11px] font-semibold">'+(n.is_published?'Published':'Hidden')+'</span><div class="switch '+(n.is_published?'on':'')+'" onclick="togglePub(\''+n.id+'\')"></div></div>'+
-  '<div class="flex flex-wrap gap-1 justify-end mt-1">'+
+  return '<div class="node-card '+(sel?'sel':'')+' '+(!n.is_published?'off':'')+'" onclick="'+clickFn+'(\''+n.id+'\')"><div class="flex flex-col sm:flex-row justify-between gap-3"><div><div class="font-semibold">'+n.title+'</div><div class="text-xs text-slate-500">'+(n.subtitle||'')+'</div><div class="mt-1"><span class="badge '+(n.is_published?'badge-green':'badge-red')+'">'+(n.is_published?'✓ Unit එකේ පෙන්වයි — Published':'✕ Unit එකේ නොපෙන්වයි — Hidden')+'</span> <span class="text-[11px] text-slate-400">ප්‍රශ්න: '+questions.filter(function(q){return q.node_id===n.id;}).length+'</span></div></div><div class="flex flex-col items-end gap-2 shrink-0 w-full sm:w-auto mt-2 sm:mt-0" onclick="event.stopPropagation()"><div class="flex items-center gap-2 justify-end w-full"><span class="text-[11px] font-semibold">'+(n.is_published?'Published':'Hidden')+'</span><div class="switch '+(n.is_published?'on':'')+'" onclick="togglePub(\''+n.id+'\')"></div></div>'+
+  '<div class="flex flex-wrap gap-1 justify-end mt-1 w-full">'+
   '<button onclick="moveNode(\''+n.id+'\',-1)" class="btn btn-ghost px-2 py-1 text-[11px] font-bold" title="Move Up">↑</button>'+
   '<button onclick="moveNode(\''+n.id+'\',1)" class="btn btn-ghost px-2 py-1 text-[11px] font-bold" title="Move Down">↓</button>'+
   '<button onclick="renameNode(\''+n.id+'\')" class="text-indigo-600 text-xs font-semibold px-1">✏️ Edit</button>'+
@@ -461,7 +461,6 @@ function nodeCard(n,sel,clickFn){
   '<button onclick="delNode(\''+n.id+'\')" class="text-red-500 text-xs font-semibold px-1">🗑 Del</button>'+
   '</div></div></div></div>';
 }
-
 function renderL1(){
   document.getElementById('w2Title').textContent=curMain==='extension'?'Step 2 — Season තෝරන්න (2026/27 Maha, 2027 Yala...)':'Step 2 — Year තෝරන්න (2026, 2027, 2028...)';
   document.getElementById('w2Desc').textContent=curMain==='extension'?'Season එකක් Click කරන්න. ඊට පහළින් Cultivation පෙන්වයි.':'Year එකක් Click කරන්න. ඊට පහළින් Program පෙන්වයි.';

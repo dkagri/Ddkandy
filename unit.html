@@ -58,12 +58,19 @@ input[type="radio"]:checked + div {
 </div>
 
 <div id="panel-mydata" class="card mt-5 hidden">
-<div class="flex flex-wrap justify-between gap-2"><h2 class="font-bold text-[20px]">My Data - මම Update කළ දත්ත</h2><button onclick="downloadMyCSV()" class="btn btn-success text-xs px-3 py-1.5">CSV Download</button></div>
-<div class="grid md:grid-cols-3 gap-3 mt-4"><select id="myFilterMain" onchange="renderMy()"><option value="">All - Extension + Development</option><option value="extension">Extension</option><option value="development">Development</option></select><select id="myFilterL1" onchange="renderMy()"><option value="">All Season / Year</option></select><input id="mySearch" placeholder="Search..." oninput="renderMy()"></div>
+<div class="flex flex-wrap justify-between gap-2"><h2 class="font-bold text-[20px]">My Data - මම Update කළ දත්ත</h2><div class="flex gap-2"><button onclick="downloadMyCSV()" class="btn btn-success text-xs px-3 py-1.5">CSV Download</button><button onclick="downloadMyChart()" class="btn btn-primary text-xs px-3 py-1.5">Chart Download</button></div></div>
+<div class="grid md:grid-cols-4 gap-3 mt-4">
+  <select id="myFilterMain" onchange="renderMy()"><option value="">Main Type</option><option value="extension">Extension</option><option value="development">Development</option></select>
+  <select id="myFilterL1" onchange="renderMy()"><option value="">Season / Year</option></select>
+  <select id="myFilterL2" onchange="renderMy()"><option value="">Program</option></select>
+  <select id="myFilterL3" onchange="renderMy()"><option value="">Sub Program / Project</option></select>
+  <select id="myFilterItem" onchange="renderMy()"><option value="">Item</option></select>
+  <input id="mySearch" placeholder="Search..." oninput="renderMy()" class="md:col-span-2">
+</div>
+<div class="mt-5 border p-4 rounded-xl flex justify-center bg-white"><div style="position:relative; width:100%; max-width:300px; height:300px;"><canvas id="myChart"></canvas></div></div>
 <div class="table-wrap mt-4"><table><thead><tr><th>Path</th><th>Answers</th><th>Date</th><th>Action</th></tr></thead><tbody id="myTbody"></tbody></table></div>
 <div id="myEditBox" class="hidden mt-4 border rounded-xl p-4"><h4 class="font-bold">Edit - සංස්කරණය</h4><div id="myEditFields" class="mt-3 space-y-3"></div><div class="flex gap-2 mt-3"><button onclick="saveMyEdit()" class="btn btn-primary px-4">Save Edit</button><button onclick="closeMyEdit()" class="btn btn-ghost px-4">Cancel</button></div></div>
 </div>
-
 <div class="rounded-2xl bg-indigo-600 text-white p-5 mt-5"><div class="font-bold">උපදෙස්</div><div class="text-sm opacity-90 mt-2">Need to know more details contuct the admin</div></div>
 </div>
 <script>
@@ -291,17 +298,73 @@ async function submitUForm(e){
   return false;
 }
 function clearUForm(){ renderUForm(); }
+var myChartInstance = null;
+
 function renderMy(){
-  var fMain=document.getElementById('myFilterMain').value, fL1=document.getElementById('myFilterL1').value, s=(document.getElementById('mySearch').value||'').toLowerCase();
+  var fMain=document.getElementById('myFilterMain').value;
+  var fL1=document.getElementById('myFilterL1').value;
+  var fL2=document.getElementById('myFilterL2').value;
+  var fL3=document.getElementById('myFilterL3').value;
+  var fItem=document.getElementById('myFilterItem').value;
+  var s=(document.getElementById('mySearch').value||'').toLowerCase();
+  
   var mine=responses.filter(function(r){ return r.division===myDiv && r.office===myOffice; });
   if(fMain) mine=mine.filter(function(r){return r.main_type===fMain;});
+  
+  // Populate L1
+  var l1s=[]; mine.forEach(function(r){ if(r.level1 && l1s.indexOf(r.level1)===-1) l1s.push(r.level1); });
+  var sel=document.getElementById('myFilterL1'); var cur=sel.value;
+  sel.innerHTML='<option value="">Season / Year</option>'+l1s.map(function(x){return '<option>'+x+'</option>';}).join('');
+  sel.value=cur;
+  
   if(fL1) mine=mine.filter(function(r){return r.level1===fL1;});
+  
+  // Populate L2
+  var l2s=[]; mine.forEach(function(r){ if(r.level2 && l2s.indexOf(r.level2)===-1) l2s.push(r.level2); });
+  var sel2=document.getElementById('myFilterL2'); var cur2=sel2.value;
+  sel2.innerHTML='<option value="">Program</option>'+l2s.map(function(x){return '<option>'+x+'</option>';}).join('');
+  sel2.value=cur2;
+  
+  if(fL2) mine=mine.filter(function(r){return r.level2===fL2;});
+  
+  // Populate L3
+  var l3s=[]; mine.forEach(function(r){ if(r.level3 && l3s.indexOf(r.level3)===-1) l3s.push(r.level3); });
+  var sel3=document.getElementById('myFilterL3'); var cur3=sel3.value;
+  sel3.innerHTML='<option value="">Sub Program</option>'+l3s.map(function(x){return '<option>'+x+'</option>';}).join('');
+  sel3.value=cur3;
+  
+  if(fL3) mine=mine.filter(function(r){return r.level3===fL3;});
+  
+  // Populate Items
+  var items=[]; mine.forEach(function(r){ var it=(r.node_path||'').split(' > ').slice(-1)[0]; if(it && items.indexOf(it)===-1 && it.indexOf('Item:')>-1) items.push(it); });
+  var selI=document.getElementById('myFilterItem'); var curI=selI.value;
+  selI.innerHTML='<option value="">Item</option>'+items.map(function(x){return '<option>'+x+'</option>';}).join('');
+  selI.value=curI;
+  
+  if(fItem) mine=mine.filter(function(r){return (r.node_path||'').split(' > ').slice(-1)[0]===fItem;});
   if(s) mine=mine.filter(function(r){return (JSON.stringify(r.answers)+(r.node_path||'')).toLowerCase().indexOf(s)>-1;});
-  var l1s=[]; responses.forEach(function(r){ if(r.level1 && l1s.indexOf(r.level1)===-1) l1s.push(r.level1); }); var sel=document.getElementById('myFilterL1'); var cur=sel.value; sel.innerHTML='<option value="">All Season / Year</option>'+l1s.map(function(x){return '<option>'+x+'</option>';}).join(''); sel.value=cur;
-  var h=''; for(var i=0;i<mine.slice(0,100).length;i++){ var r=mine[i]; h+='<tr><td class="text-xs"><b>'+r.node_path+'</b></td><td class="text-xs">'+JSON.stringify(r.answers).substring(0,200)+'</td><td class="text-xs">'+new Date(r.created_at).toLocaleDateString()+'</td><td><button onclick="editMy(\''+r.id+'\')" class="btn btn-ghost px-2 py-1 text-xs">Edit</button><button onclick="delMy(\''+r.id+'\')" class="text-red-500 text-xs px-2">Delete</button></td></tr>'; }
+
+  // Chart Render
+  var counts={};
+  mine.forEach(function(r){ var k=r.level2||r.level1||'Unknown'; counts[k]=(counts[k]||0)+1; });
+  var ctx=document.getElementById('myChart');
+  if(myChartInstance) myChartInstance.destroy();
+  if(ctx && typeof Chart!=='undefined'){
+      myChartInstance = new Chart(ctx, {
+          type:'pie', data:{ labels:Object.keys(counts), datasets:[{data:Object.values(counts), backgroundColor:['#4f46e5','#059669','#d97706','#dc2626']}] },
+          options:{ responsive:true, maintainAspectRatio:false }
+      });
+  }
+
+  var h=''; for(var i=0;i<mine.length;i++){ var r=mine[i]; h+='<tr><td class="text-xs"><b>'+r.node_path+'</b></td><td class="text-xs">'+JSON.stringify(r.answers).substring(0,150)+'...</td><td class="text-xs">'+new Date(r.created_at).toLocaleDateString()+'</td><td><button onclick="editMy(\''+r.id+'\')" class="btn btn-ghost px-2 py-1 text-xs">Edit</button><button onclick="delMy(\''+r.id+'\')" class="text-red-500 text-xs px-2">Delete</button></td></tr>'; }
   document.getElementById('myTbody').innerHTML=h||'<tr><td colspan=4 class="text-center py-6 text-slate-400">දත්ත නැත</td></tr>';
 }
-function editMy(id){ var r=responses.find(function(x){return x.id===id;}); if(!r) return; editingId=id; document.getElementById('myEditBox').classList.remove('hidden'); var qs=questions.filter(function(q){return q.node_id===r.node_id;}); var h=''; for(var i=0;i<qs.length;i++){ var q=qs[i]; h+='<div><label class="text-xs font-semibold">'+q.question_text+'</label><input data-my-qid="'+q.id+'" value="'+(r.answers[q.id]||'')+'"></div>'; } document.getElementById('myEditFields').innerHTML=h||'<div class="text-xs">ප්‍රශ්න නැත</div>'; }
+
+function downloadMyChart() {
+    var canvas = document.getElementById('myChart');
+    if(!canvas) return;
+    var a = document.createElement('a'); a.href = canvas.toDataURL('image/png'); a.download = 'my_chart.png'; a.click();
+}function editMy(id){ var r=responses.find(function(x){return x.id===id;}); if(!r) return; editingId=id; document.getElementById('myEditBox').classList.remove('hidden'); var qs=questions.filter(function(q){return q.node_id===r.node_id;}); var h=''; for(var i=0;i<qs.length;i++){ var q=qs[i]; h+='<div><label class="text-xs font-semibold">'+q.question_text+'</label><input data-my-qid="'+q.id+'" value="'+(r.answers[q.id]||'')+'"></div>'; } document.getElementById('myEditFields').innerHTML=h||'<div class="text-xs">ප්‍රශ්න නැත</div>'; }
 function saveMyEdit(){ var r=responses.find(function(x){return x.id===editingId;}); if(!r) return; var na={}; document.querySelectorAll('[data-my-qid]').forEach(function(el){ na[el.dataset.myQid]=el.value; }); r.answers=na; r.updated_at=new Date().toISOString(); saveLocal(R_KEY, responses); if(sb){ try{ sb.from('responses').update({answers:na}).eq('id', r.id); }catch(e){} } closeMyEdit(); renderMy(); showToast('Edit Save විය! ✓',true); }
 function closeMyEdit(){ editingId=null; document.getElementById('myEditBox').classList.add('hidden'); }
 async function delMy(id){ if(!(await profConfirm('මෙම පිළිතුර ඉවත් වේ.','Delete කරන්නද?'))) return; responses=responses.filter(function(x){return x.id!==id;}); saveLocal(R_KEY, responses); if(sb){ try{ sb.from('responses').delete().eq('id', id); }catch(e){} } renderMy(); }
