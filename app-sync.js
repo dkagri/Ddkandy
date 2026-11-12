@@ -173,11 +173,36 @@
       }
     };
 
+    // UPDATED: qForm listener with upsertNodeChain
     const qForm = document.getElementById('qForm');
     if (qForm) qForm.addEventListener('submit', async function(e) {
       e.preventDefault(); e.stopImmediatePropagation();
       const lid = typeof leafId==='function' ? leafId() : null;
       if (!lid) return showToast('මුලින්ම අංශය තෝරන්න',false);
+
+      // 1. Upsert Parent Node Chain
+      if (typeof sb !== 'undefined' && sb) {
+        try {
+            async function upsertNodeChain(nodeId) {
+                if (!nodeId) return;
+                var n = window.nodes.find(x => x.id === nodeId);
+                if (!n) return;
+                if (n.parent_id) {
+                    await upsertNodeChain(n.parent_id);
+                }
+                await sb.from('nodes').upsert({
+                    id: n.id, main_type: n.main_type, level: n.level, parent_id: n.parent_id,
+                    title: n.title, subtitle: n.subtitle || '', is_published: n.is_published, sort_order: n.sort_order
+                }, { onConflict: 'id' });
+            }
+            await upsertNodeChain(lid);
+        } catch(err) {
+            console.error("Node chain save failed:", err);
+            return showToast('ප්‍රශ්නය සුරැකීමට පෙර නෝඩ් සුරැකීම අසාර්ථක විය: ' + err.message, false);
+        }
+      }
+
+      // 2. Save Question
       const oldId = document.getElementById('qId').value;
       const old = (questions||[]).find(q=>q.id===oldId);
       const payload = {id:oldId||('q'+Date.now()+Math.random().toString(36).slice(2,7)),
@@ -188,6 +213,7 @@
       if (!payload.question_text) return showToast('ප්‍රශ්නය ඇතුළත් කරන්න',false);
       if (['dropdown','multiple_choice','checkbox'].includes(payload.question_type) && !payload.options.length)
         return showToast('මෙම ප්‍රශ්න වර්ගයට අවම වශයෙන් එක් විකල්පයක් අවශ්‍යයි',false);
+      
       try {
         must(await sb.from('questions').upsert(payload,{onConflict:'id'}),'question save');
         if (oldId) { const i=questions.findIndex(q=>q.id===oldId); if(i>=0) questions[i]=payload; }
@@ -296,9 +322,7 @@
       try {
         const ctx=await getProfile();
         
-        // Determine which lids actually have questions to save
         let lidsToSave = lids.filter(lid => (window.questions||[]).some(q => String(q.node_id) === String(lid)));
-        // Fallback to curL3 if no items have questions
         if (lidsToSave.length === 0 && window.curMain === 'development' && window.curItems && window.curItems.length > 0 && window.curL3) {
             if ((window.questions||[]).some(q => String(q.node_id) === String(window.curL3))) {
                 lidsToSave = [window.curL3];

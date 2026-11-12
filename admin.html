@@ -1,8 +1,8 @@
-<!-- ========================================== -->
-<!-- FILE: admin.html                           -->
-<!-- ========================================== -->
 <!DOCTYPE html>
 <html lang="si"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Admin Dashboard | FieldWork OS</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -72,7 +72,7 @@
 <div class="card !p-4"><div class="text-xs text-slate-500">මුළු පිළිතුරු</div><div class="text-2xl font-bold mt-1" id="kR">0</div></div>
 </div>
 
-<div class="card !p-4 flex flex-wrap items-center gap-3 mt-5"><div class="flex-1 min-w-[200px]"><h3 class="font-bold">🧩 ප්‍රශ්න සකස් කිරීම — Form Builder</h3><p class="text-xs text-slate-500 mt-1">Extension / Development ප්‍රශ්න සෑදීමට, Edit කිරීමට, Publish කිරීමට</p></div><button onclick="resetWizard()" class="btn btn-primary px-5 py-3">→ ප්‍රශ්න සකසන්න →</button></div>
+<div class="card !p-4 flex flex-wrap items-center gap-3 mt-5"><div class="flex-1 min-w-[200px]"><h3 class="font-bold">🧩 ප්‍රශ්න සකස් කිරීම — Form Builder</h3><p class="text-xs text-slate-500 mt-1">Extension / Development ප්‍රශ්න සෑදීමට, Edit කිරීමට, Publish කිරීමට</p></div><button onclick="goNav('builder')" class="btn btn-primary px-5 py-3">→ ප්‍රශ්න සකසන්න →</button></div>
 
 <div class="card mt-5"><h3 class="font-bold">දැන් Unit එකේ පෙන්වන්නේ — <span class="text-emerald-600">Published Only</span></h3><div id="publishedBox" class="grid md:grid-cols-2 gap-3 mt-4"></div></div>
 <!-- CHARTS / SUMMARY REPORT -->
@@ -80,7 +80,7 @@
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
         <div>
             <h3 class="font-bold text-[18px]">📊 Summary Report - Data Distribution</h3>
-            <p class="text-xs text-slate-500 mt-1">according to the update</p>
+            <p class="text-xs text-slate-500 mt-1">மொத்த பதில்களின் அடிப்படையில் புள்ளிவிவரங்கள் (சதவீத வரைபடம்)</p>
         </div>
         <a href="summary.html" class="btn btn-primary px-4 py-2 text-sm w-full md:w-auto text-center">📈 Click for More Details →</a>
     </div>
@@ -183,7 +183,12 @@
 <div id="page-data" class="page hidden">
 <div class="card"><div class="flex flex-wrap justify-between gap-2"><h2 class="font-bold text-[19px]">දත්ත — බලන්න / Edit / Delete / Filter / Download</h2><button onclick="downloadCSV()" class="btn btn-success text-xs px-4">⬇ CSV Download</button></div>
 <p class="text-xs text-slate-500 mt-1" id="dataScopeNote">Main Admin: සියලු දත්ත. Sub Admin: තමන්ට අදාළ දත්ත පමණි.</p>
-<div class="grid md:grid-cols-4 gap-3 mt-4"><select id="fMain" onchange="renderData()"><option value="">සියල්ල — Extension + Development</option><option value="extension">Extension පමණි</option><option value="development">Development පමණි</option></select><select id="fSub" onchange="renderData()"><option value="">සියලු Sub Office</option></select><input id="fSearch" placeholder="Search: Farmer / Item / අංශය / කාර්යාලය..." oninput="renderData()"><select id="fDiv" onchange="renderData()"><option value="">සියලු අංශ</option></select></div>
+<div class="grid md:grid-cols-4 gap-3 mt-4" id="filterContainer">
+    <select id="fMain" onchange="renderData()"><option value="">සියල්ල — Extension + Development</option><option value="extension">Extension පමණි</option><option value="development">Development පමණි</option></select>
+    <select id="fSub" onchange="renderData()"><option value="">සියලු Sub Office</option></select>
+    <input id="fSearch" placeholder="Search: Farmer / Item / අංශය / කාර්යාලය..." oninput="renderData()">
+    <select id="fDiv" onchange="renderData()"><option value="">සියලු අංශ</option></select>
+</div>
 <div class="table-wrap mt-4"><table><thead><tr><th>අංශය — Path</th><th>Sub / අංශය / කාර්යාලය</th><th>පිළිතුරු</th><th>User / දිනය</th><th>Action</th></tr></thead><tbody id="dataTbody"></tbody></table></div>
 <div id="editBox" class="hidden mt-4 border-2 border-indigo-200 rounded-2xl p-4 bg-indigo-50/50"><h4 class="font-bold">✏️ Edit Response</h4><div id="editFields" class="mt-3 space-y-3"></div><div class="flex gap-2 mt-3"><button onclick="saveEdit()" class="btn btn-primary px-4">Save Edit</button><button onclick="closeEdit()" class="btn btn-ghost px-4">Cancel</button></div></div>
 </div></div>
@@ -647,23 +652,23 @@ async function moveQ(id, dir) {
   renderQuestions();
   showToast('Order මාරු විය ✓', true);
 }
+
+// Admin inline qForm listener (as fallback, though app-sync.js intercepts it)
 document.getElementById('qForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     var lid = leafId();
-    if (!lid) return showToast('fist selct', false);
+    if (!lid) return showToast('முதலில் பிரிவைத் தேர்ந்தெடுக்கவும்', false);
 
-    // 1. பெற்றோர் பிரிவையும் அதன் முன்னோர்களையும் (Parent Chain) Supabase-ல் சேமிக்கவும்
+    // 1. Upsert Parent Node Chain
     if (sb) {
         try {
             async function upsertNodeChain(nodeId) {
                 if (!nodeId) return;
                 var n = nodes.find(x => x.id === nodeId);
                 if (!n) return;
-                // முதலில் இதன் பெற்றோரை (Parent) சேமிக்கவும்
                 if (n.parent_id) {
                     await upsertNodeChain(n.parent_id);
                 }
-                // பின்னர் தன்னைச் சேமிக்கவும்
                 await sb.from('nodes').upsert({
                     id: n.id, main_type: n.main_type, level: n.level, parent_id: n.parent_id,
                     title: n.title, subtitle: n.subtitle || '', is_published: n.is_published, sort_order: n.sort_order
@@ -672,11 +677,11 @@ document.getElementById('qForm').addEventListener('submit', async function(e) {
             await upsertNodeChain(lid);
         } catch (err) {
             console.error("Parent chain save error:", err);
-            return showToast('cannot update (' + err.message + ')', false);
+            return showToast('பிழை: பெற்றோர் பிரிவுகளைச் சேமிக்க முடியவில்லை. (' + err.message + ')', false);
         }
     }
 
-    // 2. கேள்வியைச் சேமிக்கவும்
+    // 2. Save Question
     var id = document.getElementById('qId').value;
     var payload = {
         id: id || 'q' + Date.now(),
@@ -701,15 +706,18 @@ document.getElementById('qForm').addEventListener('submit', async function(e) {
             await sb.from('questions').upsert(payload);
         } catch (err) {
             console.error("Question save error:", err);
-            showToast('canot save: ' + err.message, false);
+            showToast('கேள்வியைச் சேமிக்க முடியவில்லை: ' + err.message, false);
             return;
         }
     }
 
     resetQ();
     renderQuestions();
-    showToast('question updated successfully ✓', true);
-});async function delQ(id){if(!(await profConfirm('මෙම ප්‍රශ්නය ඉවත් වේ.','Delete කරන්නද?')))return;questions=questions.filter(function(x){return x.id!==id;});saveLocal(Q_KEY,questions);if(sb){try{sb.from('questions').delete().eq('id',id);}catch(e){}}renderQuestions();}
+    showToast('கேள்வி வெற்றிகரமாகச் சேமிக்கப்பட்டது ✓', true);
+});
+
+function editQ(id){var q=questions.find(function(x){return x.id===id;});if(!q)return;document.getElementById('qId').value=q.id;document.getElementById('qText').value=q.question_text;document.getElementById('qType').value=q.question_type;document.getElementById('qReq').value=q.is_required?'1':'0';curOptions=(q.options||[]).slice();renderOpts();onQType();window.scrollTo({top:document.getElementById('qForm').offsetTop-80,behavior:'smooth'});}
+async function delQ(id){if(!(await profConfirm('මෙම ප්‍රශ්නය ඉවත් වේ.','Delete කරන්නද?')))return;questions=questions.filter(function(x){return x.id!==id;});saveLocal(Q_KEY,questions);if(sb){try{sb.from('questions').delete().eq('id',id);}catch(e){}}renderQuestions();}
 function loadDevTemplate(){var lid=leafId();if(!lid)return showToast('මුලින්ම Development Project තෝරන්න',false);var tmpl=[['ගොවි මහතාගේ නම / Farmer Name','short_text',[]],['ලිපිනය / Address','paragraph',[]],['දුරකථන අංකය / Telephone','short_text',[]],['හැඳුනුම්පත් අංකය / ID Number','short_text',[]],['ලබා දුන් භාණ්ඩය / Item Given','dropdown',['Seeds','Fertilizer','Tools','Other']],['ප්‍රමාණය / Quantity','number',[]],['ඒකකය / Unit','dropdown',['kg','Litre','Nos','Packet','Bag']],['Subsidy — 50% / 25% / Free','dropdown',['50%','25%','Free','Full Price']],['මිල (Rs.) / Price','number',[]]];var base=questions.filter(function(q){return q.node_id===lid;}).length;for(var i=0;i<tmpl.length;i++){questions.push({id:'q'+Date.now()+i,node_id:lid,question_text:tmpl[i][0],question_type:tmpl[i][1],options:tmpl[i][2],is_required:true,order_index:base+i+1});}saveLocal(Q_KEY,questions);renderQuestions();showToast('Development Template Add විය ✓',true);}
 function loadExtTemplate(){var lid=leafId();if(!lid)return showToast('මුලින්ම Cultivation තෝරන්න',false);var tmpl=[['වගා කළ ප්‍රමාණය (Acres)','number',[]],['ප්‍රභේදය / Variety','dropdown',['BG 352','BG 360','Other']],['ගොවීන් සංඛ්‍යාව / Farmers Count','number',[]],['සටහන් / Remarks','paragraph',[]]];var base=questions.filter(function(q){return q.node_id===lid;}).length;for(var i=0;i<tmpl.length;i++){questions.push({id:'q'+Date.now()+i,node_id:lid,question_text:tmpl[i][0],question_type:tmpl[i][1],options:tmpl[i][2],is_required:true,order_index:base+i+1});}saveLocal(Q_KEY,questions);renderQuestions();showToast('Extension Template Add විය ✓',true);}
 
