@@ -650,27 +650,29 @@ async function moveQ(id, dir) {
 document.getElementById('qForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     var lid = leafId();
-    if (!lid) return showToast('முதலில் பிரிவைத் தேர்ந்தெடுக்கவும்', false);
+    if (!lid) return showToast('fist selct', false);
 
-    // 1. பெற்றோர் பிரிவை (Node) Supabase-ல் சேமிக்கவும்
+    // 1. பெற்றோர் பிரிவையும் அதன் முன்னோர்களையும் (Parent Chain) Supabase-ல் சேமிக்கவும்
     if (sb) {
-        const parentNode = nodes.find(n => n.id === lid);
-        if (parentNode) {
-            try {
+        try {
+            async function upsertNodeChain(nodeId) {
+                if (!nodeId) return;
+                var n = nodes.find(x => x.id === nodeId);
+                if (!n) return;
+                // முதலில் இதன் பெற்றோரை (Parent) சேமிக்கவும்
+                if (n.parent_id) {
+                    await upsertNodeChain(n.parent_id);
+                }
+                // பின்னர் தன்னைச் சேமிக்கவும்
                 await sb.from('nodes').upsert({
-                    id: parentNode.id,
-                    main_type: parentNode.main_type,
-                    level: parentNode.level,
-                    parent_id: parentNode.parent_id,
-                    title: parentNode.title,
-                    subtitle: parentNode.subtitle || '',
-                    is_published: parentNode.is_published,
-                    sort_order: parentNode.sort_order
+                    id: n.id, main_type: n.main_type, level: n.level, parent_id: n.parent_id,
+                    title: n.title, subtitle: n.subtitle || '', is_published: n.is_published, sort_order: n.sort_order
                 }, { onConflict: 'id' });
-            } catch (err) {
-                console.error("Parent node save error:", err);
-                return showToast('பிழை: பெற்றோர் பிரிவைச் சேமிக்க முடியவில்லை.', false);
             }
+            await upsertNodeChain(lid);
+        } catch (err) {
+            console.error("Parent chain save error:", err);
+            return showToast('cannot update (' + err.message + ')', false);
         }
     }
 
@@ -699,16 +701,15 @@ document.getElementById('qForm').addEventListener('submit', async function(e) {
             await sb.from('questions').upsert(payload);
         } catch (err) {
             console.error("Question save error:", err);
-            showToast('கேள்வியைச் சேமிக்க முடியவில்லை: ' + err.message, false);
+            showToast('canot save: ' + err.message, false);
             return;
         }
     }
 
     resetQ();
     renderQuestions();
-    showToast('கேள்வி வெற்றிகரமாகச் சேமிக்கப்பட்டது ✓', true);
-});function editQ(id){var q=questions.find(function(x){return x.id===id;});if(!q)return;document.getElementById('qId').value=q.id;document.getElementById('qText').value=q.question_text;document.getElementById('qType').value=q.question_type;document.getElementById('qReq').value=q.is_required?'1':'0';curOptions=(q.options||[]).slice();renderOpts();onQType();window.scrollTo({top:document.getElementById('qForm').offsetTop-80,behavior:'smooth'});}
-async function delQ(id){if(!(await profConfirm('මෙම ප්‍රශ්නය ඉවත් වේ.','Delete කරන්නද?')))return;questions=questions.filter(function(x){return x.id!==id;});saveLocal(Q_KEY,questions);if(sb){try{sb.from('questions').delete().eq('id',id);}catch(e){}}renderQuestions();}
+    showToast('question updated successfully ✓', true);
+});async function delQ(id){if(!(await profConfirm('මෙම ප්‍රශ්නය ඉවත් වේ.','Delete කරන්නද?')))return;questions=questions.filter(function(x){return x.id!==id;});saveLocal(Q_KEY,questions);if(sb){try{sb.from('questions').delete().eq('id',id);}catch(e){}}renderQuestions();}
 function loadDevTemplate(){var lid=leafId();if(!lid)return showToast('මුලින්ම Development Project තෝරන්න',false);var tmpl=[['ගොවි මහතාගේ නම / Farmer Name','short_text',[]],['ලිපිනය / Address','paragraph',[]],['දුරකථන අංකය / Telephone','short_text',[]],['හැඳුනුම්පත් අංකය / ID Number','short_text',[]],['ලබා දුන් භාණ්ඩය / Item Given','dropdown',['Seeds','Fertilizer','Tools','Other']],['ප්‍රමාණය / Quantity','number',[]],['ඒකකය / Unit','dropdown',['kg','Litre','Nos','Packet','Bag']],['Subsidy — 50% / 25% / Free','dropdown',['50%','25%','Free','Full Price']],['මිල (Rs.) / Price','number',[]]];var base=questions.filter(function(q){return q.node_id===lid;}).length;for(var i=0;i<tmpl.length;i++){questions.push({id:'q'+Date.now()+i,node_id:lid,question_text:tmpl[i][0],question_type:tmpl[i][1],options:tmpl[i][2],is_required:true,order_index:base+i+1});}saveLocal(Q_KEY,questions);renderQuestions();showToast('Development Template Add විය ✓',true);}
 function loadExtTemplate(){var lid=leafId();if(!lid)return showToast('මුලින්ම Cultivation තෝරන්න',false);var tmpl=[['වගා කළ ප්‍රමාණය (Acres)','number',[]],['ප්‍රභේදය / Variety','dropdown',['BG 352','BG 360','Other']],['ගොවීන් සංඛ්‍යාව / Farmers Count','number',[]],['සටහන් / Remarks','paragraph',[]]];var base=questions.filter(function(q){return q.node_id===lid;}).length;for(var i=0;i<tmpl.length;i++){questions.push({id:'q'+Date.now()+i,node_id:lid,question_text:tmpl[i][0],question_type:tmpl[i][1],options:tmpl[i][2],is_required:true,order_index:base+i+1});}saveLocal(Q_KEY,questions);renderQuestions();showToast('Extension Template Add විය ✓',true);}
 
