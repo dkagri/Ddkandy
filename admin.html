@@ -80,7 +80,7 @@
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
         <div>
             <h3 class="font-bold text-[18px]">📊 Summary Report - Data Distribution</h3>
-            <p class="text-xs text-slate-500 mt-1">மொத்த பதில்களின் அடிப்படையில் புள்ளிவிவரங்கள் (சதவீத வரைபடம்)</p>
+            <p class="text-xs text-slate-500 mt-1">according to updated details</p>
         </div>
         <a href="summary.html" class="btn btn-primary px-4 py-2 text-sm w-full md:w-auto text-center">📈 Click for More Details →</a>
     </div>
@@ -657,7 +657,7 @@ async function moveQ(id, dir) {
 document.getElementById('qForm').addEventListener('submit', async function(e) {
     e.preventDefault();
     var lid = leafId();
-    if (!lid) return showToast('முதலில் பிரிவைத் தேர்ந்தெடுக்கவும்', false);
+    if (!lid) return showToast('first select', false);
 
     // 1. Upsert Parent Node Chain
     if (sb) {
@@ -706,14 +706,14 @@ document.getElementById('qForm').addEventListener('submit', async function(e) {
             await sb.from('questions').upsert(payload);
         } catch (err) {
             console.error("Question save error:", err);
-            showToast('கேள்வியைச் சேமிக்க முடியவில்லை: ' + err.message, false);
+            showToast('Could not save the question: ' + err.message, false);
             return;
         }
     }
 
     resetQ();
     renderQuestions();
-    showToast('கேள்வி வெற்றிகரமாகச் சேமிக்கப்பட்டது ✓', true);
+    showToast('Question saved successfully ✓', true);
 });
 
 function editQ(id){var q=questions.find(function(x){return x.id===id;});if(!q)return;document.getElementById('qId').value=q.id;document.getElementById('qText').value=q.question_text;document.getElementById('qType').value=q.question_type;document.getElementById('qReq').value=q.is_required?'1':'0';curOptions=(q.options||[]).slice();renderOpts();onQType();window.scrollTo({top:document.getElementById('qForm').offsetTop-80,behavior:'smooth'});}
