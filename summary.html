@@ -40,7 +40,7 @@
 
     <!-- Extension Section -->
     <div id="secExtension" class="hidden">
-        <h2 class="text-xl font-bold mb-4 text-indigo-700">Extension - விவரங்கள்</h2>
+        <h2 class="text-xl font-bold mb-4 text-indigo-700">Extension</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div class="chart-card"><h4 class="font-semibold text-sm">Session / Year</h4><div class="chart-container"><canvas id="extL1"></canvas></div><button onclick="downloadChart('extL1', 'Ext_Session')" class="btn btn-ghost mt-3 w-full text-xs">⬇ Download</button></div>
             <div class="chart-card"><h4 class="font-semibold text-sm">Cultivation (Work)</h4><div class="chart-container"><canvas id="extL2"></canvas></div><button onclick="downloadChart('extL2', 'Ext_Cultivation')" class="btn btn-ghost mt-3 w-full text-xs">⬇ Download</button></div>
@@ -52,7 +52,7 @@
 
     <!-- Development Section -->
     <div id="secDevelopment" class="hidden">
-        <h2 class="text-xl font-bold mb-4 text-emerald-700">Development - விவரங்கள்</h2>
+        <h2 class="text-xl font-bold mb-4 text-emerald-700">Development</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div class="chart-card"><h4 class="font-semibold text-sm">Year</h4><div class="chart-container"><canvas id="devL1"></canvas></div><button onclick="downloadChart('devL1', 'Dev_Year')" class="btn btn-ghost mt-3 w-full text-xs">⬇ Download</button></div>
             <div class="chart-card"><h4 class="font-semibold text-sm">Program (Work)</h4><div class="chart-container"><canvas id="devL2"></canvas></div><button onclick="downloadChart('devL2', 'Dev_Program')" class="btn btn-ghost mt-3 w-full text-xs">⬇ Download</button></div>
@@ -206,7 +206,7 @@ async function loadData() {
         
     } catch (e) {
         console.error(e);
-        document.getElementById('loading').textContent = 'දත්ත Load செய்வதில் தோல்வி: ' + e.message;
+        document.getElementById('loading').textContent = 'Data Load failed: ' + e.message;
     }
 }
 
